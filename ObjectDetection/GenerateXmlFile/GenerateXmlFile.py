@@ -38,9 +38,9 @@ class Annotation:
         self.ymax = str(bndbox["ymax"])
 
   def publishXmlAnnotationFile(self, PATH_TO_SAVE, nameOfTheFile, content):
-    if nameOfTheFile.lower().endswith(".xml"):
-      with open(PATH_TO_SAVE + '/' + nameOfTheFile, "w") as XMLfile: 
-        XMLfile.write(content) 
+    # if nameOfTheFile.lower().endswith(".xml"):
+    with open(PATH_TO_SAVE + '/' + nameOfTheFile + '.xml', "w") as XMLfile:
+      XMLfile.write(content)
   
   def addText(self, root, upper, element, text):
     element.appendChild(root.createTextNode(text))
@@ -59,7 +59,7 @@ class Annotation:
 
     #------------folder---------------
     filename = root.createElement("filename")
-    self.addText(root, xml, filename, self.filename)
+    self.addText(root, xml, filename, self.filename + '.jpg')
 
     #------------path---------------
     path = root.createElement("path")
@@ -116,14 +116,15 @@ class Annotation:
     xml_str = root.toprettyxml(indent ="\t") 
 
     #---------------publish---------------
-    save_path_file = os.path.abspath(os.path.dirname( __file__ ))
-    self.publishXmlAnnotationFile(save_path_file, "AnnotationFileExample.xml", xml_str)
+    # save_path_file = os.path.abspath(os.path.dirname( __file__ ))
+    self.publishXmlAnnotationFile(self.path, self.filename, xml_str)
 
 
 sourceDict = {
   "database" : "Unknown"
 }
 
+""""
 sizeDict = {
   "width" : 3456,
   "height" : 4608,
@@ -148,4 +149,4 @@ objectDict = {
 annotation = Annotation("nomask","filename","path",source=sourceDict,sizes= sizeDict, segmented = 0, object=objectDict)
 annotation.generateAnnotationFile()
 
-  
+"""

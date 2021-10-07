@@ -7,10 +7,6 @@ from GenerateXmlFile import *
 
 Title = 'XML File Generator'
 path = eagui.enterbox('Enter the video file you want to analyze', Title)
-if eagui.ynbox('Is your object rectangular or circle shaped', Title, ('Rectangular', 'Circle')):
-    shape = 'rectangular'
-else:
-    shape = 'circle'
 
 capture = cv.VideoCapture(cv.samples.findFileOrKeep(path))
 if not capture.isOpened:
@@ -41,10 +37,7 @@ while True:
     inverted = 255 - thresh
 
     # We also apply a close morphology transformation to get rid of the imperfections inside the shape
-    if shape == 'circle':
-        morph_kernel = cv.getStructuringElement(cv.MORPH_ELLIPSE, (3, 3))  # The structuring kernel element is a circle
-    else:
-        morph_kernel = cv.getStructuringElement(cv.MORPH_RECT, (3, 3))  # The structuring kernel element is a rectangle
+    morph_kernel = cv.getStructuringElement(cv.MORPH_RECT, (3, 3))
     close = cv.morphologyEx(inverted, cv.MORPH_CLOSE, morph_kernel, iterations=3)  # We apply a close transformation
 
     # We then use findContours to get the contours of the shape
@@ -80,11 +73,12 @@ if eagui.ynbox('Are the object borders correctly detected ?', Title, ('Yes', 'No
     pathtosave = eagui.enterbox('Enter the path where you want your files to be generated', Title)
 
     i = 0
+    capture.set(cv.CAP_PROP_POS_FRAMES, 0)
     while True:
         ret, frame = capture.read()
         if frame is None:
             break
-        print(str(i))
+
         size = {
             "width": rectangles[i][2],
             "height": rectangles[i][3],
@@ -108,6 +102,6 @@ if eagui.ynbox('Are the object borders correctly detected ?', Title, ('Yes', 'No
         framename = name+str(i)
 
         cv.imwrite(pathtosave + "/" + framename + '.jpg', frame)
-        annotation = Annotation(name, framename+'.jpg', pathtosave, sourceDict, size, 0, objectxml)
+        annotation = Annotation(name, framename, pathtosave, sourceDict, size, 0, objectxml)
         annotation.generateAnnotationFile()
         i = i+1
