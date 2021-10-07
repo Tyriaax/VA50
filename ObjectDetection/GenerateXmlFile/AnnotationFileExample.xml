@@ -13,15 +13,15 @@
 	</size>
 	<segmented>0</segmented>
 	<object>
-		<name>nomask</name>
-		<pose>Unspecified</pose>
+		<name>name</name>
+		<pose>name</pose>
 		<truncated>0</truncated>
-		<difficult>['difficult']</difficult>
+		<difficult>difficult</difficult>
 		<bndbox>
 			<xmin>741</xmin>
 			<ymin>2717</ymin>
-			<xmax>2171</xmax>
-			<ymax>3713</ymax>
+			<xmax>12</xmax>
+			<xmin>21</xmin>
 		</bndbox>
 	</object>
 </annotation>

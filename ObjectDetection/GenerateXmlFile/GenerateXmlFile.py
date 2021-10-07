@@ -14,7 +14,7 @@ class Annotation:
 
   class Source:
     def __init__(self, database) -> None:
-        self.database = database
+        self.database = database["database"]
 
   class Size: 
     def __init__(self, sizes):
@@ -32,33 +32,92 @@ class Annotation:
 
     class Bndbox:
       def __init__(self, bndbox):
-        self.xmin = bndbox["xmin"]
-        self.ymin = bndbox["ymin"]
-        self.xmax = bndbox["xmax"]
-        self.ymax = bndbox["ymax"]
+        self.xmin = str(bndbox["xmin"])
+        self.ymin = str(bndbox["ymin"])
+        self.xmax = str(bndbox["xmax"])
+        self.ymax = str(bndbox["ymax"])
 
-
-  def publishXmlAnnotationFile(self, PATH_TO_SAVE, nameOfTheFile):
+  def publishXmlAnnotationFile(self, PATH_TO_SAVE, nameOfTheFile, content):
     if nameOfTheFile.lower().endswith(".xml"):
       with open(PATH_TO_SAVE + '/' + nameOfTheFile, "w") as XMLfile: 
-        XMLfile.write(nameOfTheFile) 
+        XMLfile.write(content) 
+  
+  def addText(self, root, upper, element, text):
+    element.appendChild(root.createTextNode(text))
+    upper.appendChild(element)
 
   def generateAnnotationFile(self):
-
     root = minidom.Document()
   
-    xml = root.createElement('root') 
+    #------------Annotation---------------
+    xml = root.createElement("annotation") 
     root.appendChild(xml)
-      
-    productChild = root.createElement('product')
-    productChild.setAttribute('name', 'Geeks for Geeks')
-      
-    xml.appendChild(productChild)
-      
+    
+    #------------folder---------------
+    folder = root.createElement("folder")
+    self.addText(root,xml, folder, self.folder)
+
+    #------------folder---------------
+    filename = root.createElement("filename")
+    self.addText(root, xml, filename, self.filename)
+
+    #------------path---------------
+    path = root.createElement("path")
+    self.addText(root, xml, path, self.path)
+
+    #------------source---------------
+    source = root.createElement("source")
+    database = root.createElement("database")
+    self.addText(root, source, database, self.source.database)
+    xml.appendChild(source)
+
+    #------------size---------------
+    size = root.createElement("size")
+
+    width = root.createElement("width")
+    self.addText(root, size, width, self.size.width)
+    height = root.createElement("height")
+    self.addText(root, size, height, self.size.height)
+    depth = root.createElement("depth")
+    self.addText(root, size, depth, self.size.depth)
+
+    xml.appendChild(size)
+
+    #------------path---------------
+    segmented = root.createElement("segmented")
+    self.addText(root, xml, segmented, self.segmented)
+
+    #------------object---------------
+    object = root.createElement("object")
+
+    name = root.createElement("name")
+    self.addText(root, object, name, self.object.name)
+    pose = root.createElement("pose")
+    self.addText(root, object, pose, self.object.name)
+    truncated = root.createElement("truncated")
+    self.addText(root, object, truncated, self.object.truncated)
+    difficult = root.createElement("difficult")
+    self.addText(root, object, difficult, self.object.difficult)
+
+    bndbox = root.createElement("bndbox")
+    xmin = root.createElement("xmin")
+    self.addText(root, bndbox, xmin, self.object.bndbox.xmin)
+    ymin = root.createElement("ymin")
+    self.addText(root, bndbox, ymin, self.object.bndbox.ymin)
+    xmax = root.createElement("xmax")
+    self.addText(root, bndbox, xmax, self.object.bndbox.xmax)
+    ymax = root.createElement("xmin")
+    self.addText(root, bndbox, ymax, self.object.bndbox.ymax)
+    object.appendChild(bndbox)
+
+    xml.appendChild(object)
+
+    #---------------presentation----------
     xml_str = root.toprettyxml(indent ="\t") 
 
+    #---------------publish---------------
     save_path_file = os.path.abspath(os.path.dirname( __file__ ))
-    self.publishXmlAnnotationFile(save_path_file, "test.xml")
+    self.publishXmlAnnotationFile(save_path_file, "AnnotationFileExample.xml", xml_str)
 
 
 sourceDict = {
