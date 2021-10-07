@@ -27,7 +27,7 @@ class Annotation:
         self.name = object["name"]
         self.pose = object["pose"]
         self.truncated = str(object["truncated"])
-        self.difficult = object["difficult"]
+        self.difficult = str(object["difficult"])
         self.bndbox = self.Bndbox(object["bndbox"])
 
     class Bndbox:
