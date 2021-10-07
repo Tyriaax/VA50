@@ -18,7 +18,7 @@ def trainModel(PATH_TO_IMAGES, classes = [], nameOfTheModel = "model_weights", n
       utils.normalize_transform(),
     ])
 
-    dataset = Dataset(PATH_TO_IMAGES,transform = transforms)
+    dataset = Dataset(PATH_TO_IMAGES, transform = transforms)
     model = Model(classes)
     losses = model.fit(dataset,epochs=numberOfEpoch)
     print(losses) #A voir ce qu'on veut en faire et comment les utiliser au mieux
@@ -60,6 +60,7 @@ pathLouis = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "TestUniqu
 pathVideo = os.path.abspath(os.path.dirname( __file__ )) + "/masknomask.mp4"
 
 model = loadModel(PATH_OF_THE_SAVED_MODEL = 'model_weights.pth', classes = ['mask','nomask'])
+
 #predictImages(model,PATH_TO_TEST)
 #startLiveRecord(model)
 
