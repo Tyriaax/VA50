@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<annotation>
+	<folder>nomask</folder>
+	<filename>filename</filename>
+	<path>path</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>3456</width>
+		<height>4608</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>nomask</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>['difficult']</difficult>
+		<bndbox>
+			<xmin>741</xmin>
+			<ymin>2717</ymin>
+			<xmax>2171</xmax>
+			<ymax>3713</ymax>
+		</bndbox>
+	</object>
+</annotation>
