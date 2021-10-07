@@ -1,0 +1,26 @@
+<annotation>
+	<folder>nomask</folder>
+	<filename>IMG_20210927_161334.jpg</filename>
+	<path>C:\Users\aetes\Documents\Github\RealTimeObjectDetection\Tensorflow\workspace\images\collectedimages\nomask\IMG_20210927_161334.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>3456</width>
+		<height>4608</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>nomask</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>1199</xmin>
+			<ymin>3313</ymin>
+			<xmax>2599</xmax>
+			<ymax>4089</ymax>
+		</bndbox>
+	</object>
+</annotation>
