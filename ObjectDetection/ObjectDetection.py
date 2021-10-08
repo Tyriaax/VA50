@@ -4,12 +4,24 @@ from detecto import utils, visualize
 import os
 from torchvision import transforms
 import matplotlib.pyplot as plt
+import torch
 
 PATH_TO_TRAIN = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "train")) + '/'
 PATH_TO_TEST = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "test")) + '/'
 
-def trainModel(PATH_TO_IMAGES, classes = [], nameOfTheModel = "model_weights", numberOfEpoch = 10, PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.dirname( __file__ )) ):
-  if os.path.exists(PATH_TO_IMAGES) and bool(classes):
+#Dossier contenant les imgs et label devant obligatoirement s'appeller comme ça
+
+def trainModel(PATH_TO_DATAS, classes = [], nameOfTheModel = "model_weights", numberOfEpoch = 25, PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.dirname( __file__ ))):
+  if os.path.exists(PATH_TO_DATAS) and bool(classes) and os.path.exists(PATH_OF_THE_SAVED_MODEL):
+
+    PATH_TO_TRAIN_DATA_CSV = os.path.join(PATH_TO_DATAS, "train_labels.csv")
+    PATH_TO_VALIDATE_DATA_CSV = os.path.join(PATH_TO_DATAS, "validation_labels.csv")
+    PATH_TO_TRAIN_LABELS = os.path.join(PATH_TO_DATAS, "train/labels")
+    PATH_TO_VALIDATE_LABELS = os.path.join(PATH_TO_DATAS, "validation/labels")
+    PATH_TO_TRAIN_IMAGES = os.path.join(PATH_TO_DATAS, "train/images")
+    PATH_TO_VALIDATE_IMAGES = os.path.join(PATH_TO_DATAS, "validation/images")
+    PATH_OF_THE_SAVED_MODEL = os.path.join(PATH_OF_THE_SAVED_MODEL, nameOfTheModel +".pth")
+    print(PATH_OF_THE_SAVED_MODEL)
 
     custom_transforms = transforms.Compose([
       transforms.ToPILImage(),
@@ -22,18 +34,24 @@ def trainModel(PATH_TO_IMAGES, classes = [], nameOfTheModel = "model_weights", n
       utils.normalize_transform(),
     ])
 
-    dataset = Dataset(PATH_TO_IMAGES, transform = transforms)
-    loader = DataLoader(dataset,batch_size = 24, shuffle = true) #batch_size : How many images at once
+    utils.xml_to_csv(PATH_TO_TRAIN_LABELS, PATH_TO_TRAIN_DATA_CSV )
+    utils.xml_to_csv(PATH_TO_VALIDATE_LABELS, PATH_TO_VALIDATE_DATA_CSV) 
+
+    trainingDataset = Dataset(PATH_TO_TRAIN_DATA_CSV, PATH_TO_TRAIN_IMAGES, transform = custom_transforms)
+    loader = DataLoader(trainingDataset, batch_size = 2, shuffle = True) #batch_size : How many images at once ----> A changer !!!!
+
+    validationDataset = Dataset(PATH_TO_VALIDATE_DATA_CSV, PATH_TO_VALIDATE_IMAGES)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = Model(classes = classes, device = device)
-    losses = model.fit(loader, epochs=numberOfEpoch, verbose = True,  )
+    losses = model.fit(loader, val_dataset = validationDataset, epochs = numberOfEpoch, verbose = True,  )
 
     plt.plot(losses)  # Visualize loss throughout training
     plt.show()
     #A voir ce qu'on veut en faire et comment les utiliser au mieux
 
-    model.save(PATH_OF_THE_SAVED_MODEL + '/' + nameOfTheModel + ".pth")
+    model.save(PATH_OF_THE_SAVED_MODEL)
+
   else:
     print("Check the path to the Data or if there is enough classes to train over")
 
@@ -67,10 +85,12 @@ def detectOnVideo(model, PATH_OF_THE_VIDEO, outputFileName, framePerSecond = 30,
   visualize.detect_video(model, PATH_OF_THE_VIDEO, output_file= outputFileName, fps = framePerSecond, score_filter=scoreFilter)
 
 
-pathLouis = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "TestUnique")) + '/'
-pathVideo = os.path.abspath(os.path.dirname( __file__ )) 
+PATH_TO_DATAS = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "MaskData")) 
+PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "model_weights.pth")) 
 
-model = loadModel(PATH_OF_THE_SAVED_MODEL = 'model_weights.pth', classes = ['mask','nomask'])
+trainModel(PATH_TO_DATAS , classes = ['mask','nomask'], nameOfTheModel = "masknomask_weights", numberOfEpoch = 1, PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.dirname( __file__ )))
+
+#model = loadModel(PATH_OF_THE_SAVED_MODEL =  PATH_OF_THE_SAVED_MODEL, classes = ['mask','nomask'])
 
 #predictImages(model,PATH_TO_TEST)
 #startLiveRecord(model)
