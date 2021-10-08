@@ -14,7 +14,7 @@ def trainModel(PATH_TO_IMAGES, classes = [], nameOfTheModel = "model_weights", n
     custom_transforms = transforms.Compose([
       transforms.ToPILImage(),
       transforms.Resize(800),
-      transforms.RandomRotation(degrees=180),
+      transforms.RandomRotation(degrees = 180),
       transforms.RandomHorizontalFlip(p=0.5),
       transforms.RandomVerticalFlip(p=0.5),
       transforms.ColorJitter(saturation=0.3),
@@ -23,8 +23,10 @@ def trainModel(PATH_TO_IMAGES, classes = [], nameOfTheModel = "model_weights", n
     ])
 
     dataset = Dataset(PATH_TO_IMAGES, transform = transforms)
-    loader = DataLoader(dataset,batch_size = 2, shuffle = true)
-    model = Model(classes)
+    loader = DataLoader(dataset,batch_size = 24, shuffle = true) #batch_size : How many images at once
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = Model(classes = classes, device = device)
     losses = model.fit(loader, epochs=numberOfEpoch, verbose = True,  )
 
     plt.plot(losses)  # Visualize loss throughout training
