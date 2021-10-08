@@ -51,7 +51,6 @@ def trainModel(PATH_TO_DATAS, classes = [], nameOfTheModel = "model_weights", nu
     #A voir ce qu'on veut en faire et comment les utiliser au mieux
 
     model.save(PATH_OF_THE_SAVED_MODEL)
-
   else:
     print("Check the path to the Data or if there is enough classes to train over")
 
