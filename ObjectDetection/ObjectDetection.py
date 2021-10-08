@@ -1,5 +1,5 @@
 from cv2 import transform
-from detecto.core import Model, Dataset, Dataloader
+from detecto.core import Model, Dataset, DataLoader
 from detecto import utils, visualize
 import os
 from torchvision import transforms
@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 PATH_TO_TRAIN = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "train")) + '/'
 PATH_TO_TEST = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "test")) + '/'
 
-def trainModel(PATH_TO_IMAGES, classes = [], nameOfTheModel = "model_weights", numberOfEpoch = 10, PATH_OF_THE_SAVED_MODEL):
+def trainModel(PATH_TO_IMAGES, classes = [], nameOfTheModel = "model_weights", numberOfEpoch = 10, PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.dirname( __file__ )) ):
   if os.path.exists(PATH_TO_IMAGES) and bool(classes):
 
     custom_transforms = transforms.Compose([
@@ -23,7 +23,7 @@ def trainModel(PATH_TO_IMAGES, classes = [], nameOfTheModel = "model_weights", n
     ])
 
     dataset = Dataset(PATH_TO_IMAGES, transform = transforms)
-    loader = Dataloader(dataset,batch_size = 2, shuffle = true)
+    loader = DataLoader(dataset,batch_size = 2, shuffle = true)
     model = Model(classes)
     losses = model.fit(loader, epochs=numberOfEpoch, verbose = True,  )
 
@@ -66,7 +66,7 @@ def detectOnVideo(model, PATH_OF_THE_VIDEO, outputFileName, framePerSecond = 30,
 
 
 pathLouis = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "TestUnique")) + '/'
-pathVideo = os.path.abspath(os.path.dirname( __file__ )) + "/masknomask.mp4"
+pathVideo = os.path.abspath(os.path.dirname( __file__ )) 
 
 model = loadModel(PATH_OF_THE_SAVED_MODEL = 'model_weights.pth', classes = ['mask','nomask'])
 
