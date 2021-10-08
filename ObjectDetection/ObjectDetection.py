@@ -1,28 +1,37 @@
 from cv2 import transform
-from detecto.core import Model, Dataset
+from detecto.core import Model, Dataset, Dataloader
 from detecto import utils, visualize
 import os
 from torchvision import transforms
+import matplotlib.pyplot as plt
 
 PATH_TO_TRAIN = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "train")) + '/'
 PATH_TO_TEST = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "test")) + '/'
 
-def trainModel(PATH_TO_IMAGES, classes = [], nameOfTheModel = "model_weights", numberOfEpoch = 10):
+def trainModel(PATH_TO_IMAGES, classes = [], nameOfTheModel = "model_weights", numberOfEpoch = 10, PATH_OF_THE_SAVED_MODEL):
   if os.path.exists(PATH_TO_IMAGES) and bool(classes):
 
     custom_transforms = transforms.Compose([
       transforms.ToPILImage(),
       transforms.Resize(800),
+      transforms.RandomRotation(degrees=180),
+      transforms.RandomHorizontalFlip(p=0.5),
+      transforms.RandomVerticalFlip(p=0.5),
       transforms.ColorJitter(saturation=0.3),
       transforms.ToTensor(),
       utils.normalize_transform(),
     ])
 
     dataset = Dataset(PATH_TO_IMAGES, transform = transforms)
+    loader = Dataloader(dataset,batch_size = 2, shuffle = true)
     model = Model(classes)
-    losses = model.fit(dataset,epochs=numberOfEpoch)
-    print(losses) #A voir ce qu'on veut en faire et comment les utiliser au mieux
-    model.save(nameOfTheModel + ".pth")
+    losses = model.fit(loader, epochs=numberOfEpoch, verbose = True,  )
+
+    plt.plot(losses)  # Visualize loss throughout training
+    plt.show()
+    #A voir ce qu'on veut en faire et comment les utiliser au mieux
+
+    model.save(PATH_OF_THE_SAVED_MODEL + '/' + nameOfTheModel + ".pth")
   else:
     print("Check the path to the Data or if there is enough classes to train over")
 
@@ -64,7 +73,7 @@ model = loadModel(PATH_OF_THE_SAVED_MODEL = 'model_weights.pth', classes = ['mas
 #predictImages(model,PATH_TO_TEST)
 #startLiveRecord(model)
 
-detectOnVideo(model,pathVideo,'output_vid.avi')
+#detectOnVideo(model, pathVideo,'output_vid.avi')
 
 
 
