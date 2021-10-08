@@ -8,13 +8,13 @@ import matplotlib.pyplot as plt
 PATH_TO_TRAIN = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "train")) + '/'
 PATH_TO_TEST = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "test")) + '/'
 
-def trainModel(PATH_TO_IMAGES, classes = [], nameOfTheModel = "model_weights", numberOfEpoch = 10, PATH_OF_THE_SAVED_MODEL):
+def trainModel(PATH_TO_IMAGES, classes = [], nameOfTheModel = "model_weights", numberOfEpoch = 25, PATH_OF_THE_SAVED_MODEL):
   if os.path.exists(PATH_TO_IMAGES) and bool(classes):
 
     custom_transforms = transforms.Compose([
       transforms.ToPILImage(),
       transforms.Resize(800),
-      transforms.RandomRotation(degrees=180),
+      transforms.RandomRotation(degrees = 180),
       transforms.RandomHorizontalFlip(p=0.5),
       transforms.RandomVerticalFlip(p=0.5),
       transforms.ColorJitter(saturation=0.3),
@@ -23,8 +23,10 @@ def trainModel(PATH_TO_IMAGES, classes = [], nameOfTheModel = "model_weights", n
     ])
 
     dataset = Dataset(PATH_TO_IMAGES, transform = transforms)
-    loader = Dataloader(dataset,batch_size = 2, shuffle = true)
-    model = Model(classes)
+    loader = Dataloader(dataset,batch_size = 24, shuffle = true) #batch_size : How many images at once
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = Model(classes = classes, device = device)
     losses = model.fit(loader, epochs=numberOfEpoch, verbose = True,  )
 
     plt.plot(losses)  # Visualize loss throughout training
