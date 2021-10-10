@@ -1,13 +1,13 @@
 from __future__ import print_function
 import numpy as np
 import cv2 as cv
-import argparse
 import easygui as eagui
 from GenerateXmlFile import *
+import os
 
 def main():
     title = 'XML File Generator'
-    path = eagui.enterbox('Enter the video file you want to analyze', title)
+    path = eagui.fileopenbox('Select the video file you want to analyze', title)
 
     capture = cv.VideoCapture(cv.samples.findFileOrKeep(path))
     if not capture.isOpened:
@@ -71,7 +71,13 @@ def main():
 
     if eagui.ynbox('Are the object borders correctly detected ?', title, ('Yes', 'No')):
         name = eagui.enterbox('Enter the name of your object', title)
-        pathtosave = eagui.enterbox('Enter the path where you want your files to be generated', title)
+        pathtosave = eagui.diropenbox('Enter the folder where you want the data to be generated (subfolders will be created)', title)
+        pathtosave = pathtosave + '/' + name
+        os.mkdir(pathtosave)
+        pathtosavejpg = pathtosave + '/' + name + '_jpg'
+        pathtosavexml = pathtosave + '/' + name + '_xml'
+        os.mkdir(pathtosavejpg)
+        os.mkdir(pathtosavexml)
 
         i = 0
         capture.set(cv.CAP_PROP_POS_FRAMES, 0)
@@ -102,8 +108,8 @@ def main():
 
             framename = name+str(i)
 
-            cv.imwrite(pathtosave + "/" + framename + '.jpg', frame)
-            annotation = Annotation(name, framename, pathtosave, sourceDict, size, 0, objectxml)
+            cv.imwrite(pathtosavejpg + "/" + framename + '.jpg', frame)
+            annotation = Annotation(name, framename, pathtosavexml, sourceDict, size, 0, objectxml)
             annotation.generateAnnotationFile()
             i = i+1
 
