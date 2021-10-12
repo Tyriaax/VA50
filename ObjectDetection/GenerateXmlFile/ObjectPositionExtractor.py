@@ -3,11 +3,13 @@ import numpy as np
 import cv2 as cv
 import easygui as eagui
 from GenerateXmlFile import *
+import random
 import os
 
 def main():
     title = 'XML File Generator'
     path = eagui.fileopenbox('Select the video file you want to analyze', title)
+    random.seed
 
     capture = cv.VideoCapture(cv.samples.findFileOrKeep(path))
     if not capture.isOpened:
@@ -74,10 +76,14 @@ def main():
         pathtosave = eagui.diropenbox('Enter the folder where you want the data to be generated (subfolders will be created)', title)
         pathtosave = pathtosave + '/' + name
         os.mkdir(pathtosave)
-        pathtosavejpg = pathtosave + '/' + name + '_jpg'
-        pathtosavexml = pathtosave + '/' + name + '_xml'
-        os.mkdir(pathtosavejpg)
-        os.mkdir(pathtosavexml)
+        pathtosavetrain = pathtosave + '/train'
+        pathtosavevalidation = pathtosave + '/validation'
+        os.mkdir(pathtosavetrain)
+        os.mkdir(pathtosavevalidation)
+        os.mkdir(pathtosavetrain + '/images')
+        os.mkdir(pathtosavetrain + '/test')
+        os.mkdir(pathtosavevalidation + '/images')
+        os.mkdir(pathtosavevalidation + '/test')
 
         i = 0
         capture.set(cv.CAP_PROP_POS_FRAMES, 0)
@@ -106,10 +112,14 @@ def main():
                 "bndbox" : bndbox
             }
 
-            framename = name+str(i)
+            selectedpath = pathtosavetrain
+            if (random.randrange(10) == 1):
+                selectedpath = pathtosavevalidation
 
-            cv.imwrite(pathtosavejpg + "/" + framename + '.jpg', frame)
-            annotation = Annotation(name, framename, pathtosavexml, sourceDict, size, 0, objectxml)
+            framename = name + str(i)
+
+            cv.imwrite(selectedpath + "/images/" + framename + '.jpg', frame)
+            annotation = Annotation(name, framename, selectedpath + "/test/", sourceDict, size, 0, objectxml)
             annotation.generateAnnotationFile()
             i = i+1
 
