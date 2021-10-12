@@ -1,3 +1,7 @@
 
 model_weights.pth
 *.pth
+*.jpg
+*.xml
+*.mp4
+*.csv

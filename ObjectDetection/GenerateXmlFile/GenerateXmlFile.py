@@ -1,6 +1,5 @@
 from xml.dom import minidom
 import os 
-  
 
 class Annotation:
   def __init__(self, folder, filename, path, source, sizes, segmented, object):

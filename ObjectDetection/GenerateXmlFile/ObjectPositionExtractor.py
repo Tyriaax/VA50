@@ -81,9 +81,9 @@ def main():
         os.mkdir(pathtosavetrain)
         os.mkdir(pathtosavevalidation)
         os.mkdir(pathtosavetrain + '/images')
-        os.mkdir(pathtosavetrain + '/test')
+        os.mkdir(pathtosavetrain + '/labels')
         os.mkdir(pathtosavevalidation + '/images')
-        os.mkdir(pathtosavevalidation + '/test')
+        os.mkdir(pathtosavevalidation + '/labels')
 
         i = 0
         capture.set(cv.CAP_PROP_POS_FRAMES, 0)
@@ -119,7 +119,7 @@ def main():
             framename = name + str(i)
 
             cv.imwrite(selectedpath + "/images/" + framename + '.jpg', frame)
-            annotation = Annotation(name, framename, selectedpath + "/test/", sourceDict, size, 0, objectxml)
+            annotation = Annotation(name, framename, selectedpath + "/labels/", sourceDict, size, 0, objectxml)
             annotation.generateAnnotationFile()
             i = i+1
 

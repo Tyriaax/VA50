@@ -82,15 +82,15 @@ def detectOnVideo(model, PATH_OF_THE_VIDEO, outputFileName, framePerSecond = 30,
   visualize.detect_video(model, PATH_OF_THE_VIDEO, output_file= outputFileName, fps = framePerSecond, score_filter=scoreFilter)
 
 
-PATH_TO_DATAS = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "MaskData")) 
+PATH_TO_DATAS = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Square_item")) 
 PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "masknomask_weights.pth")) 
 
-#trainModel(PATH_TO_DATAS , classes = ['mask','nomask'], nameOfTheModel = "masknomask_weights", numberOfEpoch = 15, PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.dirname( __file__ )))
+trainModel(PATH_TO_DATAS , classes = ['Square_item'], nameOfTheModel = "Square_weights", numberOfEpoch = 25, PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.dirname( __file__ )))
 
-model = loadModel(PATH_OF_THE_SAVED_MODEL =  PATH_OF_THE_SAVED_MODEL, classes = ['mask','nomask'])
+#model = loadModel(PATH_OF_THE_SAVED_MODEL =  PATH_OF_THE_SAVED_MODEL, classes = ['mask','nomask'])
 
 #predictImages(model,PATH_TO_TEST)
-startLiveRecord(model)
+#startLiveRecord(model)
 
 #detectOnVideo(model, os.path.abspath(os.path.join(os.path.dirname( __file__ ),"vid.mp4")), os.path.abspath(os.path.join(os.path.dirname( __file__ ), "output_vid.avi"))) 
 
