@@ -6,12 +6,10 @@ from torchvision import transforms
 import matplotlib.pyplot as plt
 import torch
 
-PATH_TO_TRAIN = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "train")) + '/'
-PATH_TO_TEST = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "test")) + '/'
-
 #Dossier contenant les imgs et label devant obligatoirement s'appeller comme ça
 
 def trainModel(PATH_TO_DATAS, classes = [], nameOfTheModel = "model_weights", numberOfEpoch = 25, PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.dirname( __file__ ))):
+
   if os.path.exists(PATH_TO_DATAS) and bool(classes) and os.path.exists(PATH_OF_THE_SAVED_MODEL):
 
     PATH_TO_TRAIN_DATA_CSV = os.path.join(PATH_TO_DATAS, "train_labels.csv")
@@ -21,7 +19,6 @@ def trainModel(PATH_TO_DATAS, classes = [], nameOfTheModel = "model_weights", nu
     PATH_TO_TRAIN_IMAGES = os.path.join(PATH_TO_DATAS, "train/images")
     PATH_TO_VALIDATE_IMAGES = os.path.join(PATH_TO_DATAS, "validation/images")
     PATH_OF_THE_SAVED_MODEL = os.path.join(PATH_OF_THE_SAVED_MODEL, nameOfTheModel +".pth")
-    print(PATH_OF_THE_SAVED_MODEL)
 
     custom_transforms = transforms.Compose([
       transforms.ToPILImage(),
@@ -38,7 +35,7 @@ def trainModel(PATH_TO_DATAS, classes = [], nameOfTheModel = "model_weights", nu
     utils.xml_to_csv(PATH_TO_VALIDATE_LABELS, PATH_TO_VALIDATE_DATA_CSV) 
 
     trainingDataset = Dataset(PATH_TO_TRAIN_DATA_CSV, PATH_TO_TRAIN_IMAGES, transform = custom_transforms)
-    loader = DataLoader(trainingDataset, batch_size = 2, shuffle = True) #batch_size : How many images at once ----> A changer !!!!
+    loader = DataLoader(trainingDataset, batch_size = 10, shuffle = True) #batch_size : How many images at once ----> A changer !!!!
 
     validationDataset = Dataset(PATH_TO_VALIDATE_DATA_CSV, PATH_TO_VALIDATE_IMAGES)
 
@@ -77,24 +74,25 @@ def predictImages(model, PATH_TO_TEST_IMAGES): #Mettre un nom
     print(scores)
     visualize.show_labeled_image(images[0], boxes[0], labels[0])
 
-def startLiveRecord(model, scoreFilter = 0.8): #Given model must be running on GPU
+def startLiveRecord(model, scoreFilter = 0.4): #Given model must be running on GPU
   visualize.detect_live(model, score_filter = scoreFilter)
+  print("press 'q' or 'escape' to quit the live detection")
 
 def detectOnVideo(model, PATH_OF_THE_VIDEO, outputFileName, framePerSecond = 30, scoreFilter = 0.8):
   visualize.detect_video(model, PATH_OF_THE_VIDEO, output_file= outputFileName, fps = framePerSecond, score_filter=scoreFilter)
 
 
 PATH_TO_DATAS = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "MaskData")) 
-PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "model_weights.pth")) 
+PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "masknomask_weights.pth")) 
 
-trainModel(PATH_TO_DATAS , classes = ['mask','nomask'], nameOfTheModel = "masknomask_weights", numberOfEpoch = 1, PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.dirname( __file__ )))
+#trainModel(PATH_TO_DATAS , classes = ['mask','nomask'], nameOfTheModel = "masknomask_weights", numberOfEpoch = 15, PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.dirname( __file__ )))
 
-#model = loadModel(PATH_OF_THE_SAVED_MODEL =  PATH_OF_THE_SAVED_MODEL, classes = ['mask','nomask'])
+model = loadModel(PATH_OF_THE_SAVED_MODEL =  PATH_OF_THE_SAVED_MODEL, classes = ['mask','nomask'])
 
 #predictImages(model,PATH_TO_TEST)
-#startLiveRecord(model)
+startLiveRecord(model)
 
-#detectOnVideo(model, pathVideo,'output_vid.avi')
+#detectOnVideo(model, os.path.abspath(os.path.join(os.path.dirname( __file__ ),"vid.mp4")), os.path.abspath(os.path.join(os.path.dirname( __file__ ), "output_vid.avi"))) 
 
 
 
