@@ -26,15 +26,7 @@ xmlfolder = "test"
 
 def openFileOrWebcam():
     global modeSelected
-    if eagui.ynbox('Choose if you want to select a video file or access  webcam directly', windowTitle, ('Video File', 'Webcam'),"",'Webcam','Video File'):
-        modeSelected = modeVideoFile
-        path = eagui.fileopenbox('Select the video file you want to analyze', windowTitle)
-        capture = cv.VideoCapture(cv.samples.findFileOrKeep(path))
-
-        if not capture.isOpened:
-            print('Unable to open Video File : ' + path)
-            exit(0)
-    else:
+    if eagui.ynbox('Choose if you want to select a video file or access  webcam directly', windowTitle, ("Webcam", "Video File"),"","Webcam"):
         modeSelected = modeWebcam
         capture = cv.VideoCapture(0 + cv.CAP_DSHOW)
 
@@ -47,6 +39,14 @@ def openFileOrWebcam():
 
         global videoWriter
         videoWriter = cv.VideoWriter(temporaryWebcamFilePath, fourccCodec, framerate, (int(width), int(height)))
+    else:
+        modeSelected = modeVideoFile
+        path = eagui.fileopenbox('Select the video file you want to analyze', windowTitle)
+        capture = cv.VideoCapture(cv.samples.findFileOrKeep(path))
+
+        if not capture.isOpened:
+            print('Unable to open Video File : ' + path)
+            exit(0)
 
     return capture
 
@@ -118,6 +118,8 @@ def getRectanglesFromVideo(capture):
 
 def generateFolders():
     name = eagui.enterbox('Enter the name of your object', windowTitle)
+    if name == "":
+        name = "default"
     path = eagui.diropenbox('Enter the folder where you want the data to be generated (subfolders will be created)', windowTitle)
     path = path + '/' + name
     pathTrain = path + '/' + trainfolder
@@ -191,10 +193,11 @@ def main():
 
     (rectangles, maxNumberOfFrames) = getRectanglesFromVideo(capture)
 
-    if eagui.ynbox('Are the object borders correctly detected ?', windowTitle, ('Yes', 'No'),"",'Yes','No'):
-        pathVariables = generateFolders()
-        capture = rewindCaptureOrOpenWebcamFile(capture)
-        generateJPGandXMLFiles(capture, rectangles, pathVariables, maxNumberOfFrames)
+    if maxNumberOfFrames > 0:
+        if eagui.ynbox('Are the object borders correctly detected ?', windowTitle, ('Yes', 'No'),"",'Yes','No'):
+            pathVariables = generateFolders()
+            capture = rewindCaptureOrOpenWebcamFile(capture)
+            generateJPGandXMLFiles(capture, rectangles, pathVariables, maxNumberOfFrames)
 
     capture.release()
     Path.unlink(Path(temporaryWebcamFilePath), 1)
