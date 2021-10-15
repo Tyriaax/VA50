@@ -1,23 +1,59 @@
 from __future__ import print_function
+from pathlib import Path
 import numpy as np
 import cv2 as cv
 import easygui as eagui
 from GenerateXmlFile import *
 import random
-import os
 
-def main():
-    title = 'XML File Generator'
-    path = eagui.fileopenbox('Select the video file you want to analyze', title)
-    random.seed
 
-    capture = cv.VideoCapture(cv.samples.findFileOrKeep(path))
-    if not capture.isOpened:
-        print('Unable to open: ' + path)
-        exit(0)
+# Strings
+windowTitle = 'XML File Generator'
+modeWebcam = "webcam"
+modeVideoFile = "videofile"
+frametitle = "Use ESC or Q to stop now"
 
+# Variables For Webcam
+framerate = 30
+fourccCodec = cv.VideoWriter_fourcc(*'XVID') # Codec
+temporaryWebcamFilePath = './webcam_temp.avi' # Temporary File Name
+
+# Folder Names
+trainfolder = "train"
+validationfolder = "validation"
+imagesfolder = "images"
+xmlfolder = "test"
+
+def openFileOrWebcam():
+    global modeSelected
+    if eagui.ynbox('Choose if you want to select a video file or access  webcam directly', windowTitle, ('Video File', 'Webcam'),"",'Webcam','Video File'):
+        modeSelected = modeVideoFile
+        path = eagui.fileopenbox('Select the video file you want to analyze', windowTitle)
+        capture = cv.VideoCapture(cv.samples.findFileOrKeep(path))
+
+        if not capture.isOpened:
+            print('Unable to open Video File : ' + path)
+            exit(0)
+    else:
+        modeSelected = modeWebcam
+        capture = cv.VideoCapture(0 + cv.CAP_DSHOW)
+
+        if not capture.isOpened:
+            print('Unable to open Webcam')
+            exit(0)
+
+        width = capture.get(cv.CAP_PROP_FRAME_WIDTH)
+        height = capture.get(cv.CAP_PROP_FRAME_HEIGHT)
+
+        global videoWriter
+        videoWriter = cv.VideoWriter(temporaryWebcamFilePath, fourccCodec, framerate, (int(width), int(height)))
+
+    return capture
+
+def getRectanglesFromVideo(capture):
     rectangles = []
     i = 0
+
     while True:
         ret, frame = capture.read()
         if frame is None:
@@ -34,7 +70,7 @@ def main():
         sharpen = cv.filter2D(blur, -1, sharpen_kernel)
 
         # We can then threshold to get a binary image
-        thresh = cv.threshold(sharpen, 0, 255, cv.THRESH_BINARY+cv.THRESH_OTSU)[1]
+        thresh = cv.threshold(sharpen, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)[1]
 
         # We invert the image so that the contours can get detected
         inverted = 255 - thresh
@@ -48,80 +84,120 @@ def main():
         cnts = cnts[0] if len(cnts) == 2 else cnts[1]
 
         maxarea = 0
-        #We then loop through all the detected contours to only retrieve the one with the maximum area
+        # We then loop through all the detected contours to only retrieve the one rectangle with the maximum area
         for c in cnts:
             area = cv.contourArea(c)
             if area > maxarea:
                 selectedcontour = c
                 maxarea = area
 
-        # We can then finally draw the contour on tof of the image
-        framecopy = frame
+        # We can then finally get the rectangle data and draw it on top of the image
+        framecopy = frame.copy()
 
         x, y, w, h = cv.boundingRect(selectedcontour)
         cv.rectangle(framecopy, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-        cv.imshow('frame', framecopy)
+        cv.imshow(frametitle, framecopy)
+        if modeSelected == modeWebcam:
+            videoWriter.write(frame)
 
         rectangles.append([x, y, w, h])
-
-        i = i + 1
 
         keyboard = cv.waitKey(30)
         if keyboard == 'q' or keyboard == 27:
             break
 
-    if eagui.ynbox('Are the object borders correctly detected ?', title, ('Yes', 'No')):
-        name = eagui.enterbox('Enter the name of your object', title)
-        pathtosave = eagui.diropenbox('Enter the folder where you want the data to be generated (subfolders will be created)', title)
-        pathtosave = pathtosave + '/' + name
-        os.mkdir(pathtosave)
-        pathtosavetrain = pathtosave + '/train'
-        pathtosavevalidation = pathtosave + '/validation'
-        os.mkdir(pathtosavetrain)
-        os.mkdir(pathtosavevalidation)
-        os.mkdir(pathtosavetrain + '/images')
-        os.mkdir(pathtosavetrain + '/labels')
-        os.mkdir(pathtosavevalidation + '/images')
-        os.mkdir(pathtosavevalidation + '/labels')
+        i = i + 1
 
-        i = 0
+    if modeSelected == modeWebcam:
+        capture.release()
+        videoWriter.release()
+
+    cv.destroyAllWindows()
+    return rectangles, i
+
+def generateFolders():
+    name = eagui.enterbox('Enter the name of your object', windowTitle)
+    path = eagui.diropenbox('Enter the folder where you want the data to be generated (subfolders will be created)', windowTitle)
+    path = path + '/' + name
+    pathTrain = path + '/' + trainfolder
+    pathValidation = path + '/' + validationfolder
+    Path.mkdir(Path(pathTrain + '/' + imagesfolder),511,1,1)
+    Path.mkdir(Path(pathTrain + '/' + xmlfolder),511,1,1)
+    Path.mkdir(Path(pathValidation + '/' + imagesfolder),511,1,1)
+    Path.mkdir(Path(pathValidation + '/' + xmlfolder),511,1,1)
+
+    return name, pathTrain, pathValidation
+
+def rewindCaptureOrOpenWebcamFile(capture):
+    if modeSelected == modeVideoFile:
         capture.set(cv.CAP_PROP_POS_FRAMES, 0)
-        while True:
-            ret, frame = capture.read()
-            if frame is None:
-                break
+    else:
+        capture = cv.VideoCapture(cv.samples.findFileOrKeep(temporaryWebcamFilePath))
 
-            size = {
-                "width": rectangles[i][2],
-                "height": rectangles[i][3],
-                "depth": 3
-            }
-            bndbox = {
-                "xmin": rectangles[i][0],
-                "ymin": rectangles[i][1],
-                "xmax": rectangles[i][0]+rectangles[i][2],
-                "ymax": rectangles[i][1]+rectangles[i][3]
-            }
+        if not capture.isOpened:
+            print('Unable to open Webcam Temporary File : ' + temporaryWebcamFilePath)
+            exit(0)
 
-            objectxml = {
-                "name" : name,
-                "pose" : 'Unspecified',
-                "truncated" : 0,
-                "difficult" : 0,
-                "bndbox" : bndbox
-            }
+    return capture
 
-            selectedpath = pathtosavetrain
-            if (random.randrange(10) == 1):
-                selectedpath = pathtosavevalidation
+def generateJPGandXMLFiles(capture, rectangles, pathVariables, maxNumberOfFrames):
+    i = 0
+    name = pathVariables[0]
+    pathTrain = pathVariables[1]
+    pathValidation = pathVariables[2]
 
-            framename = name + str(i)
+    while True:
+        ret, frame = capture.read()
+        if (frame is None) or (i > maxNumberOfFrames) :
+            break
 
-            cv.imwrite(selectedpath + "/images/" + framename + '.jpg', frame)
-            annotation = Annotation(name, framename, selectedpath + "/labels/", sourceDict, size, 0, objectxml)
-            annotation.generateAnnotationFile()
-            i = i+1
+
+        size = {
+            "width": rectangles[i][2],
+            "height": rectangles[i][3],
+            "depth": 3
+        }
+        bndbox = {
+            "xmin": rectangles[i][0],
+            "ymin": rectangles[i][1],
+            "xmax": rectangles[i][0] + rectangles[i][2],
+            "ymax": rectangles[i][1] + rectangles[i][3]
+        }
+
+        objectxml = {
+            "name": name,
+            "pose": 'Unspecified',
+            "truncated": 0,
+            "difficult": 0,
+            "bndbox": bndbox
+        }
+
+        selectedPath = pathTrain
+        if (random.randrange(10) == 1):
+            selectedPath = pathValidation
+
+        framename = name + str(i)
+
+        cv.imwrite(selectedPath + "/images/" + framename + '.jpg', frame)
+        annotation = Annotation(name, framename, selectedPath + "/test/", sourceDict, size, 0, objectxml)
+        annotation.generateAnnotationFile()
+        i = i + 1
+
+def main():
+    random.seed
+
+    capture = openFileOrWebcam()
+
+    (rectangles, maxNumberOfFrames) = getRectanglesFromVideo(capture)
+
+    if eagui.ynbox('Are the object borders correctly detected ?', windowTitle, ('Yes', 'No'),"",'Yes','No'):
+        pathVariables = generateFolders()
+        capture = rewindCaptureOrOpenWebcamFile(capture)
+        generateJPGandXMLFiles(capture, rectangles, pathVariables, maxNumberOfFrames)
+
+    capture.release()
+    Path.unlink(Path(temporaryWebcamFilePath), 1)
 
 if __name__ == '__main__':
     main()
