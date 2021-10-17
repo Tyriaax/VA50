@@ -158,14 +158,14 @@ PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.join(os.path.dirname( __file__
 
 #trainModel(PATH_TO_DATAS , classes = ['Square'], nameOfTheModel = "Square_weights", numberOfEpoch = 25, PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.dirname( __file__ )))
 
-#model = loadModel(PATH_OF_THE_SAVED_MODEL = PATH_OF_THE_SAVED_MODEL, classes = ['Square'])
+model = loadModel(PATH_OF_THE_SAVED_MODEL = PATH_OF_THE_SAVED_MODEL, classes = ['Square'])
 
 #predictImages(model,PATH_TO_TEST)
-#startLiveRecord(model)
+startLiveRecord(model)
 
 #detectOnVideo(model, os.path.abspath(os.path.join(os.path.dirname( __file__ ),"carré.mp4")), os.path.abspath(os.path.join(os.path.dirname( __file__ ), "output_vid.avi"))) 
 
-verify_XML_IMG(PATH_TO_DATAS)
+#verify_XML_IMG(PATH_TO_DATAS)
 
 
 
