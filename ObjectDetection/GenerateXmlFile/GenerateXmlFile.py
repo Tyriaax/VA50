@@ -4,7 +4,7 @@ import os
 class Annotation:
   def __init__(self, folder, filename, path, source, sizes, segmented, object):
       self.folder = folder
-      self.filename = filename
+      self.filename = filename 
       self.path = path
       self.source = self.Source(source)
       self.size = self.Size(sizes)
@@ -62,7 +62,7 @@ class Annotation:
 
     #------------path---------------
     path = root.createElement("path")
-    self.addText(root, xml, path, self.path)
+    self.addText(root, xml, path, os.path.join(self.path, self.filename) + '.jpg')
 
     #------------source---------------
     source = root.createElement("source")
@@ -92,7 +92,7 @@ class Annotation:
     name = root.createElement("name")
     self.addText(root, object, name, self.object.name)
     pose = root.createElement("pose")
-    self.addText(root, object, pose, self.object.name)
+    self.addText(root, object, pose, self.object.pose)
     truncated = root.createElement("truncated")
     self.addText(root, object, truncated, self.object.truncated)
     difficult = root.createElement("difficult")
@@ -105,7 +105,7 @@ class Annotation:
     self.addText(root, bndbox, ymin, self.object.bndbox.ymin)
     xmax = root.createElement("xmax")
     self.addText(root, bndbox, xmax, self.object.bndbox.xmax)
-    ymax = root.createElement("xmin")
+    ymax = root.createElement("ymax")
     self.addText(root, bndbox, ymax, self.object.bndbox.ymax)
     object.appendChild(bndbox)
 
