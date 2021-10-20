@@ -198,6 +198,9 @@ def main():
             pathVariables = generateFolders()
             capture = rewindCaptureOrOpenWebcamFile(capture)
             generateJPGandXMLFiles(capture, rectangles, pathVariables, maxNumberOfFrames)
+        else:
+            if eagui.ynbox('Do you want to restart the Capture ?', windowTitle, ('Yes', 'No'),"",'Yes','No'):
+                main()
 
     capture.release()
     Path.unlink(Path(temporaryWebcamFilePath), 1)
