@@ -22,7 +22,7 @@ temporaryWebcamFilePath = './webcam_temp.avi' # Temporary File Name
 trainfolder = "train"
 validationfolder = "validation"
 imagesfolder = "images"
-xmlfolder = "test"
+xmlfolder = "labels"
 
 def openFileOrWebcam():
     global modeSelected
@@ -182,7 +182,7 @@ def generateJPGandXMLFiles(capture, rectangles, pathVariables, maxNumberOfFrames
         framename = name + str(i)
 
         cv.imwrite(selectedPath + "/images/" + framename + '.jpg', frame)
-        annotation = Annotation(name, framename, selectedPath + "/test/", sourceDict, size, 0, objectxml)
+        annotation = Annotation(name, framename, selectedPath + "/labels/", sourceDict, size, 0, objectxml)
         annotation.generateAnnotationFile()
         i = i + 1
 
