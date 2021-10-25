@@ -38,7 +38,7 @@ def trainModel(PATH_TO_DATAS : str, classes = [], nameOfTheModel = "model_weight
     utils.xml_to_csv(PATH_TO_VALIDATE_LABELS, PATH_TO_VALIDATE_DATA_CSV) 
 
     trainingDataset = Dataset(PATH_TO_TRAIN_DATA_CSV, PATH_TO_TRAIN_IMAGES, transform = custom_transforms)
-    loader = DataLoader(trainingDataset, batch_size = 2, shuffle = True) #batch_size : How many images at once ----> A changer !!!!
+    loader = DataLoader(trainingDataset, batch_size = 1, shuffle = True) #batch_size : How many images at once ----> A changer !!!!
 
     validationDataset = Dataset(PATH_TO_VALIDATE_DATA_CSV, PATH_TO_VALIDATE_IMAGES)
 
@@ -77,7 +77,7 @@ def predictImages(model, PATH_TO_TEST_IMAGES): #Mettre un nom
     print(scores)
     visualize.show_labeled_image(images[0], boxes[0], labels[0])
 
-def startLiveRecord(model, scoreFilter = 0.25): #Given model must be running on GPU
+def startLiveRecord(model, scoreFilter = 0.1): #Given model must be running on GPU
 
   cv2.namedWindow('Detecto')
   try:
@@ -115,13 +115,13 @@ def startLiveRecord(model, scoreFilter = 0.25): #Given model must be running on 
 
   video.release()
   cv2.destroyAllWindows()
- 
 
-  #visualize.detect_live(model, score_filter = scoreFilter)
-  #print("press 'q' or 'escape' to quit the live detection")
 
 def detectOnVideo(model, PATH_OF_THE_VIDEO, outputFileName, framePerSecond = 30, scoreFilter = 0.1) :
   visualize.detect_video(model, PATH_OF_THE_VIDEO, output_file= outputFileName, fps = framePerSecond, score_filter=scoreFilter)
+
+def randomBackgroundImage():
+  pass
 
 import xml.etree.ElementTree as ET
 
@@ -151,21 +151,19 @@ def verify_XML_IMG(PATH_TO_DATAS):
       cv2.destroyAllWindows()
 
 
+PATH_TO_DATAS = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "MaskKaggle")) 
+PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "model_weights.pth")) 
 
+#trainModel(PATH_TO_DATAS , classes = ['with_mask', 'without_mask', 'mask_weared_incorrect'], nameOfTheModel = "KaggleMaskDetection_weights", numberOfEpoch = 5, PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.dirname( __file__ )))
 
-PATH_TO_DATAS = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Square")) 
-PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Square_weights.pth")) 
-
-#trainModel(PATH_TO_DATAS , classes = ['Square'], nameOfTheModel = "Square_weights", numberOfEpoch = 25, PATH_OF_THE_SAVED_MODEL = os.path.abspath(os.path.dirname( __file__ )))
-
-model = loadModel(PATH_OF_THE_SAVED_MODEL = PATH_OF_THE_SAVED_MODEL, classes = ['Square'])
+model = loadModel(PATH_OF_THE_SAVED_MODEL = PATH_OF_THE_SAVED_MODEL, classes = ['mask', 'nomask'])
 
 #predictImages(model,PATH_TO_TEST)
 startLiveRecord(model)
 
-#detectOnVideo(model, os.path.abspath(os.path.join(os.path.dirname( __file__ ),"carré.mp4")), os.path.abspath(os.path.join(os.path.dirname( __file__ ), "output_vid.avi"))) 
+#detectOnVideo(model, os.path.abspath(os.path.join(os.path.dirname( __file__ ), "carré.mp4")), os.path.abspath(os.path.join(os.path.dirname( __file__ ), "output_vid.avi"))) 
 
-#verify_XML_IMG(PATH_TO_DATAS)
+verify_XML_IMG(PATH_TO_DATAS)
 
 
 

@@ -5,3 +5,4 @@ model_weights.pth
 *.xml
 *.mp4
 *.csv
+*.png
