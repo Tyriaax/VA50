@@ -28,17 +28,20 @@ def openFileOrWebcam():
     global modeSelected
     if eagui.ynbox('Choose if you want to select a video file or access  webcam directly', windowTitle, ("Webcam", "Video File"),"","Webcam"):
         modeSelected = modeWebcam
-        capture = cv.VideoCapture(0 + cv.CAP_DSHOW)
+        capture = cv.VideoCapture(1, cv.CAP_DSHOW)
 
         if not capture.isOpened:
             print('Unable to open Webcam')
             exit(0)
 
-        width = capture.get(cv.CAP_PROP_FRAME_WIDTH)
-        height = capture.get(cv.CAP_PROP_FRAME_HEIGHT)
+        height = 720
+        width = 1280
+
+        capture.set(cv.CAP_PROP_FRAME_WIDTH, width)
+        capture.set(cv.CAP_PROP_FRAME_HEIGHT, height)
 
         global videoWriter
-        videoWriter = cv.VideoWriter(temporaryWebcamFilePath, fourccCodec, framerate, (int(width), int(height)))
+        videoWriter = cv.VideoWriter(temporaryWebcamFilePath, fourccCodec, framerate, (width, height))
     else:
         modeSelected = modeVideoFile
         path = eagui.fileopenbox('Select the video file you want to analyze', windowTitle)
