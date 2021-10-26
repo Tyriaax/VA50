@@ -6,3 +6,4 @@ model_weights.pth
 *.mp4
 *.csv
 *.png
+*.pyc
