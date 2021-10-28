@@ -11,34 +11,6 @@ def get_object_position():
 def get_pieces_orientation():
   pass
 
-def get_board_coords(window_name, img):
-
-  coordinates = []
-  hasClickOccured = bool
-
-  def mousePoints(event,x,y,flags,params):
-    if event == cv2.EVENT_LBUTTONDOWN:
-      coordinates.append([x,y])
-      #print(coordinates)
-      cv2.circle(img,(x,y),10,(0,0,244),-1)
-      hasClickOccured = True
-      #cv2.imshow(window_name,img)
-    else:
-      hasClickOccured = False
-
-  
-  while True:
-    if len(coordinates) >= 1 or not hasClickOccured:
-      break
-
-    #cv2.imshow(window_name, img)
-    cv2.setMouseCallback(window_name, mousePoints)
-    cv2.waitKey(1)
-
-  #cv2.destroyAllWindows()
-
-  return np.array(coordinates)
-
 def get_homographied_board(img, pts_src):
 
   #im_src = cv2.imread(os.path.abspath(os.path.join(os.path.dirname( __file__ ), "plateau.jpg")))
@@ -53,12 +25,6 @@ def get_homographied_board(img, pts_src):
   mat, status = cv2.findHomography(pts_src, pts_dst)
   im_out = cv2.warpPerspective(img, mat, (img.shape[1], img.shape[0]))
   return im_out
-  """
-  cv2.imshow("Destination Image", img)
-  cv2.imshow("Warped Source Image", im_out)
-  cv2.waitKey(0)
-  cv2.destroyAllWindows()"""
-
 
 def get_keypoints(images):
   list_image_info = []
@@ -117,22 +83,26 @@ def load_kp_samples(PATH_SAMPLES):
 
   return list_image_info
 
+list_board_coords = []
+def mousePoints(event,x,y,flags,params):
+  if event == cv2.EVENT_LBUTTONDOWN and len(list_board_coords) < 4:
+    list_board_coords.append([x,y])
 
 def video_recognition():
 
-  cap = cv2.VideoCapture(0) #Tochange in case
-  
-  cap.set(cv2.CAP_PROP_FRAME_WIDTH,1280)
-  cap.set(cv2.CAP_PROP_FRAME_HEIGHT,720)
+  cap = cv2.VideoCapture(0, cv2.CAP_DSHOW) #Tochange in case
+
+  height = 720
+  width = 1280
+  cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+  cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
   images_infos = load_kp_samples(PATH_SAMPLES = "")
 
   window_name = "JACK"
-  is_board_coord_accessed = False
 
-  success, img1 = cap.read()
+  _, img1 = cap.read()
   cv2.imshow(window_name, img1)
-  list_board_coords = []
 
   while True:
     _, img = cap.read()
@@ -140,10 +110,9 @@ def video_recognition():
     #cv2.imshow('Result', surfImage)
 
     if len(list_board_coords) < 4:
-      board_coords = get_board_coords(window_name,img)
-      print(board_coords)
-      if board_coords.size > 0:
-        list_board_coords.append(board_coords)
+      cv2.setMouseCallback(window_name, mousePoints)
+      for coord in list_board_coords:
+        cv2.circle(img,coord,10,(0,255,0),-1)
     else:  
       img = get_homographied_board(img, np.array(list_board_coords))
 
