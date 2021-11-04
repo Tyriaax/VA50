@@ -12,21 +12,12 @@ def get_pieces_orientation():
   pass
 
 def detect_pieces_through_color(frame, image_infos):
-  """lower = np.array([15,150,20]) #yellow askip
-  upper = np.array([35,255,255])
-
-  lower = np.array([161,155,84]) #red askip
-  upper = np.array([179,255,255])"""
-
-  #lower = np.array([94,80,2]) #blue askip
-  #upper = np.array([126,255,255])
-
-  #lower = np.array([0,0,128]) #white askip
-  #upper = np.array([255,255,255])
 
   colors_detected = [
     [np.array([94,80,2]), np.array([126,255,255]), "Sherlock" ], #blue
     #[np.array([0,0,128]), np.array([255,255,255]), "Ogre"] #white
+    [np.array([5,75,25]), np.array([15,255,255]), "Orange" ],
+    [np.array([50,25,136]), np.array([75,255,255]), "Vert" ] 
   ]
 
   image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -50,7 +41,7 @@ def detect_pieces_through_color(frame, image_infos):
 
   return frame
 
-def get_homographied_board(img, pts_src):
+def get_homographied_board(img, pts_src, w, h):
 
   #im_src = cv2.imread(os.path.abspath(os.path.join(os.path.dirname( __file__ ), "plateau.jpg")))
   #window_name = 'image'
@@ -154,7 +145,7 @@ def video_recognition():
       for coord in list_board_coords:
         cv2.circle(img,coord,10,(0,255,0),-1)
     else:  
-      img = get_homographied_board(img, np.array(list_board_coords))
+      img = get_homographied_board(img, np.array(list_board_coords), width, height)
       img = detect_pieces_through_color(img, images_infos)
       #cv2.imshow("mask", mask)
 
