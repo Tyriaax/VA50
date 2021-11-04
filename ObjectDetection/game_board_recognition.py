@@ -46,8 +46,6 @@ def get_homographied_board(img, pts_src, w, h):
   #window_name = 'image'
   
   # Four corners of the book in destination image.
-  w = 1280
-  h = 720
 
   pts_dst = np.array([[0,0],[w - 1, 0],[w-1, h-1],[0, h-1]])
 
@@ -76,7 +74,7 @@ def sift_detection(current_img, images_infos : list):
     img = cv2.cvtColor(current_img, cv2.COLOR_BGR2GRAY)
 
     #sift
-    sift = cv2.xfeatures2d.SIFT_create()
+    sift = cv2.SIFT_create()
 
     keypoints_1, descriptors_1 = sift.detectAndCompute(img,None)
 
@@ -105,7 +103,7 @@ def load_kp_samples(PATH_SAMPLES):
     dim = (400,400)
     image = cv2.resize(cv2.imread(os.path.join(PATH_SAMPLES, image)), dim, interpolation=cv2.INTER_LINEAR)  
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    sift = cv2.xfeatures2d.SIFT_create()
+    sift = cv2.SIFT_create()
     keypoints, descriptors = sift.detectAndCompute(image,None)
     image_info = [image,keypoints,descriptors]
     list_image_info.append(image_info)
