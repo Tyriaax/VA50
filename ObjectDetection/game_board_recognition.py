@@ -38,7 +38,6 @@ def detect_pieces_through_color(frame, image_infos):
             cv2.rectangle(frame, (x,y), (x + w, y + h), (0,0,255), 3)
             cv2.putText(frame, color[2], (x,y),1,1,(0,0,255),3)
 
-
   return frame
 
 def get_homographied_board(img, pts_src, w, h):
