@@ -67,20 +67,15 @@ def get_keypoints(images):
   return list_image_info
 
 def sift_detection(current_img, images_infos : list):
+
   MIN_MATCHES = 20
+  img = cv2.cvtColor(current_img, cv2.COLOR_BGR2GRAY)
+  sift = cv2.SIFT_create()
+  keypoints_1, descriptors_1 = sift.detectAndCompute(img,None)
+  bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
 
   for image_info in images_infos:
     
-    img = cv2.cvtColor(current_img, cv2.COLOR_BGR2GRAY)
-
-    #sift
-    sift = cv2.SIFT_create()
-
-    keypoints_1, descriptors_1 = sift.detectAndCompute(img,None)
-
-    #feature matching
-    bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
-
     matches = bf.match(descriptors_1, image_info[2])
     matches = sorted(matches, key = lambda x:x.distance)
 
