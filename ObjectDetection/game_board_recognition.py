@@ -14,10 +14,10 @@ def get_pieces_orientation():
 def detect_pieces_through_color(frame, card_center, image_info):
 
   colors_detected = [
-    [np.array([94,80,2]), np.array([126,255,255]), "blue" ], #blue
-    [np.array([29,0,85]), np.array([93,44,255]), "white"], #white
-    [np.array([5,135,136]), np.array([15,175,190]), "orange" ],
-    [np.array([20,115,200]), np.array([33,205,255]), "yellow" ],
+    [np.array([103,96,154]), np.array([113,187,255]), "blue" ], #blue
+    #[np.array([29,0,85]), np.array([93,44,255]), "white"], #white
+    [np.array([5,98,131]), np.array([16,150,241]), "orange" ],
+    [np.array([20,67,162]), np.array([41,203,255]), "yellow" ],
     [np.array([24,52,100]), np.array([39,115,160]), "green" ] 
   ]
 
@@ -32,7 +32,7 @@ def detect_pieces_through_color(frame, card_center, image_info):
 
       if len(contours) != 0:
         for contour in contours:
-          if cv2.contourArea(contour) > 500 :
+          if cv2.contourArea(contour) > 450 :
               #x, y, w, h = cv2.boundingRect(contour)
               #isRecognised = sift_detection(image[y: y + h, x : x + w], image_infos)
               #if isRecognised:
@@ -40,6 +40,7 @@ def detect_pieces_through_color(frame, card_center, image_info):
             cv2.rectangle(frame, (card_center[2],card_center[0]), (card_center[3],card_center[1]), (0,0,255), 3)
                   #y, h, x , w 
             cv2.putText(frame, color[2], (card_center[2], card_center[0] - 10),1,1,(0,0,255),3)
+            print("success")
 
   return frame
 
@@ -67,7 +68,7 @@ def get_keypoints(images):
 
 def sift_detection(current_img, card_center, images_infos : list):
 
-  MIN_MATCHES = 22
+  MIN_MATCHES = 25
   img = cv2.cvtColor(current_img[card_center[0]:card_center[1], card_center[2]:card_center[3]], cv2.COLOR_BGR2GRAY)
   sift = cv2.SIFT_create()
   keypoints_1, descriptors_1 = sift.detectAndCompute(img,None)
@@ -94,8 +95,8 @@ def sift_detection(current_img, card_center, images_infos : list):
   if(len(good_points) >= MIN_MATCHES):
       #img3 = draw_boxes(matches,keypoints_1,img1,keypoints_2,img2)
       #matchedImg = cv2.drawMatches(img, keypoints_1, image_info[0], #image_info[1], matches[:30], image_info[0], flags=2)
+    print("detected " + info[3])
     current_img = detect_pieces_through_color(current_img, card_center, info)
-    print(info[3])
 
   return current_img
 
@@ -115,9 +116,9 @@ def get_screen_portion(img, images_infos):
 
   return frame
 
-def load_kp_samples(PATH_SAMPLES):
+def load_kp_samples():
 
-  PATH_SAMPLES = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Samples"))
+  PATH_SAMPLES = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Samples","Cards"))
   list_image_info = []
   dir = os.listdir(PATH_SAMPLES)
 
@@ -125,7 +126,8 @@ def load_kp_samples(PATH_SAMPLES):
     print(image)
     #images.append(os.path.join(PATH_SAMPLES,image))
     dim = (400,400)
-    im_out = cv2.resize(cv2.imread(os.path.join(PATH_SAMPLES, image)), dim, interpolation=cv2.INTER_LINEAR)  
+    #im_out = cv2.resize(cv2.imread(os.path.join(PATH_SAMPLES, image)), dim, interpolation=cv2.INTER_LINEAR)  
+    im_out = cv2.imread(os.path.join(PATH_SAMPLES, image))
     im_out = cv2.cvtColor(im_out, cv2.COLOR_BGR2GRAY)
     sift = cv2.SIFT_create()
     keypoints, descriptors = sift.detectAndCompute(im_out,None)
@@ -149,7 +151,7 @@ def video_recognition():
   cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
   cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
-  images_infos = load_kp_samples(PATH_SAMPLES = "")
+  images_infos = load_kp_samples()
 
   window_name = "JACK"
 
@@ -179,4 +181,46 @@ def video_recognition():
   cv2.destroyAllWindows()
 
 
-video_recognition()
+def image_recognition():
+
+  cap = cv2.VideoCapture(0, cv2.CAP_DSHOW) #Tochange in case
+
+  height = 720
+  width = 720
+  cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+  cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+
+  PATH_SAMPLES = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "plateau.jpg"))
+  plateau = cv2.imread(PATH_SAMPLES)
+  images_infos = load_kp_samples()
+
+  window_name = "JACK"
+
+  _, img1 = cap.read()
+  cv2.imshow(window_name, img1)
+
+  while True:
+    _, img = cap.read()
+    img = plateau
+    img = cv2.resize(img, (width, height), interpolation=cv2.INTER_AREA)
+
+    if len(list_board_coords) < 4:
+      cv2.setMouseCallback(window_name, mousePoints)
+      for coord in list_board_coords:
+        cv2.circle(img,coord,10,(0,255,0),-1)
+    else:  
+      img = get_homographied_board(img, np.array(list_board_coords), width, height)
+      get_screen_portion(img, images_infos)
+
+    cv2.imshow(window_name, img)
+    
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord('q') or key == 27:
+      break  
+    
+  cap.release()
+  cv2.destroyAllWindows()
+
+
+
+image_recognition()
