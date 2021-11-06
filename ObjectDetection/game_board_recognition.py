@@ -11,38 +11,35 @@ def get_object_position():
 def get_pieces_orientation():
   pass
 
-def detect_pieces_through_color(frame, card_center, image_infos):
+def detect_pieces_through_color(frame, card_center, image_info):
 
   colors_detected = [
-    [np.array([94,80,2]), np.array([126,255,255]), "Sherlock" ], #blue
-    [np.array([0,0,128]), np.array([255,255,255]), "Ogre"], #white
-    [np.array([5,75,25]), np.array([15,255,255]), "Orange" ],
-    [np.array([50,25,136]), np.array([75,255,255]), "Vert" ] 
+    [np.array([94,80,2]), np.array([126,255,255]), "blue" ], #blue
+    [np.array([29,0,85]), np.array([93,44,255]), "white"], #white
+    [np.array([5,135,136]), np.array([15,175,190]), "orange" ],
+    [np.array([20,115,200]), np.array([33,205,255]), "yellow" ],
+    [np.array([24,52,100]), np.array([39,115,160]), "green" ] 
   ]
 
   #image = cv2.cvtColor(card_center, cv2.COLOR_BGR2HSV)
   image = cv2.cvtColor(frame[card_center[0]:card_center[1], card_center[2]:card_center[3]], cv2.COLOR_BGR2HSV)
 
   for color in colors_detected:
-    #mask = cv2.inRange(image, lower, upper)
-    mask = cv2.inRange(image, color[0], color[1])
-    #blue = cv2.bitwise_and(frame, frame, mask = mask) Affichage du mask
+    if image_info[3] == color[2]:
+      mask = cv2.inRange(image, color[0], color[1])
 
-    contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+      contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    if len(contours) != 0:
-      for contour in contours:
-        if cv2.contourArea(contour) > 500:
-          x, y, w, h = cv2.boundingRect(contour)
-          isRecognised = sift_detection(image[y: y + h, x : x + w], image_infos)
-          if isRecognised:
-            #cv2.rectangle(frame, (x,y), (x + w, y + h), (0,0,255), 3)
+      if len(contours) != 0:
+        for contour in contours:
+          if cv2.contourArea(contour) > 500 :
+              #x, y, w, h = cv2.boundingRect(contour)
+              #isRecognised = sift_detection(image[y: y + h, x : x + w], image_infos)
+              #if isRecognised:
+                #cv2.rectangle(frame, (x,y), (x + w, y + h), (0,0,255), 3)
             cv2.rectangle(frame, (card_center[2],card_center[0]), (card_center[3],card_center[1]), (0,0,255), 3)
-              #y, h, x , w 
-            #cv2.imshow(color[2], frame[card_center[0]:card_center[1], card_center[2]:card_center[3]])
-            #cv2.putText(frame, color[2], (x,y - 10),1,1,(0,0,255),3)
+                  #y, h, x , w 
             cv2.putText(frame, color[2], (card_center[2], card_center[0] - 10),1,1,(0,0,255),3)
-            #cv2.waitKey(5000)
 
   return frame
 
@@ -68,38 +65,53 @@ def get_keypoints(images):
 
   return list_image_info
 
-def sift_detection(current_img, images_infos : list):
+def sift_detection(current_img, card_center, images_infos : list):
 
-  MIN_MATCHES = 20
-  img = cv2.cvtColor(current_img, cv2.COLOR_BGR2GRAY)
+  MIN_MATCHES = 22
+  img = cv2.cvtColor(current_img[card_center[0]:card_center[1], card_center[2]:card_center[3]], cv2.COLOR_BGR2GRAY)
   sift = cv2.SIFT_create()
   keypoints_1, descriptors_1 = sift.detectAndCompute(img,None)
-  bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
+
+  index_params = dict(algorithm = 0, trees = 5)
+  search_params = dict(checks = 50)
+
+  flann = cv2.FlannBasedMatcher(index_params, search_params)
+
+  good_points = []
+  info = ""
 
   for image_info in images_infos:
+    if(image_info[2] is not None) and (descriptors_1 is not None):
+      matches = flann.knnMatch(image_info[2], descriptors_1, k = 2)
+      temp = []
+      for m, n in matches:
+        if m.distance < 0.8 * n.distance:
+          temp.append(m)
+      if(len(temp) > len(good_points)):
+        good_points = temp
+        info = image_info
 
-    matches = bf.match(descriptors_1, image_info[2])
-    matches = sorted(matches, key = lambda x:x.distance)
-
-    if(len(matches) >= MIN_MATCHES):
+  if(len(good_points) >= MIN_MATCHES):
       #img3 = draw_boxes(matches,keypoints_1,img1,keypoints_2,img2)
       #matchedImg = cv2.drawMatches(img, keypoints_1, image_info[0], #image_info[1], matches[:30], image_info[0], flags=2)
-      return True
+    current_img = detect_pieces_through_color(current_img, card_center, info)
+    print(info[3])
 
-  return False
+  return current_img
 
 def get_screen_portion(img, images_infos):
   height, width, channels = img.shape
   #print(height,width)
   
-  height_portion = int(height/2) 
-  proportion = int(0.28 * height_portion)
+  height_portion = int(height/3) 
+  proportion = int(0.25 * height_portion)
 
-  for i in range(2):
-    for j in range(2):
+  for i in range(3):
+    for j in range(3):
       center_position = (i * height_portion + proportion, (i + 1) * height_portion - proportion, j * height_portion + proportion, (j + 1) * height_portion - proportion)
       #y, h, x , w 
-      frame = detect_pieces_through_color(img, center_position, images_infos)
+      frame = sift_detection(img, center_position,images_infos)
+      #frame = detect_pieces_through_color(img, center_position, images_infos)
 
   return frame
 
@@ -113,11 +125,11 @@ def load_kp_samples(PATH_SAMPLES):
     print(image)
     #images.append(os.path.join(PATH_SAMPLES,image))
     dim = (400,400)
-    image = cv2.resize(cv2.imread(os.path.join(PATH_SAMPLES, image)), dim, interpolation=cv2.INTER_LINEAR)  
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    im_out = cv2.resize(cv2.imread(os.path.join(PATH_SAMPLES, image)), dim, interpolation=cv2.INTER_LINEAR)  
+    im_out = cv2.cvtColor(im_out, cv2.COLOR_BGR2GRAY)
     sift = cv2.SIFT_create()
-    keypoints, descriptors = sift.detectAndCompute(image,None)
-    image_info = [image,keypoints,descriptors]
+    keypoints, descriptors = sift.detectAndCompute(im_out,None)
+    image_info = [im_out,keypoints,descriptors, image.split(".")[0]]
     list_image_info.append(image_info)
 
   return list_image_info
@@ -156,9 +168,6 @@ def video_recognition():
     else:  
       img = get_homographied_board(img, np.array(list_board_coords), width, height)
       get_screen_portion(img, images_infos)
-      #cv2.waitKey(1000)
-      #img = detect_pieces_through_color(img, images_infos)
-      #cv2.imshow("mask", mask)
 
     cv2.imshow(window_name, img)
     
