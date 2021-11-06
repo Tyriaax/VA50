@@ -11,16 +11,17 @@ def get_object_position():
 def get_pieces_orientation():
   pass
 
-def detect_pieces_through_color(frame, image_infos):
+def detect_pieces_through_color(frame, card_center, image_infos):
 
   colors_detected = [
     [np.array([94,80,2]), np.array([126,255,255]), "Sherlock" ], #blue
-    #[np.array([0,0,128]), np.array([255,255,255]), "Ogre"] #white
+    [np.array([0,0,128]), np.array([255,255,255]), "Ogre"], #white
     [np.array([5,75,25]), np.array([15,255,255]), "Orange" ],
     [np.array([50,25,136]), np.array([75,255,255]), "Vert" ] 
   ]
 
-  image = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+  #image = cv2.cvtColor(card_center, cv2.COLOR_BGR2HSV)
+  image = cv2.cvtColor(frame[card_center[0]:card_center[1], card_center[2]:card_center[3]], cv2.COLOR_BGR2HSV)
 
   for color in colors_detected:
     #mask = cv2.inRange(image, lower, upper)
@@ -33,24 +34,25 @@ def detect_pieces_through_color(frame, image_infos):
       for contour in contours:
         if cv2.contourArea(contour) > 500:
           x, y, w, h = cv2.boundingRect(contour)
-          isRecognised = sift_detection(frame[y: y + h, x : x + w], image_infos)
+          isRecognised = sift_detection(image[y: y + h, x : x + w], image_infos)
           if isRecognised:
-            cv2.rectangle(frame, (x,y), (x + w, y + h), (0,0,255), 3)
-            cv2.putText(frame, color[2], (x,y),1,1,(0,0,255),3)
+            #cv2.rectangle(frame, (x,y), (x + w, y + h), (0,0,255), 3)
+            cv2.rectangle(frame, (card_center[2],card_center[0]), (card_center[3],card_center[1]), (0,0,255), 3)
+              #y, h, x , w 
+            #cv2.imshow(color[2], frame[card_center[0]:card_center[1], card_center[2]:card_center[3]])
+            #cv2.putText(frame, color[2], (x,y - 10),1,1,(0,0,255),3)
+            cv2.putText(frame, color[2], (card_center[2], card_center[0] - 10),1,1,(0,0,255),3)
+            #cv2.waitKey(5000)
 
   return frame
 
 def get_homographied_board(img, pts_src, w, h):
 
-  #im_src = cv2.imread(os.path.abspath(os.path.join(os.path.dirname( __file__ ), "plateau.jpg")))
-  #window_name = 'image'
-  
-  # Four corners of the book in destination image.
-
   pts_dst = np.array([[0,0],[w - 1, 0],[w-1, h-1],[0, h-1]])
 
   mat, status = cv2.findHomography(pts_src, pts_dst)
   im_out = cv2.warpPerspective(img, mat, (img.shape[1], img.shape[0]))
+
   return im_out
 
 def get_keypoints(images):
@@ -75,7 +77,7 @@ def sift_detection(current_img, images_infos : list):
   bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
 
   for image_info in images_infos:
-    
+
     matches = bf.match(descriptors_1, image_info[2])
     matches = sorted(matches, key = lambda x:x.distance)
 
@@ -85,6 +87,21 @@ def sift_detection(current_img, images_infos : list):
       return True
 
   return False
+
+def get_screen_portion(img, images_infos):
+  height, width, channels = img.shape
+  #print(height,width)
+  
+  height_portion = int(height/2) 
+  proportion = int(0.28 * height_portion)
+
+  for i in range(2):
+    for j in range(2):
+      center_position = (i * height_portion + proportion, (i + 1) * height_portion - proportion, j * height_portion + proportion, (j + 1) * height_portion - proportion)
+      #y, h, x , w 
+      frame = detect_pieces_through_color(img, center_position, images_infos)
+
+  return frame
 
 def load_kp_samples(PATH_SAMPLES):
 
@@ -116,7 +133,7 @@ def video_recognition():
   cap = cv2.VideoCapture(0, cv2.CAP_DSHOW) #Tochange in case
 
   height = 720
-  width = 1280
+  width = 720
   cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
   cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
@@ -129,8 +146,8 @@ def video_recognition():
 
   while True:
     _, img = cap.read()
-    #surfImage = sift_detection(img, images_infos)  
-    #cv2.imshow('Result', surfImage)
+  
+    img = cv2.resize(img, (width, height), interpolation=cv2.INTER_AREA)
 
     if len(list_board_coords) < 4:
       cv2.setMouseCallback(window_name, mousePoints)
@@ -138,11 +155,13 @@ def video_recognition():
         cv2.circle(img,coord,10,(0,255,0),-1)
     else:  
       img = get_homographied_board(img, np.array(list_board_coords), width, height)
-      img = detect_pieces_through_color(img, images_infos)
+      get_screen_portion(img, images_infos)
+      #cv2.waitKey(1000)
+      #img = detect_pieces_through_color(img, images_infos)
       #cv2.imshow("mask", mask)
 
     cv2.imshow(window_name, img)
-
+    
     key = cv2.waitKey(1) & 0xFF
     if key == ord('q') or key == 27:
       break  
