@@ -20,9 +20,9 @@ def detect_pieces_through_color(frame, card_center, image_info):
     [np.array([27,50,186]), np.array([39,101,243]), "yellow" ],
     [np.array([47,28,149]), np.array([70,50,191]), "green" ] ,
     [np.array([145,39,207]), np.array([157,70,242]), "rose" ],
-    [np.array([126,48,181]), np.array([132,79,220]), "purple" ],
-    [np.array([98,79,104]), np.array([107,140,126]), "black" ],
-    [np.array([137,7,167]), np.array([167,15,204]), "brown" ]
+    [np.array([124,43,95]), np.array([130,79,204]), "purple" ],
+    [np.array([98,79,104]), np.array([107,140,164]), "black" ],
+    [np.array([113,0,167]), np.array([162,17,204]), "brown" ]
   ]
 
   #image = cv2.cvtColor(card_center, cv2.COLOR_BGR2HSV)
@@ -35,14 +35,15 @@ def detect_pieces_through_color(frame, card_center, image_info):
 
       if len(contours) != 0:
         for contour in contours:
-          if cv2.contourArea(contour) > 400 :
+          if cv2.contourArea(contour) > 450 :
               #x, y, w, h = cv2.boundingRect(contour)
               #isRecognised = sift_detection(image[y: y + h, x : x + w], image_infos)
               #if isRecognised:
                 #cv2.rectangle(frame, (x,y), (x + w, y + h), (0,0,255), 3)
             cv2.rectangle(frame, (card_center[2],card_center[0]), (card_center[3],card_center[1]), (0,0,255), 3)
                   #y, h, x , w 
-            cv2.putText(frame, color[2], (card_center[2], card_center[0] - 10),1,1,(0,0,255),3)
+            cv2.putText(frame, color[2], (card_center[2], card_center[0] - 10),1,1,(0,0,255),2)
+            print("detected : " + color[2])
 
   return frame
 
@@ -71,7 +72,7 @@ def get_keypoints(images):
 
 def sift_detection(current_img, card_center, images_infos : list):
 
-  MIN_MATCHES = 15
+  MIN_MATCHES = 40
   img = cv2.cvtColor(current_img[card_center[0]:card_center[1], card_center[2]:card_center[3]], cv2.COLOR_BGR2GRAY)
   sift = cv2.SIFT_create()
   keypoints_1, descriptors_1 = sift.detectAndCompute(img,None)
@@ -83,23 +84,21 @@ def sift_detection(current_img, card_center, images_infos : list):
 
   good_points = []
   info = ""
-
+  
   for image_info in images_infos:
-    if(image_info[2] is not None) and (descriptors_1 is not None):
+    if(image_info[2] is not None and len(image_info[2]) > 2) and (descriptors_1 is not None and len(image_info[2]) > 2):
       matches = flann.knnMatch(image_info[2], descriptors_1, k = 2)
       temp = []
       for m, n in matches:
         if m.distance < 0.8 * n.distance:
           good_points.append(m)
-      """if(len(temp) > len(good_points)):
-        good_points = temp
-        info = image_info"""
-
-    if(len(good_points) >= MIN_MATCHES):
-        #img3 = draw_boxes(matches,keypoints_1,img1,keypoints_2,img2)
-        #matchedImg = cv2.drawMatches(img, keypoints_1, image_info[0], #image_info[1], matches[:30], image_info[0], flags=2)
-      print("detected " + image_info[3])
-      current_img = detect_pieces_through_color(current_img, card_center, image_info)
+        """if(len(temp) >= len(good_points)):
+          good_points = temp
+          info = image_info"""
+      if(len(good_points) >= MIN_MATCHES):
+            #img3 = draw_boxes(matches,keypoints_1,img1,keypoints_2,img2)
+            #matchedImg = cv2.drawMatches(img, keypoints_1, image_info[0], #image_info[1], matches[:30], image_info[0], flags=2)
+        current_img = detect_pieces_through_color(current_img, card_center, image_info)
 
   return current_img
 
@@ -114,6 +113,7 @@ def get_screen_portion(img, images_infos):
     for j in range(3):
       center_position = (i * height_portion + proportion, (i + 1) * height_portion - proportion, j * height_portion + proportion, (j + 1) * height_portion - proportion)
       #y, h, x , w 
+      print("position : ", i , j)
       frame = sift_detection(img, center_position,images_infos)
       #frame = detect_pieces_through_color(img, center_position, images_infos)
 
