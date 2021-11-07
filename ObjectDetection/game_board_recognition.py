@@ -35,7 +35,7 @@ def detect_pieces_through_color(frame, card_center, image_info):
 
       if len(contours) != 0:
         for contour in contours:
-          if cv2.contourArea(contour) > 450 :
+          if cv2.contourArea(contour) > 350 :
               #x, y, w, h = cv2.boundingRect(contour)
               #isRecognised = sift_detection(image[y: y + h, x : x + w], image_infos)
               #if isRecognised:
@@ -113,7 +113,7 @@ def get_screen_portion(img, images_infos):
     for j in range(3):
       center_position = (i * height_portion + proportion, (i + 1) * height_portion - proportion, j * height_portion + proportion, (j + 1) * height_portion - proportion)
       #y, h, x , w 
-      print("position : ", i , j)
+      print("---------------------\nposition : ", i , j)
       frame = sift_detection(img, center_position,images_infos)
       #frame = detect_pieces_through_color(img, center_position, images_infos)
 
