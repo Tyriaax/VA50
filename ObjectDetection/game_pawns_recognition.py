@@ -20,7 +20,7 @@ def load_kp_samples():
   for image in dir:
     print(image)
     #images.append(os.path.join(PATH_SAMPLES,image))
-    dim = (400,400)
+    #dim = (400,400)
     #im_out = cv2.resize(cv2.imread(os.path.join(PATH_SAMPLES, image)), dim, interpolation=cv2.INTER_LINEAR)
     im_out = cv2.imread(os.path.join(PATH_SAMPLES, image))
     im_out = cv2.cvtColor(im_out, cv2.COLOR_BGR2GRAY)
@@ -149,6 +149,7 @@ def getBoundingBoxes(img,maxarea,minarea):
   # We then loop through all the detected contours to only retrieve the ones with a desired area
   for c in cnts:
     area = cv2.contourArea(c)
+    #print("I detect a contour of area : " + str(area) + " (Area accepted between " + str(minarea) + " and " + str(maxarea))
     if minarea <= area <= maxarea:
       x, y, w, h = cv2.boundingRect(c)
       rectangle = [x, y, x+w, y+h]
@@ -160,10 +161,12 @@ def getBoundingBoxes(img,maxarea,minarea):
   return rectangles
 
 def sift_detection_with_Bb(current_img, images_infos : list, boundingBox):
-  MIN_MATCHES = 15
-  KnnDistance = 0.5
+  MIN_MATCHES = 5
+  KnnDistance = 0.4
 
-  img = cv2.cvtColor(current_img[boundingBox[0]:boundingBox[1],boundingBox[2]:boundingBox[0]], cv2.COLOR_BGR2GRAY)
+  img = current_img[boundingBox[1]:boundingBox[3],boundingBox[0]:boundingBox[2]]
+
+  img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
   sift = cv2.SIFT_create()
   keypoints_1, descriptors_1 = sift.detectAndCompute(img,None)
 
@@ -188,7 +191,7 @@ def sift_detection_with_Bb(current_img, images_infos : list, boundingBox):
 
   if (len(good_points) >= MIN_MATCHES):
     print("detected " + info[3])
-    current_img.rectangle(img, (boundingBox[0], boundingBox[1]), (boundingBox[2], boundingBox[3]), (0, 255, 0), 2)
+    cv2.rectangle(current_img, (boundingBox[0], boundingBox[1]), (boundingBox[2], boundingBox[3]), (0, 255, 0), 2)
     cv2.putText(current_img, info[3], (boundingBox[0], boundingBox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
 
   return current_img
@@ -207,9 +210,13 @@ def video_recognition():
   window_name = "JACK"
 
   totalimgArea = height * width
-  bBmaxArea = totalimgArea / 6  # TODO A VOIR
-  bBminArea = totalimgArea / 12  # TODO A VOIR
+  bBmaxArea = height/3*width/3 #TODO Find better way
+  bBminArea = height/10*width/10 #TODO Find better way
 
+  homographymatrixfound = False
+
+  _, img1 = cap.read()
+  cv2.imshow(window_name, img1)
   while True:
     _, img = cap.read()
 
@@ -218,12 +225,13 @@ def video_recognition():
       for coord in list_board_coords:
         cv2.circle(img,coord,10,(0,255,0),-1)
     else:
-      if (homographymatrix == None):
+      if not homographymatrixfound:
         homographymatrix = get_homography_matrix(img, np.array(list_board_coords), width, height)
+        homographymatrixfound = True
       else:
         img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))
 
-    boundingBoxes = getBoundingBoxes(img,bBmaxArea,bBmaxArea)
+    boundingBoxes = getBoundingBoxes(img,bBmaxArea,bBminArea)
     """
     if len(list_board_coords) < 4:
       cv2.setMouseCallback(window_name, mousePoints)
@@ -235,6 +243,7 @@ def video_recognition():
 
     for boundingBox in boundingBoxes:
       img = sift_detection_with_Bb(img, images_infos, boundingBox)
+
     cv2.imshow(window_name, img)
     
     key = cv2.waitKey(1) & 0xFF
