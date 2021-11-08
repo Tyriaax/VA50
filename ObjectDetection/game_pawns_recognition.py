@@ -189,9 +189,10 @@ def sift_detection_with_Bb(current_img, images_infos : list, boundingBox):
           good_points = temp
           info = image_info
 
+  cv2.rectangle(current_img, (boundingBox[0], boundingBox[1]), (boundingBox[2], boundingBox[3]), (0, 255, 0), 2)
   if (len(good_points) >= MIN_MATCHES):
-    print("detected " + info[3])
-    cv2.rectangle(current_img, (boundingBox[0], boundingBox[1]), (boundingBox[2], boundingBox[3]), (0, 255, 0), 2)
+    #print("detected " + info[3])
+    #cv2.rectangle(current_img, (boundingBox[0], boundingBox[1]), (boundingBox[2], boundingBox[3]), (0, 255, 0), 2)
     cv2.putText(current_img, info[3], (boundingBox[0], boundingBox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
 
   return current_img
