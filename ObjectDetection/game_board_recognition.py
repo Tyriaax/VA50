@@ -1,6 +1,7 @@
 import cv2
 import os
 import numpy as np
+from numpy.lib.type_check import imag
 from pynput.mouse import Listener
 
 
@@ -13,7 +14,7 @@ def get_pieces_orientation():
 
 def detect_pieces_through_color(frame, card_center, image_info):
 
-  colors_detected = [
+  colors_detected_original = [
     [np.array([90,108,196]), np.array([107,169,247]), "blue" ], #blue
     [np.array([90,20,231]), np.array([113,44,255]), "white"], #white
     [np.array([13,88,196]), np.array([17,138,231]), "orange" ],
@@ -23,6 +24,18 @@ def detect_pieces_through_color(frame, card_center, image_info):
     [np.array([124,43,95]), np.array([130,79,204]), "purple" ],
     [np.array([98,79,104]), np.array([107,140,164]), "black" ],
     [np.array([113,0,167]), np.array([162,17,204]), "brown" ]
+  ]
+
+  colors_detected = [
+    [np.array([112,54,73]), np.array([139,124,131]), "blue" ], #blue
+    [np.array([122,0,136]), np.array([163,23,226]), "white"], #white
+    [np.array([8,76,177]), np.array([13,109,208]), "orange" ],
+    [np.array([18,52,186]), np.array([29,90,238]), "yellow" ],
+    [np.array([20,50,70]), np.array([29,79,103]), "green" ] ,
+    [np.array([162,69,140]), np.array([173,108,244]), "rose" ],
+    [np.array([141,45,109]), np.array([160,57,146]), "purple" ],
+    [np.array([6,41,44]), np.array([15,80,75]), "black" ],
+    [np.array([4,76,103]), np.array([5,98,126]), "brown" ]
   ]
 
   #image = cv2.cvtColor(card_center, cv2.COLOR_BGR2HSV)
@@ -35,7 +48,7 @@ def detect_pieces_through_color(frame, card_center, image_info):
 
       if len(contours) != 0:
         for contour in contours:
-          if cv2.contourArea(contour) > 350 :
+          if cv2.contourArea(contour) > 250 :
               #x, y, w, h = cv2.boundingRect(contour)
               #isRecognised = sift_detection(image[y: y + h, x : x + w], image_infos)
               #if isRecognised:
@@ -72,7 +85,7 @@ def get_keypoints(images):
 
 def sift_detection(current_img, card_center, images_infos : list):
 
-  MIN_MATCHES = 40
+  MIN_MATCHES = 15
   img = cv2.cvtColor(current_img[card_center[0]:card_center[1], card_center[2]:card_center[3]], cv2.COLOR_BGR2GRAY)
   sift = cv2.SIFT_create()
   keypoints_1, descriptors_1 = sift.detectAndCompute(img,None)
@@ -90,7 +103,7 @@ def sift_detection(current_img, card_center, images_infos : list):
       matches = flann.knnMatch(image_info[2], descriptors_1, k = 2)
       temp = []
       for m, n in matches:
-        if m.distance < 0.8 * n.distance:
+        if m.distance < 0.6 * n.distance: #0.8 - 50
           good_points.append(m)
         """if(len(temp) >= len(good_points)):
           good_points = temp
@@ -98,6 +111,7 @@ def sift_detection(current_img, card_center, images_infos : list):
       if(len(good_points) >= MIN_MATCHES):
             #img3 = draw_boxes(matches,keypoints_1,img1,keypoints_2,img2)
             #matchedImg = cv2.drawMatches(img, keypoints_1, image_info[0], #image_info[1], matches[:30], image_info[0], flags=2)
+        print(image_info[3])
         current_img = detect_pieces_through_color(current_img, card_center, image_info)
 
   return current_img
@@ -107,7 +121,7 @@ def get_screen_portion(img, images_infos):
   #print(height,width)
   
   height_portion = int(height/3) 
-  proportion = int(0.24 * height_portion)
+  proportion = int(0.22 * height_portion)
 
   for i in range(3):
     for j in range(3):
@@ -161,7 +175,6 @@ def video_recognition():
 
   while True:
     _, img = cap.read()
-  
     img = cv2.resize(img, (width, height), interpolation=cv2.INTER_AREA)
 
     if len(list_board_coords) < 4:
@@ -215,5 +228,57 @@ def image_recognition():
     
   cv2.destroyAllWindows()
 
+class Camera:
+  def __init__(self, width, height):
+    self.image_width = width
+    self.image_height = height
+  
+  def get_image(self):
+    return self.image_width, self.image_height
 
-image_recognition()
+def from_video_file_recognition():
+  PATH_SAMPLES = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 'zebi.mp4'))#"first_cut1.mp4"))
+
+  cap= cv2.VideoCapture(PATH_SAMPLES)
+  height = 720
+  width = 720
+  cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+  cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+
+  camera = Camera(cap.get(cv2.CAP_PROP_FRAME_WIDTH),cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+  i=0
+  images = load_kp_samples()
+  window_name = "result"
+
+  _,plateau = cap.read()
+
+  cv2.imshow(window_name, plateau)
+
+  while(cap.isOpened()):
+    ret, frame = cap.read()
+    if ret == False:
+        break
+
+    img = cv2.resize(frame, (width, height), interpolation=cv2.INTER_AREA)
+
+    if len(list_board_coords) < 4:
+      cv2.setMouseCallback(window_name, mousePoints)
+      for coord in list_board_coords:
+        cv2.circle(img,coord,10,(0,255,0),-1)
+    else:  
+      img = get_homographied_board(img, np.array(list_board_coords), width, height)
+      get_screen_portion(img, images)
+
+    cv2.imshow(window_name, img)
+    
+    key = cv2.waitKey(1) & 0xFF
+    if key == ord('q') or key == 27:
+      break  
+    cv2.waitKey(1)
+
+  cap.release()
+  cv2.destroyAllWindows()
+
+#video_recognition()
+from_video_file_recognition()
