@@ -20,9 +20,9 @@ def load_kp_samples():
   for image in dir:
     print(image)
     #images.append(os.path.join(PATH_SAMPLES,image))
-    #dim = (400,400)
-    #im_out = cv2.resize(cv2.imread(os.path.join(PATH_SAMPLES, image)), dim, interpolation=cv2.INTER_LINEAR)
-    im_out = cv2.imread(os.path.join(PATH_SAMPLES, image))
+    dim = (400,400)
+    im_out = cv2.resize(cv2.imread(os.path.join(PATH_SAMPLES, image)), dim, interpolation=cv2.INTER_LINEAR)
+    #im_out = cv2.imread(os.path.join(PATH_SAMPLES, image))
     im_out = cv2.cvtColor(im_out, cv2.COLOR_BGR2GRAY)
     sift = cv2.SIFT_create()
     keypoints, descriptors = sift.detectAndCompute(im_out,None)
@@ -189,10 +189,10 @@ def sift_detection_with_Bb(current_img, images_infos : list, boundingBox):
           good_points = temp
           info = image_info
 
-  cv2.rectangle(current_img, (boundingBox[0], boundingBox[1]), (boundingBox[2], boundingBox[3]), (0, 255, 0), 2)
+  #cv2.rectangle(current_img, (boundingBox[0], boundingBox[1]), (boundingBox[2], boundingBox[3]), (0, 255, 0), 2)
   if (len(good_points) >= MIN_MATCHES):
     #print("detected " + info[3])
-    #cv2.rectangle(current_img, (boundingBox[0], boundingBox[1]), (boundingBox[2], boundingBox[3]), (0, 255, 0), 2)
+    cv2.rectangle(current_img, (boundingBox[0], boundingBox[1]), (boundingBox[2], boundingBox[3]), (0, 255, 0), 2)
     cv2.putText(current_img, info[3], (boundingBox[0], boundingBox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
 
   return current_img
