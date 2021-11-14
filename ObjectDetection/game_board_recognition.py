@@ -121,11 +121,6 @@ def get_screen_portion(img, images_infos):
       frame = sift_detection(img, center_position,images_infos)
       #frame = detect_pieces_through_color(img, center_position, images_infos)
 
-      """PATH_SAMPLES = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Samples","Cards2", str(i) + str(j) + ".jpg"))
-      dim = (600,600)
-      im_out = cv2.resize(frame[center_position[0]:center_position[1], center_position[2]:center_position[3]], dim, interpolation=cv2.INTER_LINEAR)  
-      cv2.imwrite(PATH_SAMPLES, im_out)"""
-
   return frame
 
 from scipy.ndimage import gaussian_filter
@@ -277,3 +272,16 @@ def from_video_file_recognition():
 
 video_recognition()
 #qfrom_video_file_recognition()
+
+
+class Board():
+  def __init__(self) -> None:
+      self.cards = []
+      self.detective_pawns = []
+      self.board_file = "JackPocketBoard.txt"
+  
+  def printBoard():
+    cards_state = ""
+    for i in range(3):
+      for j in range(3):
+        pass

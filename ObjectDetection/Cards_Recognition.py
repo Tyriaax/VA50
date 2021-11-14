@@ -29,19 +29,20 @@ class CardsRecognitionHelper:
   rectangles = []
 
   def GetScreenPortions(self, height, width):
+    print(height, width)
     width_portion = int(width / 3)
     height_portion = int(height / 3)
     proportionh = int(0.2 * height_portion)
-    proportionw = int(0.2 * width_portion)
+    proportionw = int(0.24 * width_portion)
 
     for i in range(3):
       for j in range(3):
-        x = j * width_portion + proportionw
-        w = (j + 1) * width_portion - proportionw
-        y = i * height_portion + proportionh
-        h = (i + 1) * height_portion - proportionh
+        x = i * width_portion + proportionw
+        w = (i + 1) * width_portion - proportionw
+        y = j * height_portion + proportionh
+        h = (j + 1) * height_portion - proportionh
 
-        self.rectangles.append([x,y,x+w,y+h])
+        self.rectangles.append([x,y,w,h])
 
   def ComputeFrame(self, img):
     boundingBoxes = self.rectangles.copy()
