@@ -1,35 +1,42 @@
 import cv2
 import os
 import numpy as np
-from pynput.mouse import Listener
+from enum import Enum
 
+class Pawns(Enum):
+  AChangeCard = 0
+  AReturn = 1
+  ASherlock = 2
+  AToby = 3
+  AWatson = 4
+  DSherlock = 5
+  DToby = 6
+  DWatson = 7
 
+class SiftInfo:
+  def __init__(self, img = None, squaredim = None):
+    if(squaredim):
+      dim = (squaredim, squaredim)
+      img = cv2.resize(img, dim, interpolation=cv2.INTER_LINEAR)
 
-def get_object_position():
-  pass
+    self.img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-def get_pieces_orientation():
-  pass
+    sift = cv2.SIFT_create()
+    self.keypoints, self.descriptors = sift.detectAndCompute(img, None)
 
 def load_kp_samples():
+  squareDim = 400
 
   PATH_SAMPLES = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Samples","Pawns"))
-  list_image_info = []
   dir = os.listdir(PATH_SAMPLES)
 
-  for image in dir:
-    print(image)
-    #images.append(os.path.join(PATH_SAMPLES,image))
-    dim = (400,400)
-    im_out = cv2.resize(cv2.imread(os.path.join(PATH_SAMPLES, image)), dim, interpolation=cv2.INTER_LINEAR)
-    #im_out = cv2.imread(os.path.join(PATH_SAMPLES, image))
-    im_out = cv2.cvtColor(im_out, cv2.COLOR_BGR2GRAY)
-    sift = cv2.SIFT_create()
-    keypoints, descriptors = sift.detectAndCompute(im_out,None)
-    image_info = [im_out,keypoints,descriptors, image.split(".")[0]]
-    list_image_info.append(image_info)
+  samplesInfoList = []
 
-  return list_image_info
+  for image in dir:
+    img = cv2.imread(os.path.join(PATH_SAMPLES, image))
+    samplesInfoList.append(SiftInfo(img,squareDim))
+
+  return samplesInfoList
 
 
 list_board_coords = []
@@ -38,90 +45,12 @@ def mousePoints(event,x,y,flags,params):
     list_board_coords.append([x,y])
 
 def get_homography_matrix(img, pts_src, w, h):
-
   pts_dst = np.array([[0,0],[w - 1, 0],[w-1, h-1],[0, h-1]])
-
   mat, status = cv2.findHomography(pts_src, pts_dst)
 
   return mat
 
-"""
-def sift_detection(current_img, images_infos : list):
-
-  MIN_MATCHES = 15
-  KnnDistance = 0.5
-
-  img = cv2.cvtColor(current_img, cv2.COLOR_BGR2GRAY)
-  sift = cv2.SIFT_create()
-  keypoints_1, descriptors_1 = sift.detectAndCompute(img,None)
-
-  index_params = dict(algorithm = 0 , trees = 5)
-  search_params = dict(checks = 50)
-
-  flann = cv2.FlannBasedMatcher(index_params, search_params)
-
-  good_points = []
-
-  for image_info in images_infos:
-    if(image_info[2] is not None) and (descriptors_1 is not None):
-      if (len(image_info[2]) >= 2) and (len(descriptors_1) >= 2):
-        matches = flann.knnMatch(image_info[2], descriptors_1, k = 2)
-        temp = []
-        for m, n in matches:
-          if m.distance < KnnDistance * n.distance:
-            temp.append(m)
-        if (len(temp) > len(good_points)):
-          good_points = temp
-          info = image_info
-          selected_match = matches
-
-  if (len(good_points) >= MIN_MATCHES):
-    print("detected " + info[3])
-    src_pts = np.float32([info[1][m.queryIdx].pt for m in good_points]).reshape(-1, 1, 2)
-    dst_pts = np.float32([keypoints_1[m.trainIdx].pt for m in good_points]).reshape(-1, 1, 2)
-
-    M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
-
-    # Méthode 1
-    pts = src_pts[mask == 1]
-    if (len(pts) > 0):
-      min_x, min_y = np.int32(pts.min(axis=0))
-      max_x, max_y = np.int32(pts.max(axis=0))
-
-      #cv2.rectangle(current_img, (min_x, min_y), (max_x, max_y), 255, 2)
-
-    # Méthode 2
-    #if(len(M) > 0):
-    matchesMask = mask.ravel().tolist()
-
-    h, w = info[0].shape
-    pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
-    dst = cv2.perspectiveTransform(pts[None,:,:], M)
-
-    current_img = cv2.polylines(current_img, [np.int32(dst)], True, 255, 3, cv2.LINE_AA)
-
-    # Méthode 3
-    matchesMask = [[0, 0] for i in range(len(selected_match))]
-
-    # ratio test as per Lowe's paper
-    for i, (m, n) in enumerate(selected_match):
-      if m.distance < KnnDistance * n.distance:
-        matchesMask[i] = [1, 0]
-
-    draw_params = dict(matchColor=(0, 255, 0),
-                     singlePointColor=(255, 0, 0),
-                     matchesMask=matchesMask,
-                     flags=0)
-
-    imresize = cv2.resize(info[0],(100,100))
-    current_img = cv2.drawMatchesKnn(imresize,info[1],current_img,keypoints_1,selected_match,None,**draw_params)
-
-  return current_img
-"""
-
-def getBoundingBoxes(img,maxarea,minarea):
-  rectangles = []
-
+def imageProcessingForFindingContours(img):
   # First we convert the frame to a grayscale image
   img2 = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -142,14 +71,20 @@ def getBoundingBoxes(img,maxarea,minarea):
   morph_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
   img2 = cv2.morphologyEx(img2, cv2.MORPH_CLOSE, morph_kernel, iterations=3)  # We apply a close transformation
 
+  return img2
+
+def getBoundingBoxes(img,maxarea,minarea):
+  rectangles = []
+
+  img2 = imageProcessingForFindingContours(img)
+
   # We then use findContours to get the contours of the shape
   cnts = cv2.findContours(img2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
   cnts = cnts[0] if len(cnts) == 2 else cnts[1]
 
-  # We then loop through all the detected contours to only retrieve the ones with a desired area
+  # We then loop through all the detected contours to onl²y retrieve the ones with a desired area
   for c in cnts:
     area = cv2.contourArea(c)
-    #print("I detect a contour of area : " + str(area) + " (Area accepted between " + str(minarea) + " and " + str(maxarea))
     if minarea <= area <= maxarea:
       x, y, w, h = cv2.boundingRect(c)
       rectangle = [x, y, x+w, y+h]
@@ -160,59 +95,89 @@ def getBoundingBoxes(img,maxarea,minarea):
 
   return rectangles
 
-def sift_detection_with_Bb(current_img, images_infos : list, boundingBox):
-  MIN_MATCHES = 5
+def sift_detection_with_Bb(img, samplesInfos):
   KnnDistance = 0.4
 
-  img = current_img[boundingBox[1]:boundingBox[3],boundingBox[0]:boundingBox[2]]
+  index_params = dict(algorithm=0, trees=5)
+  search_params = dict(checks=50)
 
-  img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-  sift = cv2.SIFT_create()
-  keypoints_1, descriptors_1 = sift.detectAndCompute(img,None)
-
-  index_params = dict(algorithm = 0 , trees = 5)
-  search_params = dict(checks = 50)
+  siftInfosImg = SiftInfo(img)
 
   flann = cv2.FlannBasedMatcher(index_params, search_params)
 
-  good_points = []
+  numberoffoundpoints = []
 
-  for image_info in images_infos:
-    if(image_info[2] is not None) and (descriptors_1 is not None):
-      if (len(image_info[2]) >= 2) and (len(descriptors_1) >= 2):
-        matches = flann.knnMatch(image_info[2], descriptors_1, k = 2)
-        temp = []
+  for samplesInfo in samplesInfos:
+    if(samplesInfo.descriptors is not None) and (siftInfosImg.descriptors is not None):
+      if (len(samplesInfo.descriptors) >= 2) and (len(siftInfosImg.descriptors) >= 2):
+        matches = flann.knnMatch(samplesInfo.descriptors, samplesInfo.descriptors, k = 2)
+        foundpoints = []
         for m, n in matches:
           if m.distance < KnnDistance * n.distance:
-            temp.append(m)
-        if (len(temp) > len(good_points)):
-          good_points = temp
-          info = image_info
+            foundpoints.append(m)
 
-  #cv2.rectangle(current_img, (boundingBox[0], boundingBox[1]), (boundingBox[2], boundingBox[3]), (0, 255, 0), 2)
-  if (len(good_points) >= MIN_MATCHES):
-    #print("detected " + info[3])
-    cv2.rectangle(current_img, (boundingBox[0], boundingBox[1]), (boundingBox[2], boundingBox[3]), (0, 255, 0), 2)
-    cv2.putText(current_img, info[3], (boundingBox[0], boundingBox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36, 255, 12), 2)
+        numberoffoundpoints.append(len(foundpoints))
+      else:
+        numberoffoundpoints.append(0)
+    else:
+      numberoffoundpoints.append(0)
 
-  return current_img
+  totalsum = sum(numberoffoundpoints)
+
+  probabilities = []
+  if totalsum > 0:
+    for i in range(len(numberoffoundpoints)):
+      probabilities.append(numberoffoundpoints[i]/totalsum)
+  else:
+    probabilities.append(0)
+
+  return probabilities
+
+def drawRectangleWithProbabilities(img,probabilities,boundingBoxes,alreadydetectedobjects):
+  maxproba = []
+  for i in range(len(probabilities)):
+    maxproba.append(max(probabilities[i]))
+
+  maxIndexBbValue = max(maxproba)
+  indexBb = maxproba.index(maxIndexBbValue)
+
+  maxIndexMaxValue = max(probabilities[indexBb])
+  if (maxIndexMaxValue > 0):
+    indexMaxValue = probabilities[indexBb].index(maxIndexMaxValue)
+
+    if indexMaxValue not in alreadydetectedobjects:
+      alreadydetectedobjects.append(indexMaxValue)
+      img = drawRectangle(img, boundingBoxes[indexBb], Pawns(indexMaxValue))
+      boundingBoxes.remove(boundingBoxes[indexBb])
+      probabilities.remove(probabilities[indexBb])
+    else:
+      probabilities[indexBb][indexMaxValue] = 0
+
+    if(len(boundingBoxes) > 0):
+      img = drawRectangleWithProbabilities(img, probabilities, boundingBoxes,alreadydetectedobjects)
+
+  return img
+
+def drawRectangle(img,boundingBox,object):
+  cv2.rectangle(img, (boundingBox[0], boundingBox[1]), (boundingBox[2], boundingBox[3]), (0, 255, 0), 2)
+  cv2.putText(img, object.name, (boundingBox[0], boundingBox[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9,(36, 255, 12), 2)
+
+  return img
 
 def video_recognition():
+  window_name = "JACK"
+  height = 720
+  width = 1280
 
   cap = cv2.VideoCapture(0, cv2.CAP_DSHOW) #Tochange in case
 
-  height = 720
-  width = 1280
   cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
   cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
-  images_infos = load_kp_samples()
+  samplesInfos = load_kp_samples()
 
-  window_name = "JACK"
-
-  totalimgArea = height * width
-  bBmaxArea = height/3*width/3 #TODO Find better way
-  bBminArea = height/10*width/10 #TODO Find better way
+  bBmaxArea = height/3*width/3 #TODO Find better way ?
+  bBminArea = height/10*width/10 #TODO Find better way ?
 
   homographymatrixfound = False
 
@@ -233,17 +198,13 @@ def video_recognition():
         img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))
 
     boundingBoxes = getBoundingBoxes(img,bBmaxArea,bBminArea)
-    """
-    if len(list_board_coords) < 4:
-      cv2.setMouseCallback(window_name, mousePoints)
-      for coord in list_board_coords:
-        cv2.circle(img,coord,10,(0,255,0),-1)
-    else:  
-      img = get_homographied_board(img, np.array(list_board_coords), width, height)
-    """
 
+    siftProbabilities = []
     for boundingBox in boundingBoxes:
-      img = sift_detection_with_Bb(img, images_infos, boundingBox)
+      siftProbabilities.append(sift_detection_with_Bb(img[boundingBox[1]:boundingBox[3],boundingBox[0]:boundingBox[2]], samplesInfos))
+
+    if (len(boundingBoxes) > 0):
+      img = drawRectangleWithProbabilities(img,siftProbabilities,boundingBoxes,[])
 
     cv2.imshow(window_name, img)
     
