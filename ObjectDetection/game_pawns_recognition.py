@@ -4,18 +4,19 @@ import numpy as np
 from enum import Enum
 
 class ActionPawns(Enum):
-  AChangeCard = 0
-  AReturn = 1
-  ASherlock = 2
-  AToby = 3
-  AWatson = 4
+  APChangeCard = 0
+  APReturn = 1
+  APSherlock = 2
+  APToby = 3
+  APWatson = 4
 
 class DetectivePawns(Enum):
-  DSherlock = 0
-  DToby = 1
-  DWatson = 2
+  DPSherlock = 0
+  DPToby = 1
+  DPWatson = 2
 
 selectedEnum = ActionPawns
+selectedSamplesQuality = "LQ"
 
 class SiftInfo:
   def __init__(self, img = None, squaredim = None):
@@ -32,21 +33,16 @@ def load_kp_samples():
   squareDim = 400
 
   if selectedEnum == DetectivePawns:
-    PATH_SAMPLES = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Samples","Pawns","DetectivePawns"))
+    PATH_SAMPLES = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Samples",selectedSamplesQuality, "Pawns","DetectivePawns"))
   elif (selectedEnum == ActionPawns):
-    PATH_SAMPLES = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", "Pawns", "ActionPawns"))
+    PATH_SAMPLES = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples",selectedSamplesQuality ,"Pawns", "ActionPawns"))
   dir = os.listdir(PATH_SAMPLES)
 
   samplesInfoList = []
 
   for image in dir:
     img = cv2.imread(os.path.join(PATH_SAMPLES, image))
-    samplesInfoList.append(SiftInfo(img,squareDim))
-
-  """
-  for i in range(len(samplesInfoList)):
-    cv2.imshow(ActionPawns(i).name,samplesInfoList[i].img)
-  """
+    samplesInfoList.append(SiftInfo(img))
 
   return samplesInfoList
 
@@ -101,17 +97,14 @@ def getBoundingBoxes(img,maxarea,minarea):
       x, y, w, h = cv2.boundingRect(c)
       rectangle = [x, y, x+w, y+h]
       rectangles.append(rectangle)
-      #cv2.rectangle(img, (rectangle[0], rectangle[1]), (rectangle[2], rectangle[3]), (0, 255, 0), 2)
-
-  #cv2.imshow("BoundingBoxes", img)
 
   return rectangles
 
 def sift_detection_with_Bb(img, samplesInfos):
-  minMatches = 5
-  knnDistance = 0.5
+  minMatches = 50
+  knnDistance = 0.1
 
-  index_params = dict(algorithm=0, trees=5)
+  index_params = dict(algorithm=1, trees=5)
   search_params = dict(checks=50)
 
   siftInfosImg = SiftInfo(img)
@@ -218,6 +211,7 @@ def video_recognition():
       img = drawRectangleWithProbabilities(img,siftProbabilities,boundingBoxes,[])
 
     cv2.imshow(window_name, img)
+    cv2.waitKey(500)
     
     key = cv2.waitKey(1) & 0xFF
     if key == ord('q') or key == 27:
