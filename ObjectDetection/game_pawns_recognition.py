@@ -3,15 +3,19 @@ import os
 import numpy as np
 from enum import Enum
 
-class Pawns(Enum):
+class ActionPawns(Enum):
   AChangeCard = 0
   AReturn = 1
   ASherlock = 2
   AToby = 3
   AWatson = 4
-  DSherlock = 5
-  DToby = 6
-  DWatson = 7
+
+class DetectivePawns(Enum):
+  DSherlock = 0
+  DToby = 1
+  DWatson = 2
+
+selectedEnum = ActionPawns
 
 class SiftInfo:
   def __init__(self, img = None, squaredim = None):
@@ -27,7 +31,10 @@ class SiftInfo:
 def load_kp_samples():
   squareDim = 400
 
-  PATH_SAMPLES = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Samples","Pawns"))
+  if selectedEnum == DetectivePawns:
+    PATH_SAMPLES = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "Samples","Pawns","DetectivePawns"))
+  elif (selectedEnum == ActionPawns):
+    PATH_SAMPLES = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", "Pawns", "ActionPawns"))
   dir = os.listdir(PATH_SAMPLES)
 
   samplesInfoList = []
@@ -35,6 +42,11 @@ def load_kp_samples():
   for image in dir:
     img = cv2.imread(os.path.join(PATH_SAMPLES, image))
     samplesInfoList.append(SiftInfo(img,squareDim))
+
+  """
+  for i in range(len(samplesInfoList)):
+    cv2.imshow(ActionPawns(i).name,samplesInfoList[i].img)
+  """
 
   return samplesInfoList
 
@@ -96,7 +108,8 @@ def getBoundingBoxes(img,maxarea,minarea):
   return rectangles
 
 def sift_detection_with_Bb(img, samplesInfos):
-  KnnDistance = 0.4
+  minMatches = 5
+  knnDistance = 0.5
 
   index_params = dict(algorithm=0, trees=5)
   search_params = dict(checks=50)
@@ -108,24 +121,22 @@ def sift_detection_with_Bb(img, samplesInfos):
   numberoffoundpoints = []
 
   for samplesInfo in samplesInfos:
+    numberoffoundpoints.append(0)
     if(samplesInfo.descriptors is not None) and (siftInfosImg.descriptors is not None):
       if (len(samplesInfo.descriptors) >= 2) and (len(siftInfosImg.descriptors) >= 2):
         matches = flann.knnMatch(samplesInfo.descriptors, samplesInfo.descriptors, k = 2)
         foundpoints = []
         for m, n in matches:
-          if m.distance < KnnDistance * n.distance:
+          if m.distance < knnDistance * n.distance:
             foundpoints.append(m)
 
-        numberoffoundpoints.append(len(foundpoints))
-      else:
-        numberoffoundpoints.append(0)
-    else:
-      numberoffoundpoints.append(0)
+        if(len(foundpoints) > minMatches):
+          numberoffoundpoints[len(numberoffoundpoints)-1] = len(foundpoints)
 
   totalsum = sum(numberoffoundpoints)
 
   probabilities = []
-  if totalsum > 0:
+  if totalsum > 2*minMatches:
     for i in range(len(numberoffoundpoints)):
       probabilities.append(numberoffoundpoints[i]/totalsum)
   else:
@@ -138,20 +149,20 @@ def drawRectangleWithProbabilities(img,probabilities,boundingBoxes,alreadydetect
   for i in range(len(probabilities)):
     maxproba.append(max(probabilities[i]))
 
-  maxIndexBbValue = max(maxproba)
-  indexBb = maxproba.index(maxIndexBbValue)
+  maxValueBb = max(maxproba)
+  indexMaxValueBb = maxproba.index(maxValueBb)
 
-  maxIndexMaxValue = max(probabilities[indexBb])
-  if (maxIndexMaxValue > 0):
-    indexMaxValue = probabilities[indexBb].index(maxIndexMaxValue)
+  maxValue = max(probabilities[indexMaxValueBb])
+  if (maxValue > 0):
+    indexMaxValue = probabilities[indexMaxValueBb ].index(maxValue)
 
     if indexMaxValue not in alreadydetectedobjects:
       alreadydetectedobjects.append(indexMaxValue)
-      img = drawRectangle(img, boundingBoxes[indexBb], Pawns(indexMaxValue))
-      boundingBoxes.remove(boundingBoxes[indexBb])
-      probabilities.remove(probabilities[indexBb])
+      img = drawRectangle(img, boundingBoxes[indexMaxValueBb], selectedEnum(indexMaxValue))
+      boundingBoxes.remove(boundingBoxes[indexMaxValueBb])
+      probabilities.remove(probabilities[indexMaxValueBb])
     else:
-      probabilities[indexBb][indexMaxValue] = 0
+      probabilities[indexMaxValueBb][indexMaxValue] = 0
 
     if(len(boundingBoxes) > 0):
       img = drawRectangleWithProbabilities(img, probabilities, boundingBoxes,alreadydetectedobjects)
