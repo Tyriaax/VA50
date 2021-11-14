@@ -64,7 +64,10 @@ def loadSamples():
 
   for image in dir:
     img = cv2.imread(os.path.join(PATH_SAMPLES, image))
-    samplesSiftInfoList.append(SiftInfo(img))
+    if selectedSamplesQuality == "HQ":
+      samplesSiftInfoList.append(SiftInfo(img,squareDim))
+    elif selectedSamplesQuality == "LQ":
+      samplesSiftInfoList.append(SiftInfo(img))
     samplesHistoList.append(getHisto(img))
 
   return [samplesSiftInfoList,samplesHistoList]
@@ -272,10 +275,9 @@ def video_recognition():
       siftProbabilities.append(sift_detection(currentimg, samplesSiftInfos))
       histoProbabilities.append(histogram_Probabilities(currentimg, samplesHistograms))
 
-    finalProbabilities = combineProbabilities([siftProbabilities,histoProbabilities],[0.5,0.5])
-
     if (len(boundingBoxes) > 0):
-      img = drawRectangleWithProbabilities(img,siftProbabilities,boundingBoxes,[])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.7, 0.3])
+      img = drawRectangleWithProbabilities(img,finalProbabilities,boundingBoxes,[])
 
     cv2.imshow(window_name, img)
     #cv2.waitKey(1000)
