@@ -5,6 +5,7 @@ import cv2 as cv
 import easygui as eagui
 from GenerateXmlFile import *
 import random
+from PIL import ImageEnhance
 
 
 # Strings
@@ -24,11 +25,38 @@ validationfolder = "validation"
 imagesfolder = "images"
 xmlfolder = "labels"
 
+def houghCircleDetection(img, num):
+  enhancer = ImageEnhance.Contrast(img)
+
+  factor = 1.5 #gives original image
+  img = enhancer.enhance(factor)
+  gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+  # Blur using 3 * 3 kernel.
+  gray_blurred = cv.blur(gray, (1, 1))
+
+  cv.imshow("r", gray_blurred)
+    
+    #TRY SIMPLIFY IMAGE FIRST
+  detected_circles = cv.HoughCircles(gray_blurred, 
+                    cv.HOUGH_GRADIENT, 1, 20, param1 = 100, #->
+                param2 = 50, minRadius = 1, maxRadius = 250) #param2 : 120, 130, 1, 200
+  # Draw circles that are detected.
+  detected_object = []
+  if detected_circles is not None:
+    print("s")
+      # Convert the circle parameters a, b and r to integers.
+    detected_circles = np.uint16(np.around(detected_circles))
+    for pt in detected_circles[0, :]:
+        detected_object = (pt[0], pt[1], pt[2])  #x,y,rayon
+        to_save = cv.circle(img,(detected_object[0], detected_object[1]), detected_object[2], (255,0,0), 5)
+        print("saved " , num)
+        cv.imwrite(os.path.abspath(os.path.join(os.path.dirname( __file__ ), 'blue', num + ".png")), to_save)
+
 def openFileOrWebcam():
     global modeSelected
     if eagui.ynbox('Choose if you want to select a video file or access  webcam directly', windowTitle, ("Webcam", "Video File"),"","Webcam"):
         modeSelected = modeWebcam
-        capture = cv.VideoCapture(1, cv.CAP_DSHOW)
+        capture = cv.VideoCapture(0, cv.CAP_DSHOW)
 
         if not capture.isOpened:
             print('Unable to open Webcam')
@@ -98,7 +126,12 @@ def getRectanglesFromVideo(capture):
         framecopy = frame.copy()
 
         x, y, w, h = cv.boundingRect(selectedcontour)
-        cv.rectangle(framecopy, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        #cv.rectaos.path.abspath(os.path.join(os.path.dirname( __file__ ), 'final.mp4'))
+        cv.rectangle(framecopy, (x, y), (x + w, y +h ), (255,0,0), 2)
+        fact = int(0.24 * w)
+        cv.imwrite(os.path.abspath(os.path.join(os.path.dirname( __file__ ), 'pink', str(i) + ".png")), frame[y + fact :y+h - fact, x + fact :x+w - fact])
+        #houghCircleDetection(framecopy[y:y+h, x:x+w], i)
+        cv.imshow("r", frame[y + fact :y+h - fact, x + fact :x+w - fact])
 
         cv.imshow(frametitle, framecopy)
         if modeSelected == modeWebcam:
