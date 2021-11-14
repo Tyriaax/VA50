@@ -29,7 +29,27 @@ class SiftInfo:
     sift = cv2.SIFT_create()
     self.keypoints, self.descriptors = sift.detectAndCompute(img, None)
 
-def load_kp_samples():
+def getHisto(img):
+  img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+  h_bins = 50
+  s_bins = 60
+  histSize = [h_bins, s_bins]
+
+  # hue varies from 0 to 179, saturation from 0 to 255
+  h_ranges = [0, 180]
+  s_ranges = [0, 256]
+  ranges = h_ranges + s_ranges  # concat lists
+
+  # Use the 0-th and 1-st channels
+  channels = [0, 1]
+
+  hist_img = cv2.calcHist([img_hsv], channels, None, histSize, ranges, accumulate=False)
+  cv2.normalize(hist_img, hist_img, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX)
+
+  return hist_img
+
+def loadSamples():
   squareDim = 400
 
   if selectedEnum == DetectivePawns:
@@ -38,13 +58,16 @@ def load_kp_samples():
     PATH_SAMPLES = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples",selectedSamplesQuality ,"Pawns", "ActionPawns"))
   dir = os.listdir(PATH_SAMPLES)
 
-  samplesInfoList = []
+  samplesSiftInfoList = []
+  samplesHistoList = []
+
 
   for image in dir:
     img = cv2.imread(os.path.join(PATH_SAMPLES, image))
-    samplesInfoList.append(SiftInfo(img))
+    samplesSiftInfoList.append(SiftInfo(img))
+    samplesHistoList.append(getHisto(img))
 
-  return samplesInfoList
+  return [samplesSiftInfoList,samplesHistoList]
 
 
 list_board_coords = []
@@ -100,9 +123,9 @@ def getBoundingBoxes(img,maxarea,minarea):
 
   return rectangles
 
-def sift_detection_with_Bb(img, samplesInfos):
-  minMatches = 50
-  knnDistance = 0.1
+def sift_detection(img, samplesSiftInfos):
+  minMatches = 0
+  knnDistance = 0.3
 
   index_params = dict(algorithm=1, trees=5)
   search_params = dict(checks=50)
@@ -113,11 +136,11 @@ def sift_detection_with_Bb(img, samplesInfos):
 
   numberoffoundpoints = []
 
-  for samplesInfo in samplesInfos:
+  for sampleSiftInfo in samplesSiftInfos:
     numberoffoundpoints.append(0)
-    if(samplesInfo.descriptors is not None) and (siftInfosImg.descriptors is not None):
-      if (len(samplesInfo.descriptors) >= 2) and (len(siftInfosImg.descriptors) >= 2):
-        matches = flann.knnMatch(samplesInfo.descriptors, samplesInfo.descriptors, k = 2)
+    if(sampleSiftInfo.descriptors is not None) and (siftInfosImg.descriptors is not None):
+      if (len(sampleSiftInfo.descriptors) >= 2) and (len(siftInfosImg.descriptors) >= 2):
+        matches = flann.knnMatch(sampleSiftInfo.descriptors, sampleSiftInfo.descriptors, k = 2)
         foundpoints = []
         for m, n in matches:
           if m.distance < knnDistance * n.distance:
@@ -128,16 +151,53 @@ def sift_detection_with_Bb(img, samplesInfos):
 
   totalsum = sum(numberoffoundpoints)
 
-  probabilities = []
+  probabilities = [0 for i in range(len(numberoffoundpoints))]
+
   if totalsum > 2*minMatches:
     for i in range(len(numberoffoundpoints)):
-      probabilities.append(numberoffoundpoints[i]/totalsum)
-  else:
-    probabilities.append(0)
+      probabilities[i] = numberoffoundpoints[i]/totalsum
 
   return probabilities
 
+def histogram_Probabilities(img, samplesHistograms):
+  compareMethod = 0
+  imghist = getHisto(img)
+
+  comparisonValues = []
+  for sampleHistogram in samplesHistograms:
+    comparisonValues.append(cv2.compareHist(sampleHistogram, imghist, compareMethod))
+
+  totalsum = sum(comparisonValues)
+
+  probabilities = []
+
+  for i in range(len(comparisonValues)):
+    probabilities.append(comparisonValues[i] / totalsum)
+
+  return probabilities
+
+def combineProbabilities(probabilitiesList,weights):
+  numberOfProbabilitiesToCombine = len(probabilitiesList)
+  numberOfObjects = len(probabilitiesList[0])
+  numberOfSamples = len(probabilitiesList[0][0])
+
+  combinedProbability = [[0 for i in range(numberOfSamples)] for j in range(numberOfObjects)]
+
+  for i in range(numberOfProbabilitiesToCombine):
+    for j in range(numberOfObjects):
+      for k in range(numberOfSamples):
+        combinedProbability[j][k] = combinedProbability[j][k] + probabilitiesList[i][j][k]*weights[i]
+
+  for i in range(numberOfObjects):
+    sumValue = sum(combinedProbability[i])
+    for j in range(numberOfSamples):
+      combinedProbability[i][j] = combinedProbability[i][j]/sumValue
+
+  return combinedProbability
+
 def drawRectangleWithProbabilities(img,probabilities,boundingBoxes,alreadydetectedobjects):
+  minProbability = 0
+
   maxproba = []
   for i in range(len(probabilities)):
     maxproba.append(max(probabilities[i]))
@@ -146,7 +206,7 @@ def drawRectangleWithProbabilities(img,probabilities,boundingBoxes,alreadydetect
   indexMaxValueBb = maxproba.index(maxValueBb)
 
   maxValue = max(probabilities[indexMaxValueBb])
-  if (maxValue > 0):
+  if (maxValue > minProbability):
     indexMaxValue = probabilities[indexMaxValueBb ].index(maxValue)
 
     if indexMaxValue not in alreadydetectedobjects:
@@ -178,10 +238,12 @@ def video_recognition():
   cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
   cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
-  samplesInfos = load_kp_samples()
+  [samplesSiftInfos, samplesHistograms] = loadSamples()
 
-  bBmaxArea = height/3*width/3 #TODO Find better way ?
-  bBminArea = height/10*width/10 #TODO Find better way ?
+  maxAreaDivider = 4
+  minAreaDivider = 12
+  bBmaxArea = height/maxAreaDivider*width/maxAreaDivider #TODO Find better way ?
+  bBminArea = height/minAreaDivider*width/minAreaDivider #TODO Find better way ?
 
   homographymatrixfound = False
 
@@ -204,14 +266,19 @@ def video_recognition():
     boundingBoxes = getBoundingBoxes(img,bBmaxArea,bBminArea)
 
     siftProbabilities = []
+    histoProbabilities = []
     for boundingBox in boundingBoxes:
-      siftProbabilities.append(sift_detection_with_Bb(img[boundingBox[1]:boundingBox[3],boundingBox[0]:boundingBox[2]], samplesInfos))
+      currentimg = img[boundingBox[1]:boundingBox[3],boundingBox[0]:boundingBox[2]]
+      siftProbabilities.append(sift_detection(currentimg, samplesSiftInfos))
+      histoProbabilities.append(histogram_Probabilities(currentimg, samplesHistograms))
+
+    finalProbabilities = combineProbabilities([siftProbabilities,histoProbabilities],[0.5,0.5])
 
     if (len(boundingBoxes) > 0):
       img = drawRectangleWithProbabilities(img,siftProbabilities,boundingBoxes,[])
 
     cv2.imshow(window_name, img)
-    cv2.waitKey(500)
+    #cv2.waitKey(1000)
     
     key = cv2.waitKey(1) & 0xFF
     if key == ord('q') or key == 27:
