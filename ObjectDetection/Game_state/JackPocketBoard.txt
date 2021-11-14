@@ -1,0 +1,7 @@
+
+-------------------------
+blue | brown | white | 
+-------------------------
+purple | black | rose | 
+-------------------------
+orange | yellow | green | 
