@@ -2,8 +2,8 @@ import cv2
 import os
 
 from homography import *
-from Pawns_recognition import *
-from Cards_Recognition import *
+from pawns_recognition import *
+from cards_Recognition import *
 
 def video_recognition(path = None):
     window_name = "JACK"
@@ -32,11 +32,12 @@ def video_recognition(path = None):
             cv2.setMouseCallback(window_name, mousePoints)
             for coord in list_board_coords:
                 cv2.circle(img, coord, 10, (0, 255, 0), -1)
+
         else:
             if not homographymatrixfound:
                 homographymatrix = get_homography_matrix(img, np.array(list_board_coords), width, height)
                 img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))
-                cardsRecognitionHelper.getScreenPortions(img.shape[0],img.shape[1])
+                cardsRecognitionHelper.GetScreenPortions(img.shape[0],img.shape[1])
                 homographymatrixfound = True
             else:
                 img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))

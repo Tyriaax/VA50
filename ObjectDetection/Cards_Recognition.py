@@ -28,30 +28,33 @@ class CardsRecognitionHelper:
 
   rectangles = []
 
-  def getScreenPortions(self, height, width):
+  def GetScreenPortions(self, height, width):
+    width_portion = int(width / 3)
     height_portion = int(height / 3)
-    proportion = int(0.2 * height_portion)
+    proportionh = int(0.2 * height_portion)
+    proportionw = int(0.2 * width_portion)
 
     for i in range(3):
       for j in range(3):
-        x = j * height_portion + proportion
-        w = (j + 1) * height_portion - proportion
-        y = i * height_portion + proportion
-        h = (i + 1) * height_portion - proportion
+        x = j * width_portion + proportionw
+        w = (j + 1) * width_portion - proportionw
+        y = i * height_portion + proportionh
+        h = (i + 1) * height_portion - proportionh
 
         self.rectangles.append([x,y,x+w,y+h])
 
   def ComputeFrame(self, img):
+    boundingBoxes = self.rectangles.copy()
 
-    if(len(self.rectangles) > 0):
+    if(len(boundingBoxes) > 0):
       siftProbabilities = []
       histoProbabilities = []
-      for rectangle in self.rectangles:
-        currentimg = img[rectangle[1]:rectangle[3], rectangle[0]:rectangle[2]]
+      for boundingBox in boundingBoxes:
+        currentimg = img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
         siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos))
         histoProbabilities.append(histogram_Probabilities(currentimg, self.samplesHistograms))
 
       finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
-      img = drawRectangleWithProbabilities(img, finalProbabilities, self.rectangles, [], Cards)
+      img = drawRectangleWithProbabilities(img, finalProbabilities, boundingBoxes, [], Cards)
 
     return img
