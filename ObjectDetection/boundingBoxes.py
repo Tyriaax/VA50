@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from skimage import color,io
+from skimage.draw.draw import rectangle
 from skimage.transform import hough_ellipse
 from skimage.feature import canny
 from skimage.draw import ellipse_perimeter
@@ -73,7 +74,8 @@ def getBoundingBox(img):
 def getCirclesBb(img, boundingBoxes):
   finalBbs = []
   for boundingBox in boundingBoxes:
-    rectangle = houghEllipseDetection(img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]])
+    rectangle = []
+    #rectangle = houghEllipseDetection(img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]])
     #rectangle = getBoundingBox(img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]])
     if(len(rectangle)>0):
       finalBbs.append([boundingBox[0] + rectangle[0],boundingBox[1] + rectangle[1],boundingBox[0] + rectangle[2],boundingBox[1] + rectangle[3]])
@@ -88,8 +90,8 @@ def houghEllipseDetection(img):
 
   image = img_as_float(img)
   image_gray = color.rgb2gray(image)
-  io.imshow(image_gray)
-  plt.show()
+  #io.imshow(image_gray)
+  #plt.show()
 
   edges = canny(image_gray, sigma=2.0,
                 low_threshold=0.55, high_threshold=0.8)

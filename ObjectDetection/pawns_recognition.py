@@ -44,8 +44,13 @@ class PawnsRecognitionHelper:
     img = cv2.rectangle(img, (0, coordinates[1]), (coordinates[0], coordinates[3]), (0, 255, 0), 3)  # Partie gauche
     img = cv2.rectangle(img, (coordinates[2], coordinates[1]), (coordinates[0] + coordinates[2], coordinates[3]), (0, 255, 0), 3)  # Partie droite
     img = cv2.rectangle(img, (coordinates[0], coordinates[3]), (coordinates[2], coordinates[1] + coordinates[3]), (0, 255, 0), 3)  # partie basse
+
+    
+    rectangle = list()
+    rectangle.append([0, coordinates[1], coordinates[0], coordinates[2]])
     boundingBoxes = getBoundingBoxes(img, self.bBmaxArea, self.bBminArea)
 
+    cv2.imshow("test", img[rectangle[0][0]:rectangle[0][1], rectangle[0][2]:rectangle[0][3]])
     siftProbabilities = []
     histoProbabilities = []
     for boundingBox in boundingBoxes:

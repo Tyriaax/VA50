@@ -45,7 +45,7 @@ def video_recognition(path = None):
             else:
                 img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))
                 img = cardsRecognitionHelper.ComputeFrame(img,coordinates)
-                #img = pawnsRecognitionHelper.ComputeFrame(img,coordinates)
+                img = pawnsRecognitionHelper.ComputeFrame(img,coordinates)
 
         cv2.imshow(window_name, img)
         # cv2.waitKey(1000)
