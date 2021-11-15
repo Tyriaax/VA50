@@ -19,7 +19,7 @@ def combineProbabilities(probabilitiesList,weights):
 
   return combinedProbability
 
-def drawRectangleWithProbabilities(img,probabilities,boundingBoxes,alreadydetectedobjects,enum):
+def drawRectangleWithProbabilities(img,probabilities,boundingBoxes,alreadydetectedobjects,enum, cardBoard, alreadydetectedboundingboxes):
   minProbability = 0
 
   maxproba = []
@@ -27,20 +27,26 @@ def drawRectangleWithProbabilities(img,probabilities,boundingBoxes,alreadydetect
     maxproba.append(max(probabilities[i]))
 
   maxValueBb = max(maxproba)
+
   indexMaxValueBb = maxproba.index(maxValueBb)
+  if(maxValueBb in alreadydetectedboundingboxes):
+    
   maxValue = max(probabilities[indexMaxValueBb])
   if (maxValue > minProbability):
     indexMaxValue = probabilities[indexMaxValueBb ].index(maxValue)
 
     if indexMaxValue not in alreadydetectedobjects:
       alreadydetectedobjects.append(indexMaxValue)
+      alreadydetectedboundingboxes.append(indexMaxValueBb)
       img = drawRectangle(img, boundingBoxes[indexMaxValueBb], enum(indexMaxValue).name)
-      boundingBoxes.remove(boundingBoxes[indexMaxValueBb])
-      probabilities.remove(probabilities[indexMaxValueBb])
+      cardBoard[indexMaxValueBb] = enum(indexMaxValue).name
+      #boundingBoxes.remove(boundingBoxes[indexMaxValueBb])
+      #probabilities.remove(probabilities[indexMaxValueBb])
+
     else:
       probabilities[indexMaxValueBb][indexMaxValue] = 0
 
     if(len(boundingBoxes) > 0):
-      img = drawRectangleWithProbabilities(img, probabilities, boundingBoxes,alreadydetectedobjects,enum)
+      img = drawRectangleWithProbabilities(img, probabilities, boundingBoxes,alreadydetectedobjects,enum, cardBoard)
 
   return img
