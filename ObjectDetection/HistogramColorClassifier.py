@@ -47,6 +47,7 @@ class HistogramColorClassifier:
       self.hist_type = hist_type
       self.model_list = list()
       self.name_list = list()
+      self.label_object = list()
 
   def addModelHistogram(self, model_frame, name=''):
       """Add the histogram to internal container. If the name of the object
@@ -65,6 +66,7 @@ class HistogramColorClassifier:
       if name not in self.name_list:
           self.model_list.append(hist)
           self.name_list.append(name)
+          self.label_object.append(name)
       else:
           for i in range(len(self.name_list)):
               if self.name_list[i] == name:

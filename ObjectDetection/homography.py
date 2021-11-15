@@ -16,7 +16,6 @@ def get_homography_matrix(img, pts_src, w, h):
   pts_dst_cards = np.array([[factor * w, factor * h],[w - factor *w, factor * h],[w-factor *w, h-factor *h],[factor *w, h-factor *h]])
   mat_cards, status = cv2.findHomography(pts_src, pts_dst_cards)
 
-
   return mat_cards, box_cards
 
 def get_upper_homography_matrix(pts_src, box_cards):

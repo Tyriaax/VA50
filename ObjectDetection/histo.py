@@ -1,6 +1,7 @@
 import cv2
+from HistogramComparison import*
 
-def getHisto(img):
+"""def getHisto(img):
   img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
   h_bins = 50
@@ -34,5 +35,11 @@ def histogram_Probabilities(img, samplesHistograms):
 
   for i in range(len(comparisonValues)):
     probabilities.append(comparisonValues[i] / totalsum)
+
+  return probabilities"""
+
+def histogram_Probabilities(img, samplesHistograms : HistogramColorClassifier):
+
+  probabilities = CompareHist(img, samplesHistograms)
 
   return probabilities

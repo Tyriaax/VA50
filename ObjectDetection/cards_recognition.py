@@ -3,6 +3,7 @@ from enum import Enum
 from samples import *
 from boundingBoxes import *
 from probabilities import *
+import numpy
 
 class Cards(Enum):
   CBlack = 0
@@ -22,7 +23,7 @@ class CardsRecognitionHelper:
     if self.selectedSamplesQuality == "HQ":
       path = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Cards"))
     elif self.selectedSamplesQuality == "LQ":
-      path = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "CardsWithContour"))
+      path = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "CardsWithoutContour"))
 
     [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(path)
 
@@ -56,6 +57,8 @@ class CardsRecognitionHelper:
         currentimg = selectedimg[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
         siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos))
         histoProbabilities.append(histogram_Probabilities(currentimg, self.samplesHistograms))
+      #finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0, 1])
+      img = drawRectangleWithProbabilities(img, histoProbabilities, boundingBoxes, [], Cards)
 
       finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
       selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, [], Cards)
