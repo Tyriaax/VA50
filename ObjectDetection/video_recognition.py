@@ -35,14 +35,25 @@ def video_recognition(path = None):
                 cv2.circle(img, coord, 10, (0, 255, 0), -1)
         else:
             if not homographymatrixfound:
-                homographymatrix, coordinates = get_homography_matrix(img, np.array(list_board_coords), width, height)
+                homographymatrix, coordinates_box = get_homography_matrix(img, np.array(list_board_coords), width, height)
                 img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))
-                cardsRecognitionHelper.GetScreenPortions(img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]])
+                
+                #upper_homography_matrix, upper_box = get_upper_homography_matrix(np.array(list_board_coords),coordinates_box)
+
+                
+
+                cardsRecognitionHelper.GetScreenPortions(img[coordinates_box[1]:coordinates_box[3],coordinates_box[0]:coordinates_box[2]])
                 homographymatrixfound = True
             else:
                 img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))
-                cards_with_bounding_boxes = cardsRecognitionHelper.ComputeFrame(img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]])
-                img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]] = cards_with_bounding_boxes
+                cards_with_bounding_boxes = cardsRecognitionHelper.ComputeFrame(img[coordinates_box[1]:coordinates_box[3],coordinates_box[0]:coordinates_box[2]])
+                img[coordinates_box[1]:coordinates_box[3],coordinates_box[0]:coordinates_box[2]] = cards_with_bounding_boxes
+
+                img = cv2.rectangle(img,(coordinates_box[0], 0),(coordinates_box[2], coordinates_box[1]), (0, 255, 0), 3) #Partie supérieur au dessus du plateau
+                img = cv2.rectangle(img,(0, coordinates_box[1]),(coordinates_box[0], coordinates_box[3]), (0, 255, 0), 3) #Partie gauche
+                img = cv2.rectangle(img,(coordinates_box[2], coordinates_box[1]),(coordinates_box[0] + coordinates_box[2], coordinates_box[3]), (0, 255, 0), 3) #Partie droite
+                img = cv2.rectangle(img,(coordinates_box[0], coordinates_box[3]),( coordinates_box[2], coordinates_box[1] + coordinates_box[3]), (0, 255, 0), 3) #partie basse
+
         #img = pawnsRecognitionHelper.ComputeFrame(img)
         
 

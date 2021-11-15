@@ -47,8 +47,8 @@ class CardsRecognitionHelper:
         #houghCircleDetection()
 
   def ComputeFrame(self, img):
-    boundingBoxes = getCirclesBb(img,self.rectangles)
-
+    #boundingBoxes = getCirclesBb(img,self.rectangles)
+    boundingBoxes = self.rectangles.copy()
     if(len(boundingBoxes) > 0):
       siftProbabilities = []
       histoProbabilities = []
