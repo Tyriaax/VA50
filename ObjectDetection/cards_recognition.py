@@ -57,7 +57,7 @@ class CardsRecognitionHelper:
         currentimg = selectedimg[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
         siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos))
         histoProbabilities.append(histogram_Probabilities(currentimg, self.samplesHistograms))
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0, 1])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
       selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, [], Cards)
 
     img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]] = selectedimg

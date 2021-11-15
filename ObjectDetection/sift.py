@@ -7,7 +7,7 @@ class SiftInfo:
       img = cv2.resize(img, dim, interpolation=cv2.INTER_LINEAR)
 
     self.img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
+    #self.img = cv2.equalizeHist(self.img)
     sift = cv2.SIFT_create()
     self.keypoints, self.descriptors = sift.detectAndCompute(img, None)
 
