@@ -5,9 +5,9 @@ from numpy.lib.type_check import imag
 from pynput.mouse import Listener
 
 class Board():
-  def __init__(self, cards : list) -> None:
-      self.cards = cards
-      self.detective_pawns = []
+  def __init__(self) -> None:
+      self.cards = [0,0,0,0,0,0,0,0,0]
+      self.detective_pawns = list()
       self.board_file = os.path.abspath(os.path.join(os.path.dirname( __file__ ),"Game_state","JackPocketBoard.txt"))
   
   def printBoard(self):
@@ -20,8 +20,11 @@ class Board():
     with open(self.board_file, 'w') as file:
       file.write(cards_state)
     print(cards_state)
+  
+  def getBoard(self):
+    return self.cards
 
-z = [["blue","brown", "white"],["purple","black","rose"],["orange", "yellow","green"]]
+"""z = [["blue","brown", "white"],["purple","black","rose"],["orange", "yellow","green"]]
 board = Board(z)
-board.printBoard()
+board.printBoard()"""
 
