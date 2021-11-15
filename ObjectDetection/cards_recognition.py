@@ -39,10 +39,10 @@ class CardsRecognitionHelper:
 
     for i in range(3):
       for j in range(3):
-        x = i * width_portion + proportionw
-        w = (i + 1) * width_portion - proportionw
-        y = j * height_portion + proportionh
-        h = (j + 1) * height_portion - proportionh
+        x = j * width_portion + proportionw
+        w = (j + 1) * width_portion - proportionw
+        y = i * height_portion + proportionh
+        h = (i + 1) * height_portion - proportionh
 
         self.rectangles.append([x,y,w,h])
         #houghCircleDetection()
@@ -64,8 +64,8 @@ class CardsRecognitionHelper:
       finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0, 1])
       selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, Cards, cardBoard)
 
-    print(cardBoard)
     img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]] = selectedimg
+    board.printBoard()
     return img
 
 def houghCircleDetection(img):

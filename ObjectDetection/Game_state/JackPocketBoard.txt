@@ -1,7 +1,4 @@
 
--------------------------
-blue | brown | white | 
--------------------------
-purple | black | rose | 
--------------------------
-orange | yellow | green | 
+CBlue|CGreen|CBrown|
+CBlack|CWhite|CYellow|
+COrange|CPurple|CRose|

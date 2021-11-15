@@ -12,14 +12,14 @@ class Board():
   
   def printBoard(self):
     cards_state = ""
-    for i in range(3):
-      cards_state += "\n-------------------------\n"
-      for j in range(3):
-        cards_state += str(self.cards[i][j]) + " | "
-    
+
+    for i in range(9): 
+      if i%3 == 0:
+        cards_state += '\n'
+      cards_state += self.cards[i] + "|"
+    print(cards_state)
     with open(self.board_file, 'w') as file:
       file.write(cards_state)
-    print(cards_state)
   
   def getBoard(self):
     return self.cards
