@@ -40,12 +40,13 @@ def video_recognition(path = None):
                 
                 #upper_homography_matrix, upper_box = get_upper_homography_matrix(np.array(list_board_coords),coordinates_box)
                 
-                cardsRecognitionHelper.GetScreenPortions(img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]])
+                cardsRecognitionHelper.GetScreenPortions(img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]],coordinates)
+                pawnsRecognitionHelper.GetScreenPortions(img,coordinates)
                 homographymatrixfound = True
             else:
                 img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))
-                img = cardsRecognitionHelper.ComputeFrame(img,coordinates)
-                img = pawnsRecognitionHelper.ComputeFrame(img,coordinates)
+                img = cardsRecognitionHelper.ComputeFrame(img)
+                img = pawnsRecognitionHelper.ComputeFrame(img)
 
         cv2.imshow(window_name, img)
         # cv2.waitKey(1000)
