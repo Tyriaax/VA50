@@ -7,8 +7,10 @@ def mousePoints(event,x,y,flags,params):
     list_board_coords.append([x,y])
 
 def get_homography_matrix(img, pts_src, w, h):
-  pts_dst = np.array([[0,0],[w - 1, 0],[w-1, h-1],[0, h-1]])
+
+  factor = 0.15
+  pts_dst = np.array([[factor * w, factor * h],[w - factor *w, factor * h],[w-factor *w, h-factor *h],[factor *w, h-factor *h]])
   mat, status = cv2.findHomography(pts_src, pts_dst)
 
-  return mat
+  return mat, (int(factor * w), int(factor * h), int(w-factor *w), int(h-factor *h))
 

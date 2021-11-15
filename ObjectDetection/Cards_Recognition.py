@@ -22,13 +22,14 @@ class CardsRecognitionHelper:
     if self.selectedSamplesQuality == "HQ":
       path = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Cards"))
     elif self.selectedSamplesQuality == "LQ":
-      path = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "CardsWithoutContour"))
+      path = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "CardsWithContour"))
 
     [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(path)
 
   rectangles = []
 
-  def GetScreenPortions(self, height, width):
+  def GetScreenPortions(self, img):
+    height, width = img.shape[0],img.shape[1] 
     print(height, width)
     width_portion = int(width / 3)
     height_portion = int(height / 3)
@@ -43,6 +44,7 @@ class CardsRecognitionHelper:
         h = (j + 1) * height_portion - proportionh
 
         self.rectangles.append([x,y,w,h])
+        #houghCircleDetection()
 
   def ComputeFrame(self, img):
     boundingBoxes = self.rectangles.copy()
@@ -55,7 +57,27 @@ class CardsRecognitionHelper:
         siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos))
         histoProbabilities.append(histogram_Probabilities(currentimg, self.samplesHistograms))
 
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0, 1])
       img = drawRectangleWithProbabilities(img, finalProbabilities, boundingBoxes, [], Cards)
 
     return img
+
+def houghCircleDetection(img):
+  gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+  # Blur using 3 * 3 kernel.
+  gray_blurred = cv2.blur(gray, (3, 3))
+    
+    #TRY SIMPLIFY IMAGE FIRST
+  detected_circles = cv2.HoughCircles(gray_blurred, 
+                    cv2.HOUGH_GRADIENT, 1, 20, param1 = 120, #->
+                param2 = 120, minRadius = 1, maxRadius = 200) #param2 : 120, 130, 1, 200
+  # Draw circles that are detected.
+  detected_object = []
+  if detected_circles is not None:
+      # Convert the circle parameters a, b and r to integers.
+    detected_circles = np.uint16(np.around(detected_circles))
+    for pt in detected_circles[0, :]:
+      detected_object = (pt[0], pt[1], pt[2])  #x,y,rayon
+      cv2.circle(img,(detected_object[0], detected_object[1]), detected_object[2], (255,0,0), 5)
+
+  return img, detected_object
