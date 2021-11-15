@@ -44,20 +44,24 @@ class PawnsRecognitionHelper:
     cv2.rectangle(self.mask, (coordinates[0],coordinates[1]), (coordinates[2],coordinates[3]), 0, -1)
 
     cardSize = ((coordinates[2]-coordinates[0])/3,(coordinates[3]-coordinates[1])/3)
-    self.bBmaxArea = (cardSize[0]*cardSize[1])/4
-    self.bBminArea = (cardSize[0]*cardSize[1])/10
+    self.bBmaxArea = (cardSize[0]*cardSize[1])/6
+    self.bBminArea = (cardSize[0]*cardSize[1])/30
 
     self.coordinates = coordinates
 
   def ComputeFrame(self, img):
+    board = Board()
+    detectivePawn = board.getDetectivePawn()
+
     selectedimg = cv2.bitwise_and(img, img, mask=self.mask)
 
     boundingBoxes = getBoundingBoxes(selectedimg, self.bBmaxArea, self.bBminArea)
 
     siftProbabilities = []
     histoProbabilities = []
-    for boundingBox in boundingBoxes:
-      currentimg = selectedimg[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
+    for i in range(min(len(boundingBoxes), len(self.selectedEnum))):
+    #for boundingBox in boundingBoxes:
+      currentimg = selectedimg[boundingBoxes[i][1]:boundingBoxes[i][3], boundingBoxes[i][0]:boundingBoxes[i][2]]
       siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos))
       histoProbabilities.append(histogram_Probabilities(currentimg, self.samplesHistograms))
 

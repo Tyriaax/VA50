@@ -16,8 +16,8 @@ class Board():
     for i in range(9): 
       if i%3 == 0:
         cards_state += '\n'
-      cards_state += self.cards[i] + "|"
-
+      cards_state += str(self.cards[i]) + "|"
+    print(cards_state)
     with open(self.board_file, 'w') as file:
       file.write(cards_state)
   

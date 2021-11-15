@@ -41,7 +41,7 @@ def video_recognition(path = None):
                 #upper_homography_matrix, upper_box = get_upper_homography_matrix(np.array(list_board_coords),coordinates_box)
                 
                 cardsRecognitionHelper.GetScreenPortions(img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]],coordinates)
-                pawnsRecognitionHelper.GetScreenPortions(img,coordinates)
+                pawnsRecognitionHelper.GetScreenPortion(img,coordinates)
                 homographymatrixfound = True
             else:
                 img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))
