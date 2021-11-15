@@ -8,7 +8,7 @@ from cards_recognition import *
 def image_recognition(path):
     window_name = "JACK"
 
-    img = cv2.imread(path)
+    fiximg = cv2.imread(path)
 
     height = img.shape[0]
     width = img.shape[1]
@@ -18,6 +18,7 @@ def image_recognition(path):
 
     homographymatrixfound = False
 
+    img = fiximg.copy()
     cv2.imshow(window_name, img)
     while True:
         if len(list_board_coords) < 4:

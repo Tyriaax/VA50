@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from skimage.transform import hough_ellipse
 
 def imageProcessingForFindingContours(img):
   # First we convert the frame to a grayscale image
@@ -84,9 +85,12 @@ def houghCircleDetection(img):
   # Blur using 3 * 3 kernel.
   gray_blurred = cv2.blur(gray, (3, 3))
 
-  # TRY SIMPLIFY IMAGE FIRST
-  detected_circles = cv2.HoughEllipse(gray_blurred,cv2.HOUGH_GRADIENT,1,10,param1 = 40, param2 = 40)
   rectangle = []
+
+
+  """
+  detected_circles = cv2.HoughEllipse(gray_blurred,cv2.HOUGH_GRADIENT,1,10,param1 = 40, param2 = 40)
+  
   if detected_circles is not None:
     # Convert the circle parameters a, b and r to integers.
     detected_circles = np.uint16(np.around(detected_circles))
@@ -94,7 +98,7 @@ def houghCircleDetection(img):
     detected_object = (pt[0], pt[1], pt[2])  # x,y,rayon
     cv2.circle(img, (detected_object[0], detected_object[1]), detected_object[2], (255, 0, 0), 5)
     cv2.imshow("Test",img)
-    """
+
     xcircle = detected_circles[0][0]
     ycircle = detected_circles[0][1]
     radius = detected_circles[0][2]
