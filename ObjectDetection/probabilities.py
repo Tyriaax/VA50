@@ -25,10 +25,9 @@ def drawRectangleWithProbabilities(img,probabilities,boundingBoxes,alreadydetect
   maxproba = []
   for i in range(len(probabilities)):
     maxproba.append(max(probabilities[i]))
-
+  print(maxproba)
   maxValueBb = max(maxproba)
   indexMaxValueBb = maxproba.index(maxValueBb)
-
   maxValue = max(probabilities[indexMaxValueBb])
   if (maxValue > minProbability):
     indexMaxValue = probabilities[indexMaxValueBb ].index(maxValue)
@@ -41,6 +40,7 @@ def drawRectangleWithProbabilities(img,probabilities,boundingBoxes,alreadydetect
     else:
       probabilities[indexMaxValueBb][indexMaxValue] = 0
 
+    print(len(boundingBoxes), len(probabilities))
     if(len(boundingBoxes) > 0):
       img = drawRectangleWithProbabilities(img, probabilities, boundingBoxes,alreadydetectedobjects,enum)
 
