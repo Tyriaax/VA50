@@ -21,7 +21,7 @@ def getHisto(img):
   return hist_img
 
 def histogram_Probabilities(img, samplesHistograms):
-  compareMethod = 2
+  compareMethod = 0
   imghist = getHisto(img)
 
   comparisonValues = []

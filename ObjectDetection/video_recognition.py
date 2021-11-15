@@ -41,10 +41,9 @@ def video_recognition(path = None):
                 homographymatrixfound = True
             else:
                 img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))
-                cards_with_bounding_boxes = cardsRecognitionHelper.ComputeFrame(img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]])
-                img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]] = cards_with_bounding_boxes
+                img = cardsRecognitionHelper.ComputeFrame(img,coordinates)
+
         #img = pawnsRecognitionHelper.ComputeFrame(img)
-        
 
         cv2.imshow(window_name, img)
         # cv2.waitKey(1000)

@@ -30,7 +30,6 @@ class CardsRecognitionHelper:
 
   def GetScreenPortions(self, img):
     height, width = img.shape[0],img.shape[1] 
-    print(height, width)
     width_portion = int(width / 3)
     height_portion = int(height / 3)
     proportionh = int(0.2 * height_portion)
@@ -46,20 +45,22 @@ class CardsRecognitionHelper:
         self.rectangles.append([x,y,w,h])
         #houghCircleDetection()
 
-  def ComputeFrame(self, img):
-    boundingBoxes = getCirclesBb(img,self.rectangles)
+  def ComputeFrame(self, img, coordinates):
+    selectedimg = img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]]
+    boundingBoxes = getCirclesBb(selectedimg,self.rectangles)
 
     if(len(boundingBoxes) > 0):
       siftProbabilities = []
       histoProbabilities = []
       for boundingBox in boundingBoxes:
-        currentimg = img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
+        currentimg = selectedimg[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
         siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos))
         histoProbabilities.append(histogram_Probabilities(currentimg, self.samplesHistograms))
 
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0, 1])
-      img = drawRectangleWithProbabilities(img, finalProbabilities, boundingBoxes, [], Cards)
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
+      selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, [], Cards)
 
+    img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]] = selectedimg
     return img
 
 def houghCircleDetection(img):

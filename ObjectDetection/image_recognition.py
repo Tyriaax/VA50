@@ -9,6 +9,7 @@ def image_recognition(path):
     window_name = "JACK"
 
     fiximg = cv2.imread(path)
+    img = fiximg.copy()
 
     height = img.shape[0]
     width = img.shape[1]
@@ -18,9 +19,10 @@ def image_recognition(path):
 
     homographymatrixfound = False
 
-    img = fiximg.copy()
     cv2.imshow(window_name, img)
     while True:
+        img = fiximg.copy()
+
         if len(list_board_coords) < 4:
             cv2.setMouseCallback(window_name, mousePoints)
             for coord in list_board_coords:
@@ -28,13 +30,15 @@ def image_recognition(path):
 
         else:
             if not homographymatrixfound:
-                homographymatrix = get_homography_matrix(img, np.array(list_board_coords), width, height)
+                homographymatrix, coordinates = get_homography_matrix(img, np.array(list_board_coords), width, height)
                 img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))
-                cardsRecognitionHelper.GetScreenPortions(img.shape[0],img.shape[1])
+                cardsRecognitionHelper.GetScreenPortions(img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]])
                 homographymatrixfound = True
+            else:
+                img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))
+                img = cardsRecognitionHelper.ComputeFrame(img,coordinates)
 
         #img = pawnsRecognitionHelper.ComputeFrame(img)
-        img = cardsRecognitionHelper.ComputeFrame(img)
 
         cv2.imshow(window_name, img)
 
