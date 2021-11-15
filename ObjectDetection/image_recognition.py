@@ -5,32 +5,21 @@ from homography import *
 from pawns_recognition import *
 from cards_recognition import *
 
-def video_recognition(path = None):
+def image_recognition(path):
     window_name = "JACK"
-    height = 720
-    width = 1280
 
-    if(path):
-        cap = cv2.VideoCapture(path)
-        _, img1 = cap.read()
-        height = img1.shape[0]
-        width = img1.shape[1]
-    else:
-        cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # Tochange in case
+    img = cv2.imread(path)
 
-    cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+    height = img.shape[0]
+    width = img.shape[1]
 
     pawnsRecognitionHelper = PawnsRecognitionHelper(height,width)
     cardsRecognitionHelper = CardsRecognitionHelper(height,width)
 
     homographymatrixfound = False
 
-    _, img1 = cap.read()
-    cv2.imshow(window_name, img1)
+    cv2.imshow(window_name, img)
     while True:
-        _, img = cap.read()
-
         if len(list_board_coords) < 4:
             cv2.setMouseCallback(window_name, mousePoints)
             for coord in list_board_coords:
@@ -42,19 +31,15 @@ def video_recognition(path = None):
                 img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))
                 cardsRecognitionHelper.GetScreenPortions(img.shape[0],img.shape[1])
                 homographymatrixfound = True
-            else:
-                img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))
 
         #img = pawnsRecognitionHelper.ComputeFrame(img)
         img = cardsRecognitionHelper.ComputeFrame(img)
 
         cv2.imshow(window_name, img)
-        # cv2.waitKey(1000)
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q') or key == 27:
             break
 
-    cap.release()
     cv2.destroyAllWindows()
 

@@ -29,7 +29,6 @@ class CardsRecognitionHelper:
   rectangles = []
 
   def GetScreenPortions(self, height, width):
-    print(height, width)
     width_portion = int(width / 3)
     height_portion = int(height / 3)
     proportionh = int(0.2 * height_portion)
@@ -45,7 +44,7 @@ class CardsRecognitionHelper:
         self.rectangles.append([x,y,w,h])
 
   def ComputeFrame(self, img):
-    boundingBoxes = self.rectangles.copy()
+    boundingBoxes = getCirclesBb(img,self.rectangles)
 
     if(len(boundingBoxes) > 0):
       siftProbabilities = []
@@ -55,7 +54,7 @@ class CardsRecognitionHelper:
         siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos))
         histoProbabilities.append(histogram_Probabilities(currentimg, self.samplesHistograms))
 
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5,0.5])
       img = drawRectangleWithProbabilities(img, finalProbabilities, boundingBoxes, [], Cards)
 
     return img
