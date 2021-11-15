@@ -4,10 +4,6 @@ import numpy as np
 from numpy.lib.type_check import imag
 from pynput.mouse import Listener
 
-
-
-
-
 class Board():
   def __init__(self, cards : list) -> None:
       self.cards = cards
