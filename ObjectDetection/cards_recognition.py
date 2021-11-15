@@ -30,7 +30,7 @@ class CardsRecognitionHelper:
 
   rectangles = []
 
-  def GetScreenPortions(self, img):
+  def GetScreenPortions(self, img,coordinates):
     height, width = img.shape[0],img.shape[1] 
     width_portion = int(width / 3)
     height_portion = int(height / 3)
@@ -45,10 +45,11 @@ class CardsRecognitionHelper:
         h = (i + 1) * height_portion - proportionh
 
         self.rectangles.append([x,y,w,h])
-        #houghCircleDetection()
 
-  def ComputeFrame(self, img, coordinates):
-    selectedimg = img[coordinates[1]:coordinates[3], coordinates[0]:coordinates[2]]
+    self.coordinates = coordinates
+
+  def ComputeFrame(self, img):
+    selectedimg = img[self.coordinates[1]:self.coordinates[3], self.coordinates[0]:self.coordinates[2]]
     boundingBoxes = getCirclesBb(selectedimg, self.rectangles)
 
     board = Board()
@@ -64,26 +65,6 @@ class CardsRecognitionHelper:
       finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0, 1])
       selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, Cards, cardBoard)
 
-    img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]] = selectedimg
+    img[self.coordinates[1]:self.coordinates[3],self.coordinates[0]:self.coordinates[2]] = selectedimg
     board.printBoard()
     return img
-
-def houghCircleDetection(img):
-  gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-  # Blur using 3 * 3 kernel.
-  gray_blurred = cv2.blur(gray, (3, 3))
-    
-    #TRY SIMPLIFY IMAGE FIRST
-  detected_circles = cv2.HoughCircles(gray_blurred, 
-                    cv2.HOUGH_GRADIENT, 1, 20, param1 = 120, #->
-                param2 = 120, minRadius = 1, maxRadius = 200) #param2 : 120, 130, 1, 200
-  # Draw circles that are detected.
-  detected_object = []
-  if detected_circles is not None:
-      # Convert the circle parameters a, b and r to integers.
-    detected_circles = np.uint16(np.around(detected_circles))
-    for pt in detected_circles[0, :]:
-      detected_object = (pt[0], pt[1], pt[2])  #x,y,rayon
-      cv2.circle(img,(detected_object[0], detected_object[1]), detected_object[2], (255,0,0), 5)
-
-  return img, detected_object

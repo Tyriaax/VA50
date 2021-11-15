@@ -24,9 +24,6 @@ class PawnsRecognitionHelper:
 
   selectedSamplesResolution = 400
 
-  maxAreaDivider = 4
-  minAreaDivider = 12
-
   def __init__(self, height, width):
     if self.selectedEnum == DetectivePawns:
       path = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Pawns", "DetectivePawns"))
@@ -38,15 +35,21 @@ class PawnsRecognitionHelper:
     elif (self.selectedSamplesQuality == "HQ"):
       [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(path, self.selectedSamplesResolution)
 
-    self.bBmaxArea = height / self.maxAreaDivider * width / self.maxAreaDivider  # TODO Find better way ?
-    self.bBminArea = height / self.minAreaDivider * width / self.minAreaDivider  # TODO Find better way ?
+  def GetScreenPortion(self,img, coordinates):
+    height, width = img.shape[0], img.shape[1]
 
-  def ComputeFrame(self, img, coordinates):
-    mask = np.full((img.shape[0], img.shape[1]), 255, dtype=np.uint8)
+    #Generate Mask
+    self.mask = np.full((height, width), 255, dtype=np.uint8)
+    cv2.rectangle(self.mask, (coordinates[0],coordinates[1]), (coordinates[2],coordinates[3]), 0, -1)
 
-    cv2.rectangle(mask, (coordinates[0],coordinates[1]), (coordinates[2],coordinates[3]), 0, -1)
+    cardSize = ((coordinates[2]-coordinates[0])/3,(coordinates[3]-coordinates[1])/3)
+    self.bBmaxArea = (cardSize[0]*cardSize[1])/4
+    self.bBminArea = (cardSize[0]*cardSize[1])/10
 
-    selectedimg = cv2.bitwise_and(img, img, mask=mask)
+    self.coordinates = coordinates
+
+  def ComputeFrame(self, img):
+    selectedimg = cv2.bitwise_and(img, img, mask=self.mask)
 
     boundingBoxes = getBoundingBoxes(selectedimg, self.bBmaxArea, self.bBminArea)
 
@@ -61,6 +64,6 @@ class PawnsRecognitionHelper:
       finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
       selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, [], self.selectedEnum)
 
-    selectedimg[coordinates[1]-1:coordinates[3]+1, coordinates[0]-1:coordinates[2]+1] = img[coordinates[1]-1:coordinates[3]+1, coordinates[0]-1:coordinates[2]+1]
+    selectedimg[self.coordinates[1]-1:self.coordinates[3]+1, self.coordinates[0]-1:self.coordinates[2]+1] = img[self.coordinates[1]-1:self.coordinates[3]+1, self.coordinates[0]-1:self.coordinates[2]+1]
 
     return selectedimg

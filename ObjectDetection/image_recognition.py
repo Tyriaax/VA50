@@ -32,12 +32,13 @@ def image_recognition(path):
             if not homographymatrixfound:
                 homographymatrix, coordinates = get_homography_matrix(img, np.array(list_board_coords), width, height)
                 img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))
-                cardsRecognitionHelper.GetScreenPortions(img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]])
+                cardsRecognitionHelper.GetScreenPortions(img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]],coordinates)
+                pawnsRecognitionHelper.GetScreenPortion(img, coordinates)
                 homographymatrixfound = True
             else:
                 img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))
-                img = cardsRecognitionHelper.ComputeFrame(img,coordinates)
-                img = pawnsRecognitionHelper.ComputeFrame(img, coordinates)
+                img = cardsRecognitionHelper.ComputeFrame(img)
+                img = pawnsRecognitionHelper.ComputeFrame(img)
 
         cv2.imshow(window_name, img)
 
