@@ -2,8 +2,8 @@ import cv2
 import os
 
 from homography import *
-from Pawns_recognition import *
-from Cards_Recognition import *
+from pawns_recognition import *
+from cards_recognition import *
 
 def video_recognition(path = None):
     window_name = "JACK"
