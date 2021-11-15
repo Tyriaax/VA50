@@ -39,7 +39,11 @@ class PawnsRecognitionHelper:
     self.bBmaxArea = height / self.maxAreaDivider * width / self.maxAreaDivider  # TODO Find better way ?
     self.bBminArea = height / self.minAreaDivider * width / self.minAreaDivider  # TODO Find better way ?
 
-  def ComputeFrame(self, img):
+  def ComputeFrame(self, img, coordinates):
+    img = cv2.rectangle(img, (coordinates[0], 0), (coordinates[2], coordinates[1]), (0, 255, 0), 3)  # Partie supérieur au dessus du plateau
+    img = cv2.rectangle(img, (0, coordinates[1]), (coordinates[0], coordinates[3]), (0, 255, 0), 3)  # Partie gauche
+    img = cv2.rectangle(img, (coordinates[2], coordinates[1]), (coordinates[0] + coordinates[2], coordinates[3]), (0, 255, 0), 3)  # Partie droite
+    img = cv2.rectangle(img, (coordinates[0], coordinates[3]), (coordinates[2], coordinates[1] + coordinates[3]), (0, 255, 0), 3)  # partie basse
     boundingBoxes = getBoundingBoxes(img, self.bBmaxArea, self.bBminArea)
 
     siftProbabilities = []
