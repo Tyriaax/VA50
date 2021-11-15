@@ -1,5 +1,7 @@
 from enum import Enum
 
+import cv2.cv2
+
 from samples import *
 from boundingBoxes import *
 from probabilities import *
@@ -40,28 +42,25 @@ class PawnsRecognitionHelper:
     self.bBminArea = height / self.minAreaDivider * width / self.minAreaDivider  # TODO Find better way ?
 
   def ComputeFrame(self, img, coordinates):
-    rectangles = []
-    rectangles.append([coordinates[0],0 , coordinates[2], coordinates[1]])
-    rectangles.append([0, coordinates[1], coordinates[0], coordinates[3]])
-    rectangles.append([coordinates[2], coordinates[1],coordinates[0] + coordinates[2], coordinates[3]])
-    rectangles.append([coordinates[0], coordinates[3], coordinates[2], coordinates[1] + coordinates[3]])
+    mask = np.full((img.shape[0], img.shape[1]), 255, dtype=np.uint8)
 
-    for rectangle in rectangles:
-      workingimg = img[rectangle[1]:rectangle[3], rectangle[0]:rectangle[2]]
+    cv2.rectangle(mask, (coordinates[0],coordinates[1]), (coordinates[2],coordinates[3]), 0, -1)
 
-      boundingBoxes = getBoundingBoxes(workingimg, self.bBmaxArea, self.bBminArea)
+    selectedimg = cv2.bitwise_and(img, img, mask=mask)
 
-      siftProbabilities = []
-      histoProbabilities = []
-      for boundingBox in boundingBoxes:
-        currentimg = workingimg[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
-        siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos))
-        histoProbabilities.append(histogram_Probabilities(currentimg, self.samplesHistograms))
+    boundingBoxes = getBoundingBoxes(selectedimg, self.bBmaxArea, self.bBminArea)
 
-      if (len(boundingBoxes) > 0):
-        finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
-        workingimg = drawRectangleWithProbabilities(workingimg, finalProbabilities, boundingBoxes, [], self.selectedEnum)
+    siftProbabilities = []
+    histoProbabilities = []
+    for boundingBox in boundingBoxes:
+      currentimg = selectedimg[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
+      siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos))
+      histoProbabilities.append(histogram_Probabilities(currentimg, self.samplesHistograms))
 
-    img[rectangle[1]:rectangle[3], rectangle[0]:rectangle[2]] = workingimg
+    if (len(boundingBoxes) > 0):
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
+      selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, [], self.selectedEnum)
 
-    return img
+    selectedimg[coordinates[1]-1:coordinates[3]+1, coordinates[0]-1:coordinates[2]+1] = img[coordinates[1]-1:coordinates[3]+1, coordinates[0]-1:coordinates[2]+1]
+
+    return selectedimg
