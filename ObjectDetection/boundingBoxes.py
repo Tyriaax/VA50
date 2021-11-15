@@ -1,6 +1,11 @@
 import cv2
 import numpy as np
+from skimage import color,io
 from skimage.transform import hough_ellipse
+from skimage.feature import canny
+from skimage.draw import ellipse_perimeter
+from skimage.util import img_as_float
+from matplotlib import pyplot as plt
 
 def imageProcessingForFindingContours(img):
   # First we convert the frame to a grayscale image
@@ -68,7 +73,7 @@ def getBoundingBox(img):
 def getCirclesBb(img, boundingBoxes):
   finalBbs = []
   for boundingBox in boundingBoxes:
-    rectangle = houghCircleDetection(img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]])
+    rectangle = houghEllipseDetection(img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]])
     #rectangle = getBoundingBox(img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]])
     if(len(rectangle)>0):
       finalBbs.append([boundingBox[0] + rectangle[0],boundingBox[1] + rectangle[1],boundingBox[0] + rectangle[2],boundingBox[1] + rectangle[3]])
@@ -77,37 +82,37 @@ def getCirclesBb(img, boundingBoxes):
 
   return finalBbs
 
-def houghCircleDetection(img):
+def houghEllipseDetection(img):
   addedpixels = 0
-
-  gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-  # Blur using 3 * 3 kernel.
-  gray_blurred = cv2.blur(gray, (3, 3))
-
   rectangle = []
 
+  image = img_as_float(img)
+  image_gray = color.rgb2gray(image)
+  io.imshow(image_gray)
+  plt.show()
 
-  """
-  detected_circles = cv2.HoughEllipse(gray_blurred,cv2.HOUGH_GRADIENT,1,10,param1 = 40, param2 = 40)
-  
-  if detected_circles is not None:
-    # Convert the circle parameters a, b and r to integers.
-    detected_circles = np.uint16(np.around(detected_circles))
-    pt = detected_circles[0, 0]
-    detected_object = (pt[0], pt[1], pt[2])  # x,y,rayon
-    cv2.circle(img, (detected_object[0], detected_object[1]), detected_object[2], (255, 0, 0), 5)
-    cv2.imshow("Test",img)
+  edges = canny(image_gray, sigma=2.0,
+                low_threshold=0.55, high_threshold=0.8)
 
-    xcircle = detected_circles[0][0]
-    ycircle = detected_circles[0][1]
-    radius = detected_circles[0][2]
+  # Perform a Hough Transform
+  # The accuracy corresponds to the bin size of a major axis.
+  # The value is chosen in order to get a single high accumulator.
+  # The threshold eliminates low accumulators
+  result = hough_ellipse(edges, accuracy=10, threshold=250,
+                         min_size=1, max_size=100)
+  if(len(result)>0):
+    print("Cercle detecte")
+    result.sort(order='accumulator')
 
-    xtl = xcircle - (radius + addedpixels)
-    ytl = ycircle - (radius + addedpixels)
-    xbr = xcircle + (radius + addedpixels)
-    ybr = ycircle + (radius + addedpixels)
-    rectangle = [xtl,ytl,xbr,ybr]
-    cv2.imshow("test", gray_blurred)
-    """
+    # Estimated parameters for the ellipse
+    best = list(result[-1])
+    yc, xc, a, b = [int(round(x)) for x in best[1:5]]
+    orientation = best[5]
+
+    # Draw the ellipse on the original image
+    cy, cx = ellipse_perimeter(yc, xc, a, b, orientation)
+    image[cy, cx] = (0, 0, 255)
+    io.imshow(image)
+    plt.show()
+
   return rectangle
