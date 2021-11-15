@@ -41,7 +41,6 @@ def video_recognition(path = None):
                 #upper_homography_matrix, upper_box = get_upper_homography_matrix(np.array(list_board_coords),coordinates_box)
 
                 
-
                 cardsRecognitionHelper.GetScreenPortions(img[coordinates_box[1]:coordinates_box[3],coordinates_box[0]:coordinates_box[2]])
                 homographymatrixfound = True
             else:
