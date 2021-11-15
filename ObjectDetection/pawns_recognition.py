@@ -5,6 +5,7 @@ import cv2.cv2
 from samples import *
 from boundingBoxes import *
 from probabilities import *
+from game_board_recognition import*
 
 class ActionPawns(Enum):
   APChangeCard = 0
@@ -24,8 +25,8 @@ class PawnsRecognitionHelper:
 
   selectedSamplesResolution = 400
 
-  maxAreaDivider = 4
-  minAreaDivider = 12
+  maxAreaDivider = 10
+  minAreaDivider = 20
 
   def __init__(self, height, width):
     if self.selectedEnum == DetectivePawns:
@@ -44,6 +45,9 @@ class PawnsRecognitionHelper:
   def ComputeFrame(self, img, coordinates):
     mask = np.full((img.shape[0], img.shape[1]), 255, dtype=np.uint8)
 
+    board = Board()
+    detectivePawn = board.getDetectivePawn()
+
     cv2.rectangle(mask, (coordinates[0],coordinates[1]), (coordinates[2],coordinates[3]), 0, -1)
 
     selectedimg = cv2.bitwise_and(img, img, mask=mask)
@@ -59,7 +63,7 @@ class PawnsRecognitionHelper:
 
     if (len(boundingBoxes) > 0):
       finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
-      selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, [], self.selectedEnum)
+      selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, self.selectedEnum, detectivePawn)
 
     selectedimg[coordinates[1]-1:coordinates[3]+1, coordinates[0]-1:coordinates[2]+1] = img[coordinates[1]-1:coordinates[3]+1, coordinates[0]-1:coordinates[2]+1]
 

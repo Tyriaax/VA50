@@ -34,8 +34,8 @@ class CardsRecognitionHelper:
     height, width = img.shape[0],img.shape[1] 
     width_portion = int(width / 3)
     height_portion = int(height / 3)
-    proportionh = int(0.25 * height_portion)
-    proportionw = int(0.25 * width_portion)
+    proportionh = int(0.28 * height_portion)
+    proportionw = int(0.28 * width_portion)
 
     for i in range(3):
       for j in range(3):
@@ -61,7 +61,7 @@ class CardsRecognitionHelper:
         currentimg = selectedimg[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
         siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos))
         histoProbabilities.append(histogram_Probabilities(currentimg, self.samplesHistograms))
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0, 1])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
       selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, Cards, cardBoard)
 
     img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]] = selectedimg
