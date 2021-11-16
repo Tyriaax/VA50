@@ -1,13 +1,11 @@
 import os
 from sift import *
-from histo import *
 from HistogramComparison import*
 
 def loadSamples(path, resolution = None):
   dir = os.listdir(path)
 
   samplesSiftInfoList = []
-  samplesHistoList = []
   histoClassifier = HistogramColorClassifier(channels=[0, 1, 2], hist_size=[128, 128, 128], hist_range=[0, 256, 0, 256, 0, 256], hist_type='BGR')
 
   for image in dir:
@@ -20,5 +18,5 @@ def loadSamples(path, resolution = None):
     #samplesHistoList.append(getHisto(img))
     addToClassifier(histoClassifier, img, image)
 
-  return [samplesSiftInfoList, histoClassifier]  #samplesHistoList]
+  return [samplesSiftInfoList, histoClassifier]  
 

@@ -11,7 +11,7 @@ def addToClassifier(my_classifier : HistogramColorClassifier, model, file):
   my_classifier.addModelHistogram(model, file.split(".")[0])
 
 
-def CompareHist(image, my_classifier : HistogramColorClassifier):
+def histogramProbabilities(image, my_classifier : HistogramColorClassifier):
   #image = cv2.imread(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Samples', 'LQ', 'CardsWithoutContour','CBlue.jpg'))) #Load the image
 
   """image = Image.open(os.path.abspath(os.path.join(os.path.dirname(__file__), 'Samples', 'LQ', 'CardsWithoutContour','CBlue.jpg')))

@@ -63,7 +63,7 @@ class PawnsRecognitionHelper:
     #for boundingBox in boundingBoxes:
       currentimg = selectedimg[boundingBoxes[i][1]:boundingBoxes[i][3], boundingBoxes[i][0]:boundingBoxes[i][2]]
       siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos))
-      histoProbabilities.append(histogram_Probabilities(currentimg, self.samplesHistograms))
+      histoProbabilities.append(histogramProbabilities(currentimg, self.samplesHistograms))
 
     if (len(boundingBoxes) > 0):
       finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
