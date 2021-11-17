@@ -50,6 +50,7 @@ class CardsRecognitionHelper:
 
   def ComputeFrame(self, img):
     selectedimg = img[self.coordinates[1]:self.coordinates[3], self.coordinates[0]:self.coordinates[2]]
+    #selectedimg = increaseImgContrast(selectedimg)
     boundingBoxes = getCirclesBb(selectedimg, self.rectangles)
 
     board = Board()
