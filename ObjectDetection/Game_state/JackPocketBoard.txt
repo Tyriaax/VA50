@@ -1,4 +1,4 @@
 
 CRose|CYellow|CWhite|
-CBlue|COrange|CGreen|
-CPurple|CBlack|CBrown|
+CGreen|COrange|CBlack|
+CPurple|CBlue|CBrown|

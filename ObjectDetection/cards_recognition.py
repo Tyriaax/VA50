@@ -4,7 +4,7 @@ from samples import *
 from boundingBoxes import *
 from probabilities import *
 import numpy
-from game_board_recognition import*
+from GameBoard import *
 
 class Cards(Enum):
   CBlack = 0
@@ -20,11 +20,13 @@ class Cards(Enum):
 class CardsRecognitionHelper:
   selectedSamplesQuality = "LQ"
 
-  def __init__(self, height, width):
+  def __init__(self, height, width, gameBoard):
     if self.selectedSamplesQuality == "HQ":
       path = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Cards"))
     elif self.selectedSamplesQuality == "LQ":
       path = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "CardsWithContour3"))
+
+    self.boardReference = gameBoard
 
     [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(path)
 
@@ -52,9 +54,7 @@ class CardsRecognitionHelper:
     selectedimg = img[self.coordinates[1]:self.coordinates[3], self.coordinates[0]:self.coordinates[2]]
     #selectedimg = increaseImgContrast(selectedimg)
     boundingBoxes = getCirclesBb(selectedimg, self.rectangles)
-
-    board = Board()
-    cardBoard = board.getBoard()
+    cards = self.boardReference.getCards()
 
     if(len(boundingBoxes) > 0):
       siftProbabilities = []
@@ -64,8 +64,7 @@ class CardsRecognitionHelper:
         siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos))
         histoProbabilities.append(histogramProbabilities(currentimg, self.samplesHistograms))#histogram_Probabilities(currentimg, self.samplesHistograms))
       finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.1, 0.9])
-      selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, Cards, cardBoard)
+      selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, Cards, cards)
 
     img[self.coordinates[1]:self.coordinates[3],self.coordinates[0]:self.coordinates[2]] = selectedimg
-    board.printBoard()
     return img
