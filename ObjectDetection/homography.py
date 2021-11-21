@@ -9,11 +9,14 @@ def mousePoints(event,x,y,flags,params):
 def get_homography_matrix(img, pts_src, w, h):
 
   factor = 0.15
-  bot_factor = 0.1
+  top_factor = 0.3
+  side_factor = 0.3
 
-  box_cards = (int(factor * w), int(factor * h), int(w-factor *w), int(h-factor *h))
+  #box_cards = (int(factor * w), int(factor * h), int(w-factor *w), int(h-factor *h))
+  box_cards = (int(side_factor * w), int(top_factor * h), int(w-side_factor *w), int(h-factor *h))
 
-  pts_dst_cards = np.array([[factor * w, factor * h],[w - factor *w, factor * h],[w-factor *w, h-factor *h],[factor *w, h-factor *h]])
+  #pts_dst_cards = np.array([[factor * w, factor * h],[w - factor *w, factor * h],[w-factor *w, h-factor *h],[factor *w, h-factor *h]])
+  pts_dst_cards = np.array([[side_factor * w, top_factor * h],[w - side_factor *w, top_factor * h],[w-side_factor *w, h-factor *h],[side_factor *w, h-factor *h]])
   mat_cards, status = cv2.findHomography(pts_src, pts_dst_cards)
 
   return mat_cards, box_cards

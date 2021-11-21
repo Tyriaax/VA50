@@ -37,17 +37,20 @@ class PawnsRecognitionHelper:
       [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(path, self.selectedSamplesResolution)
 
   def GetScreenPortion(self,img, coordinates):
+
     height, width = img.shape[0], img.shape[1]
-
     #Generate Mask
-    self.mask = np.full((height, width), 255, dtype=np.uint8)
-    cv2.rectangle(self.mask, (coordinates[0],coordinates[1]), (coordinates[2],coordinates[3]), 0, -1)
-
+   
     cardSize = ((coordinates[2]-coordinates[0])/3,(coordinates[3]-coordinates[1])/3)
+    dpOverlaySizePx = int(cardSize[0]/2)
     self.bBmaxArea = (cardSize[0]*cardSize[1])/6
     self.bBminArea = (cardSize[0]*cardSize[1])/30
 
     self.coordinates = coordinates
+
+    self.mask = np.full((height, width), 0, dtype=np.uint8)
+    cv2.rectangle(self.mask, (coordinates[0] - dpOverlaySizePx, coordinates[1] - dpOverlaySizePx), (coordinates[2] + dpOverlaySizePx, coordinates[3] + dpOverlaySizePx), 255, -1)
+    cv2.rectangle(self.mask, (coordinates[0],coordinates[1]), (coordinates[2],coordinates[3]), 0, -1)
 
   def ComputeFrame(self, img):
     board = Board()
