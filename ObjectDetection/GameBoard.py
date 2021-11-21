@@ -4,13 +4,13 @@ import os
 class GameBoard():
   def __init__(self) -> None:
       self.cards = [0,0,0,0,0,0,0,0,0]
-      self.detective_pawns = [0,0,0]
+      self.detective_pawns = [0,0,0,0,0,0,0,0,0,0,0,0]
       self.board_file = os.path.abspath(os.path.join(os.path.dirname( __file__ ),"Game_state","JackPocketBoard.txt"))
   
   def printState(self):
     cards_state = ""
 
-    for i in range(9): 
+    for i in range(9):
       if i%3 == 0:
         cards_state += '\n'
       cards_state += str(self.cards[i]) + "|"
