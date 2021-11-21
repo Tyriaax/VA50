@@ -30,7 +30,6 @@ def video_recognition(path = None):
     while True:
         ret, img = cap.read()
         if ret:
-            print(img)
             if len(list_board_coords) < 4:
                 cv2.setMouseCallback(window_name, mousePoints)
                 for coord in list_board_coords:
