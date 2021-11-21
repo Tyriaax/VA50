@@ -57,7 +57,6 @@ def video_recognition(path = None):
             if key == ord('q') or key == 27:
                 break
         else:
-            print("bye")
             cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
             
 

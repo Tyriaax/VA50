@@ -37,20 +37,20 @@ class PawnsRecognitionHelper:
       [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(path, self.selectedSamplesResolution)
 
   def GetScreenPortion(self,img, coordinates):
-
-    height, width = img.shape[0], img.shape[1]
-    #Generate Mask
+    self.coordinates = coordinates
    
-    cardSize = ((coordinates[2]-coordinates[0])/3,(coordinates[3]-coordinates[1])/3)
-    dpOverlaySizePx = int(cardSize[0]/2)
+    cardSize = ((coordinates[2]-coordinates[0])/3, (coordinates[3]-coordinates[1])/3)
+    self.dpOverlaySizePx = int(cardSize[0]/2)
     self.bBmaxArea = (cardSize[0]*cardSize[1])/6
     self.bBminArea = (cardSize[0]*cardSize[1])/30
 
-    self.coordinates = coordinates
+    height, width = img.shape[0], img.shape[1]
 
+    # Generate Masks
     self.mask = np.full((height, width), 0, dtype=np.uint8)
-    cv2.rectangle(self.mask, (coordinates[0] - dpOverlaySizePx, coordinates[1] - dpOverlaySizePx), (coordinates[2] + dpOverlaySizePx, coordinates[3] + dpOverlaySizePx), 255, -1)
+    cv2.rectangle(self.mask, (coordinates[0] - self.dpOverlaySizePx, coordinates[1] - self.dpOverlaySizePx), (coordinates[2] + self.dpOverlaySizePx, coordinates[3] + self.dpOverlaySizePx), 255, -1)
     cv2.rectangle(self.mask, (coordinates[0],coordinates[1]), (coordinates[2],coordinates[3]), 0, -1)
+    self.invertedmask = cv2.bitwise_not(self.mask)
 
   def ComputeFrame(self, img):
     board = Board()
@@ -63,7 +63,6 @@ class PawnsRecognitionHelper:
     siftProbabilities = []
     histoProbabilities = []
     for i in range(min(len(boundingBoxes), len(self.selectedEnum))):
-    #for boundingBox in boundingBoxes:
       currentimg = selectedimg[boundingBoxes[i][1]:boundingBoxes[i][3], boundingBoxes[i][0]:boundingBoxes[i][2]]
       siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos))
       histoProbabilities.append(histogramProbabilities(currentimg, self.samplesHistograms))
@@ -72,6 +71,11 @@ class PawnsRecognitionHelper:
       finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
       selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, self.selectedEnum, detectivePawn)
 
-    selectedimg[self.coordinates[1]-1:self.coordinates[3]+1, self.coordinates[0]-1:self.coordinates[2]+1] = img[self.coordinates[1]-1:self.coordinates[3]+1, self.coordinates[0]-1:self.coordinates[2]+1]
+    img = cv2.bitwise_and(img, img, mask=self.invertedmask)
+    img = img+selectedimg
 
-    return selectedimg
+    #Draw the zones rectangles
+    cv2.rectangle(img, (self.coordinates[0] - self.dpOverlaySizePx, self.coordinates[1] - self.dpOverlaySizePx), (self.coordinates[2] + self.dpOverlaySizePx, self.coordinates[3] + self.dpOverlaySizePx),(0, 255, 0), 2)
+    cv2.rectangle(img, (self.coordinates[0],self.coordinates[1]), (self.coordinates[2],self.coordinates[3]),(0, 255, 0), 2)
+
+    return img
