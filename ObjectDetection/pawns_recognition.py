@@ -5,7 +5,7 @@ import cv2.cv2
 from samples import *
 from boundingBoxes import *
 from probabilities import *
-from game_board_recognition import*
+from GameBoard import *
 
 class ActionPawns(Enum):
   APChangeCard = 0
@@ -25,7 +25,7 @@ class PawnsRecognitionHelper:
 
   selectedSamplesResolution = 400
 
-  def __init__(self, height, width):
+  def __init__(self, height, width, gameBoard):
     if self.selectedEnum == DetectivePawns:
       path = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Pawns", "DetectivePawns"))
     elif self.selectedEnum == ActionPawns:
@@ -35,6 +35,8 @@ class PawnsRecognitionHelper:
       [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(path, self.selectedSamplesResolution)
     elif (self.selectedSamplesQuality == "HQ"):
       [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(path, self.selectedSamplesResolution)
+
+    self.boardReference = gameBoard
 
   def GetScreenPortion(self,img, coordinates):
     self.coordinates = coordinates
@@ -53,10 +55,8 @@ class PawnsRecognitionHelper:
     self.invertedmask = cv2.bitwise_not(self.mask)
 
   def ComputeFrame(self, img):
-    board = Board()
-    detectivePawn = board.getDetectivePawn()
-
     selectedimg = cv2.bitwise_and(img, img, mask=self.mask)
+    detectivePawns = self.boardReference.getDetectivePawns()
 
     boundingBoxes = getBoundingBoxes(selectedimg, self.bBmaxArea, self.bBminArea)
 
@@ -69,7 +69,7 @@ class PawnsRecognitionHelper:
 
     if (len(boundingBoxes) > 0):
       finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
-      selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, self.selectedEnum, detectivePawn)
+      selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, self.selectedEnum, detectivePawns)
 
     img = cv2.bitwise_and(img, img, mask=self.invertedmask)
     img = img+selectedimg

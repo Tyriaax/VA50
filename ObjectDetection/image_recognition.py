@@ -14,8 +14,10 @@ def image_recognition(path):
     height = img.shape[0]
     width = img.shape[1]
 
-    pawnsRecognitionHelper = PawnsRecognitionHelper(height,width)
-    cardsRecognitionHelper = CardsRecognitionHelper(height,width)
+    gameBoard = GameBoard()
+
+    pawnsRecognitionHelper = PawnsRecognitionHelper(height,width, gameBoard)
+    cardsRecognitionHelper = CardsRecognitionHelper(height,width, gameBoard)
 
     homographymatrixfound = False
 
@@ -41,6 +43,7 @@ def image_recognition(path):
                 img = pawnsRecognitionHelper.ComputeFrame(img)
 
         cv2.imshow(window_name, img)
+        gameBoard.printState()
 
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q') or key == 27:

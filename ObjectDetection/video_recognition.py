@@ -4,6 +4,7 @@ import os
 from homography import *
 from pawns_recognition import *
 from cards_recognition import *
+from GameBoard import *
 
 def video_recognition(path = None):
     window_name = "JACK"
@@ -12,15 +13,17 @@ def video_recognition(path = None):
 
     if(path):
         cap = cv2.VideoCapture(path)
-        
     else:
         cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # Tochange in case
+
+
+    gameBoard = GameBoard()
 
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
-    pawnsRecognitionHelper = PawnsRecognitionHelper(height,width)
-    cardsRecognitionHelper = CardsRecognitionHelper(height,width)
+    pawnsRecognitionHelper = PawnsRecognitionHelper(height, width, gameBoard)
+    cardsRecognitionHelper = CardsRecognitionHelper(height, width, gameBoard)
 
     homographymatrixfound = False
     coordinates = []
@@ -50,6 +53,7 @@ def video_recognition(path = None):
                     img = pawnsRecognitionHelper.ComputeFrame(img)
 
             cv2.imshow(window_name, img)
+            gameBoard.printState()
             # cv2.waitKey(1000)
 
             key = cv2.waitKey(1) & 0xFF
@@ -57,7 +61,6 @@ def video_recognition(path = None):
                 break
         else:
             cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-            
 
     cap.release()
     cv2.destroyAllWindows()
