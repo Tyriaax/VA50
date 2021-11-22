@@ -79,19 +79,27 @@ class CardsRecognitionHelper:
     img[self.coordinates[1]:self.coordinates[3],self.coordinates[0]:self.coordinates[2]] = selectedimg
     return img
 
-  def getCardSense(self, img):
+  def isInLineOfSight(self, img, detectivePosition, jackPosition):
     cardBackMask = ((0,6,119),(28,71,255))
     copy = img.copy()
     selectedimg = copy[self.coordinates[1]:self.coordinates[3], self.coordinates[0]:self.coordinates[2]]
 
-    if len(self.cardRectangle) == len(self.rectangles):
-      for i in range(len(self.cardRectangle)):
-        selectedimg[self.rectangles[i][1]:self.rectangles[i][3], self.rectangles[i][0]:self.rectangles[i][2]] = 0
-        portionImg = selectedimg[self.cardRectangle[i][1]:self.cardRectangle[i][3], self.cardRectangle[i][0]:self.cardRectangle[i][2]]
 
-        currentImg = cv2.cvtColor(portionImg, cv2.COLOR_BGR2HSV)
-        
+    for i in range(len(self.cardRectangle)):
+
+      yCoordCardMid = (self.cardRectangle[i][3] - self.cardRectangle[i][1])/2
+      portionImg = selectedimg[self.cardRectangle[i][1]:self.cardRectangle[i][3], self.cardRectangle[i][0]:self.cardRectangle[i][2]]
+      currentImg = cv2.cvtColor(portionImg, cv2.COLOR_BGR2GRAY)
+      #currentImg = cv2.GaussianBlur(currentImg, (7,7), cv2.BORDER_DEFAULT)
+      #kernel = np.ones((6,6), np.uint8)
+      #currentImg = cv2.erode(currentImg, kernel, cv2.BORDER_REFLECT) 
+
+      th, imageThresholded= cv2.threshold(src=currentImg, thresh=100, maxval= 255, type=cv2.THRESH_BINARY)
+      cv2.imshow(str(i), imageThresholded)
+
         """
+        currentImg = cv2.cvtColor(portionImg, cv2.COLOR_BGR2HSV)
+
         portionImg = cv2.GaussianBlur(portionImg, (5,5), cv2.BORDER_DEFAULT)
 
         currentImg = cv2.cvtColor(portionImg, cv2.COLOR_BGR2HSV)
