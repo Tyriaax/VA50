@@ -1,4 +1,7 @@
+import numpy as np
+
 from drawing import *
+from scipy.optimize import linear_sum_assignment
 
 def combineProbabilities(probabilitiesList,weights):
   numberOfProbabilitiesToCombine = len(probabilitiesList)
@@ -11,11 +14,6 @@ def combineProbabilities(probabilitiesList,weights):
     for j in range(numberOfObjects):
       for k in range(numberOfSamples):
         combinedProbability[j][k] = combinedProbability[j][k] + probabilitiesList[i][j][k]*weights[i]
-
-  for i in range(numberOfObjects):
-    sumValue = sum(combinedProbability[i])
-    for j in range(numberOfSamples):
-      combinedProbability[i][j] = combinedProbability[i][j]/sumValue
 
   return combinedProbability
 
@@ -44,3 +42,21 @@ def drawRectangleWithProbabilities(img,probabilities,boundingBoxes,enum, cardBoa
     img = drawRectangleWithProbabilities(img, probabilities, boundingBoxes,enum, cardBoard)
 
   return img
+
+def linearAssignment(finalProbabilities, selectedEnum):
+  costmatrix = np.zeros((len(finalProbabilities),len(finalProbabilities[0])))
+  for i in range(len(finalProbabilities)):
+    array = np.array(finalProbabilities[i])
+    if np.isnan(array).any():
+      array = np.full(len(array),1000000)
+    else:
+      array = 1./array
+    costmatrix[i] = array
+
+  row_ind, col_ind = linear_sum_assignment(costmatrix)
+
+  result = []
+  for i in range(len(col_ind)):
+    result.append(selectedEnum(col_ind[i]).name)
+
+  return result

@@ -55,21 +55,26 @@ class CardsRecognitionHelper:
 
   def ComputeFrame(self, img):
     selectedimg = img[self.coordinates[1]:self.coordinates[3], self.coordinates[0]:self.coordinates[2]]
-    #
+
     boundingBoxes = getCirclesBb(selectedimg, self.rectangles)
-    cards = self.boardReference.getCards()
 
     if(len(boundingBoxes) > 0):
       siftProbabilities = []
       histoProbabilities = []
       for boundingBox in boundingBoxes:
         currentimg = selectedimg[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
+
         #currentimg = increaseImgColorContrast(currentimg)
-        cv2.imshow(str(boundingBox[1]), currentimg)
+
         siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos))
         histoProbabilities.append(histogramProbabilities(currentimg, self.samplesHistograms))#histogram_Probabilities(currentimg, self.samplesHistograms))
       finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0, 1])
-      selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, Cards, cards)
+
+      #selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, Cards, cards)
+
+      assignedObjects = linearAssignment(finalProbabilities,Cards)
+      self.boardReference.setCards(assignedObjects)
+      selectedimg = drawRectanglesWithAssignment(selectedimg, assignedObjects, boundingBoxes)
 
     img[self.coordinates[1]:self.coordinates[3],self.coordinates[0]:self.coordinates[2]] = selectedimg
     return img

@@ -55,8 +55,8 @@ class PawnsRecognitionHelper:
     self.invertedmask = cv2.bitwise_not(self.mask)
 
   def ComputeFrame(self, img):
-    selectedimg = cv2.bitwise_and(img, img, mask=self.mask)
-    detectivePawns = self.boardReference.getDetectivePawns()
+    maskedimg = cv2.bitwise_and(img, img, mask=self.mask)
+    selectedimg = maskedimg[self.coordinates[1] - self.dpOverlaySizePx:self.coordinates[3] + self.dpOverlaySizePx, self.coordinates[0] - self.dpOverlaySizePx:self.coordinates[2] + self.dpOverlaySizePx]
 
     boundingBoxes = getBoundingBoxes(selectedimg, self.bBmaxArea, self.bBminArea)
 
@@ -69,10 +69,16 @@ class PawnsRecognitionHelper:
 
     if (len(boundingBoxes) > 0):
       finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
-      selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, self.selectedEnum, detectivePawns)
 
+      #selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, self.selectedEnum, detectivePawns)
+
+      assignedObjects = linearAssignment(finalProbabilities, self.selectedEnum)
+      selectedimg = drawRectanglesWithAssignment(selectedimg, assignedObjects, boundingBoxes)
+      self.boardReference.setDetectivePawns = assignedObjects
+
+    maskedimg[self.coordinates[1] - self.dpOverlaySizePx:self.coordinates[3] + self.dpOverlaySizePx, self.coordinates[0] - self.dpOverlaySizePx:self.coordinates[2] + self.dpOverlaySizePx] = selectedimg
     img = cv2.bitwise_and(img, img, mask=self.invertedmask)
-    img = img+selectedimg
+    img = img+maskedimg
 
     #Draw the zones rectangles
     cv2.rectangle(img, (self.coordinates[0] - self.dpOverlaySizePx, self.coordinates[1] - self.dpOverlaySizePx), (self.coordinates[2] + self.dpOverlaySizePx, self.coordinates[3] + self.dpOverlaySizePx),(0, 255, 0), 2)

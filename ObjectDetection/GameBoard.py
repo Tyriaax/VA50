@@ -22,6 +22,10 @@ class GameBoard():
     return self.cards
   def getDetectivePawns(self):
     return self.detective_pawns
+  def setCards(self,cards):
+    self.cards = cards
+  def setDetectivePawns(self,detective_pawns):
+    self.detective_pawns = detective_pawns
 
 """z = [["blue","brown", "white"],["purple","black","rose"],["orange", "yellow","green"]]
 board = Board(z)
