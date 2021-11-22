@@ -10,21 +10,22 @@ def loadSamples(path, resolution = None):
 
   for image in dir:
     img = cv2.imread(os.path.join(path, image))
-    img = increaseImgContrast(img)
     if resolution:
       samplesSiftInfoList.append(SiftInfo(img,resolution))
     else:
       samplesSiftInfoList.append(SiftInfo(img))
 
     #samplesHistoList.append(getHisto(img))
+    #img = increaseImgColorContrast(img)
+    #cv2.imshow(image, img)
     addToClassifier(histoClassifier, img, image)
 
   return [samplesSiftInfoList, histoClassifier]  
 
-def increaseImgContrast(img):
+def increaseImgColorContrast(img):
   hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
   h, s, v = hsv_img[:,:,0], hsv_img[:,:,1], hsv_img[:,:,2]
-  clahe = cv2.createCLAHE(clipLimit= 5.0, tileGridSize=(5,5))
+  clahe = cv2.createCLAHE(clipLimit= 1.0, tileGridSize=(16,16))
   v = clahe.apply(v)
   hsv_img = np.dstack((h,s,v))
   rgb = cv2.cvtColor(hsv_img, cv2.COLOR_HSV2BGR)
