@@ -17,6 +17,9 @@ class GameBoard():
     print(cards_state)
     with open(self.board_file, 'w') as file:
       file.write(cards_state)
+
+
+    print(self.detective_pawns)
   
   def getCards(self):
     return self.cards
