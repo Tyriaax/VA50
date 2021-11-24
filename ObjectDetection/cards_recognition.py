@@ -146,11 +146,9 @@ class CardsRecognitionHelper:
       #Not empty
       if detectivePosition[0] in possibleDetectivePos and jackPosition[0] == detectivePosition[0]:
         sight = "Horizontal"
-        print("Jack and Detective are on the same horizontal line")
 
       elif detectivePosition[1] in possibleDetectivePos and jackPosition[1] == detectivePosition[1]:
         sight = "Vertical"
-        print("Jack and Detective are on the same Vertical line")
 
     if bool(sight):
       for i in range(3):
@@ -169,21 +167,19 @@ class CardsRecognitionHelper:
         kernel = np.ones((5,5), np.uint8)
         portionImg = cv2.erode(portionImg, kernel, cv2.BORDER_REFLECT) 
 
-        th, cardThreshold= cv2.threshold(src=portionImg, thresh= 90, maxval= 255, type=cv2.THRESH_BINARY)
- 
-        cv2.imshow(str(i), cardThreshold)
+        th, cardThreshold= cv2.threshold(src=portionImg, thresh= 105, maxval= 255, type=cv2.THRESH_BINARY)
 
         cardList.append([cardThreshold, index])
 
       self.inSight(detectivePosition, sight, cardList, heightCard, widthCard, inSightPos)
 
       if len(inSightPos) > 0 :
-        print(len(inSightPos), " people in sight")
+        #print(len(inSightPos), "people in sight")
         for pos in inSightPos:
-          print("index : ", pos[1])
-          #Comparaison avec l'index de Jack
-      else:
-        print("Nothing in sight")
-
+          x, y = pos[1]//3 + 1, pos[1]%3 + 1
+          if jackPosition[0] == x and jackPosition[1] == y:
+            print("JACK IN SIGHT")
+            return True
+        
     return False
 
