@@ -97,24 +97,25 @@ class CardsRecognitionHelper:
       th, imageThresholded= cv2.threshold(src=currentImg, thresh=100, maxval= 255, type=cv2.THRESH_BINARY)
       cv2.imshow(str(i), imageThresholded)
 
-        """
-        currentImg = cv2.cvtColor(portionImg, cv2.COLOR_BGR2HSV)
+      """
+      currentImg = cv2.cvtColor(portionImg, cv2.COLOR_BGR2HSV)
 
-        portionImg = cv2.GaussianBlur(portionImg, (5,5), cv2.BORDER_DEFAULT)
+      portionImg = cv2.GaussianBlur(portionImg, (5,5), cv2.BORDER_DEFAULT)
 
-        currentImg = cv2.cvtColor(portionImg, cv2.COLOR_BGR2HSV)
+      currentImg = cv2.cvtColor(portionImg, cv2.COLOR_BGR2HSV)
 
-        mask = cv2.inRange(currentImg, cardBackMask[0], cardBackMask[1])
-        blue = cv2.bitwise_and(portionImg, portionImg, mask = mask) #Affichage du mask
-        cv2.imshow(str(i), blue)
+      mask = cv2.inRange(currentImg, cardBackMask[0], cardBackMask[1])
+      blue = cv2.bitwise_and(portionImg, portionImg, mask = mask) #Affichage du mask
+      cv2.imshow(str(i), blue)
 
-        contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+      contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        if len(contours) != 0:
-          for contour in contours:
-            if cv2.contourArea(contour) > 150:
-              x, y, w, h = cv2.boundingRect(contour)
-              cv2.rectangle(portionImg, (x,y), (x + w, y + h), (0,255,255), 3)
-              cv2.putText(portionImg, "path", (x,y),1,1,(0,0,255),3)"""
+      if len(contours) != 0:
+        for contour in contours:
+          if cv2.contourArea(contour) > 150:
+            x, y, w, h = cv2.boundingRect(contour)
+            cv2.rectangle(portionImg, (x,y), (x + w, y + h), (0,255,255), 3)
+            cv2.putText(portionImg, "path", (x,y),1,1,(0,0,255),3)
+      """
               
               
