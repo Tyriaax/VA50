@@ -49,7 +49,7 @@ def video_recognition(path = None):
                     homographymatrixfound = True
                 else:
                     img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))
-                    cardsRecognitionHelper.getCardOrientation(img)
+                    cardsRecognitionHelper.isInLineOfSight(img, [], (0,2), (2,2))#(1,0), (1,3))
                     #img = cardsRecognitionHelper.ComputeFrame(img)
                     #img = pawnsRecognitionHelper.ComputeFrame(img)
 

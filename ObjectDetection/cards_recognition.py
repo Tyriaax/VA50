@@ -79,42 +79,111 @@ class CardsRecognitionHelper:
     img[self.coordinates[1]:self.coordinates[3],self.coordinates[0]:self.coordinates[2]] = selectedimg
     return img
 
-  def isInLineOfSight(self, img, detectivePosition, jackPosition):
-    cardBackMask = ((0,6,119),(28,71,255))
+  def areConnected(self, card1, card2, orientation, heightCard,widthCard):
+    if orientation == "Horizontal":
+      pass
+    elif orientation == "Vertical":
+      pass
+
+    return False
+  
+  def inSight(self, detectivePos, orientation, cards : list, heightCard, widthCard, inSightList):
+
+    if len(cards) == 0:
+      return
+
+    pursue = False
+    if orientation == "Horizontal":
+      if detectivePos[1] == 0: #La cart le détective est sur la partie gauche
+        card = cards.pop(-1)
+        if card[0][int(heightCard/2) - 1][0] == 255:
+          inSightList.append(card)
+          if card[0][int(heightCard/2) - 1][widthCard - 1] == 255:
+            pursue = True
+
+      elif detectivePos[1] == 4: #La cart le détective est sur la partie droite
+        card = cards.pop(0)
+        if card[0][int(heightCard/2) - 1][widthCard - 1] == 255:
+          inSightList.append(card)
+          if card[0][int(heightCard/2) - 1][0] == 255:
+            pursue = True
+
+    elif orientation == "Vertical":
+      if detectivePos[0] == 0: #La cart le détective est sur la partie haute
+        card = cards.pop(0)
+        if card[0][0][int(widthCard/2) - 1] == 255:
+          inSightList.append(card)
+          if card[0][heightCard - 1][int(widthCard/2) - 1] == 255:
+            pursue = True
+
+      elif detectivePos[0] == 4: #La cart le détective est sur la partie basse
+        card = cards.pop(-1)
+        if card[0][heightCard - 1][int(widthCard/2)- 1] == 255:
+          inSightList.append(card)
+          if card[0][0][int(widthCard/2)- 1] == 255:
+            pursue = True   
+
+    if pursue == True:
+      self.inSight(detectivePos, orientation, cards, heightCard, widthCard, inSightList)
+    else:
+      return
+
+  def isInLineOfSight(self, img, board : list, detectivePosition : tuple, jackPosition : tuple):
+    #DectivePosition : ligne, colonne
+    possibleDetectivePos = (1,2,3)
     copy = img.copy()
     selectedimg = copy[self.coordinates[1]:self.coordinates[3], self.coordinates[0]:self.coordinates[2]]
 
+    sight = ""
+    inSightPos = []
+    cardList = []
 
-    for i in range(len(self.cardRectangle)):
+    cards = self.boardReference.getCards()
+    cards = np.array(cards)
+    cards.resize((3,3))
 
-      yCoordCardMid = (self.cardRectangle[i][3] - self.cardRectangle[i][1])/2
-      portionImg = selectedimg[self.cardRectangle[i][1]:self.cardRectangle[i][3], self.cardRectangle[i][0]:self.cardRectangle[i][2]]
-      currentImg = cv2.cvtColor(portionImg, cv2.COLOR_BGR2GRAY)
-      #currentImg = cv2.GaussianBlur(currentImg, (7,7), cv2.BORDER_DEFAULT)
-      #kernel = np.ones((6,6), np.uint8)
-      #currentImg = cv2.erode(currentImg, kernel, cv2.BORDER_REFLECT) 
+    if bool(detectivePosition) and bool(jackPosition):
+      #Not empty
+      if detectivePosition[0] in possibleDetectivePos and jackPosition[0] == detectivePosition[0]:
+        sight = "Horizontal"
+        print("Jack and Detective are on the same horizontal line")
 
-      th, imageThresholded= cv2.threshold(src=currentImg, thresh=100, maxval= 255, type=cv2.THRESH_BINARY)
-      cv2.imshow(str(i), imageThresholded)
+      elif detectivePosition[1] in possibleDetectivePos and jackPosition[1] == detectivePosition[1]:
+        sight = "Vertical"
+        print("Jack and Detective are on the same Vertical line")
 
-        """
-        currentImg = cv2.cvtColor(portionImg, cv2.COLOR_BGR2HSV)
+    if bool(sight):
+      for i in range(3):
 
-        portionImg = cv2.GaussianBlur(portionImg, (5,5), cv2.BORDER_DEFAULT)
+        if sight == "Vertical":
+          rectangleCard = self.cardRectangle[i * 3 + detectivePosition[1] - 1] 
+          index = i * 3 + detectivePosition[1] - 1
+        elif sight == "Horizontal":
+          rectangleCard = self.cardRectangle[detectivePosition[0] * 3 - 1 - i ] 
+          index = detectivePosition[0] * 3 - 1 - i 
 
-        currentImg = cv2.cvtColor(portionImg, cv2.COLOR_BGR2HSV)
+        portionImg = selectedimg[rectangleCard[1]:rectangleCard[3], rectangleCard[0]:rectangleCard[2]]
+        heightCard,widthCard, _ = portionImg.shape
+        portionImg = cv2.cvtColor(portionImg, cv2.COLOR_BGR2GRAY)
+        portionImg = cv2.GaussianBlur(portionImg, (7,7), cv2.BORDER_DEFAULT)
+        kernel = np.ones((5,5), np.uint8)
+        portionImg = cv2.erode(portionImg, kernel, cv2.BORDER_REFLECT) 
 
-        mask = cv2.inRange(currentImg, cardBackMask[0], cardBackMask[1])
-        blue = cv2.bitwise_and(portionImg, portionImg, mask = mask) #Affichage du mask
-        cv2.imshow(str(i), blue)
+        th, cardThreshold= cv2.threshold(src=portionImg, thresh= 90, maxval= 255, type=cv2.THRESH_BINARY)
+ 
+        cv2.imshow(str(i), cardThreshold)
 
-        contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        cardList.append([cardThreshold, index])
 
-        if len(contours) != 0:
-          for contour in contours:
-            if cv2.contourArea(contour) > 150:
-              x, y, w, h = cv2.boundingRect(contour)
-              cv2.rectangle(portionImg, (x,y), (x + w, y + h), (0,255,255), 3)
-              cv2.putText(portionImg, "path", (x,y),1,1,(0,0,255),3)"""
-              
-              
+      self.inSight(detectivePosition, sight, cardList, heightCard, widthCard, inSightPos)
+
+      if len(inSightPos) > 0 :
+        print(len(inSightPos), " people in sight")
+        for pos in inSightPos:
+          print("index : ", pos[1])
+          #Comparaison avec l'index de Jack
+      else:
+        print("Nothing in sight")
+
+    return False
+
