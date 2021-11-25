@@ -78,14 +78,6 @@ class CardsRecognitionHelper:
 
     img[self.coordinates[1]:self.coordinates[3],self.coordinates[0]:self.coordinates[2]] = selectedimg
     return img
-
-  def areConnected(self, card1, card2, orientation, heightCard,widthCard):
-    if orientation == "Horizontal":
-      pass
-    elif orientation == "Vertical":
-      pass
-
-    return False
   
   def inSight(self, detectivePos, orientation, cards : list, heightCard, widthCard, inSightList):
 
@@ -167,7 +159,8 @@ class CardsRecognitionHelper:
         kernel = np.ones((5,5), np.uint8)
         portionImg = cv2.erode(portionImg, kernel, cv2.BORDER_REFLECT) 
 
-        th, cardThreshold= cv2.threshold(src=portionImg, thresh= 105, maxval= 255, type=cv2.THRESH_BINARY)
+        th, cardThreshold= cv2.threshold(src=portionImg, thresh= 95, maxval= 255, type=cv2.THRESH_BINARY)
+        cv2.imshow(str(i),cardThreshold )
 
         cardList.append([cardThreshold, index])
 
@@ -177,6 +170,7 @@ class CardsRecognitionHelper:
         #print(len(inSightPos), "people in sight")
         for pos in inSightPos:
           x, y = pos[1]//3 + 1, pos[1]%3 + 1
+          print(x,y)
           if jackPosition[0] == x and jackPosition[1] == y:
             print("JACK IN SIGHT")
             return True
