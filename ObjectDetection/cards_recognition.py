@@ -157,10 +157,8 @@ class CardsRecognitionHelper:
         portionImg = cv2.erode(portionImg, kernel, cv2.BORDER_REFLECT) 
 
         th, cardThreshold= cv2.threshold(src=portionImg, thresh= 95, maxval= 255, type=cv2.THRESH_BINARY)
-        cv2.imshow(str(i),cardThreshold )
 
         cardList.append([cardThreshold, index])
-        cv2.imshow(str(i), cardThreshold)
 
       self.inSight(detectivePosition, sight, cardList, heightCard, widthCard, inSightPos)
 
