@@ -163,6 +163,7 @@ class CardsRecognitionHelper:
         cv2.imshow(str(i),cardThreshold )
 
         cardList.append([cardThreshold, index])
+        cv2.imshow(str(i), cardThreshold)
 
       self.inSight(detectivePosition, sight, cardList, heightCard, widthCard, inSightPos)
 
@@ -170,10 +171,11 @@ class CardsRecognitionHelper:
         #print(len(inSightPos), "people in sight")
         for pos in inSightPos:
           x, y = pos[1]//3 + 1, pos[1]%3 + 1
-          print(x,y)
+          inSightList = []
+          inSightList.append((x,y))
           if jackPosition[0] == x and jackPosition[1] == y:
             print("JACK IN SIGHT")
-            return True
+            return True, inSightList
         
-    return False
+    return False, []
 

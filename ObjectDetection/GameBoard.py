@@ -1,6 +1,8 @@
 import cv2
 import os
 
+from cards_recognition import*
+
 class GameBoard():
   def __init__(self) -> None:
       self.cards = [0,0,0,0,0,0,0,0,0]
@@ -31,10 +33,60 @@ class GameBoard():
     self.detective_pawns = detective_pawns
 
 
+class JackPocketGame():
+  def __init__(self) -> None:
+      self.turnCount = 1
+      self.maxTurnCount = 8 
+      self.numberOfSuspects = 9
+      self.jackHourglasses = 0
+      self.gameStage = ["Manhunt", "Appeal for Witnesses"]
+      self.jackWins = False
+      self.detectiveWins = False
+      self.turn = ""
+      #self.cardRecogntionHelper = CardsRecognitionHelper()
+
+  def checkPiecesBorder(self): #Affiche les box pour checker si tout est à sa place et peut être détecter trnql
+    pass
+    #print("Boxes")
+    #show Tkinter window to ask confirm
+  
+  def checkVictory(self, stage, isJackSeen):
+    if stage == "Appeal for Witnesses":
+      if self.numberOfSuspects == 1 and self.jackHourglasses == 6:
+        if isJackSeen:
+          self.detectiveWins = True
+        #else:
+          self.jackWins = True
+
+      elif self.numberOfSuspects == 1 and self.jackHourglasses < 6:
+        self.detectiveWins = True
+      elif self.numberOfSuspects > 1 and self.jackHourglasses == 6:
+        self.jackWins = True
+
+  def manhunt(self):
+    if self.turnCount % 2 == 0: 
+      self.self.turn = "Jack"
+      print("Flip back the tokens.")
+    else:
+      self.self.turn = "Detectives"
+      print("Detective starts: you can throw the tokens")
+
+  def appealOfWitnesses(self, isJackSeen):
+    if isJackSeen:
+      print("Turn all the cards that are not in sight to their empty side")
+      print("Detective wins this turn and get the round token !")
+    else:
+      self.jackHourglasses += 1
+      print("Turn all the cards in sight to their empty side")
+      print("Jack wins this turn and get the round token !")
+    
+    self.checkVictory("Appeal for Witnesses", True)
+
+  def launchGame(self):
+    while not self.jackWins and not self.detectiveWins:
+      pass
+
     """
-    Turn = 0 - 8
-    numberOfSuspects = 9
-    hourglassesAcquired = 0 - 6
     
     Purpose:
       Investigator aim: Discover which identity is being used by Mr. Jack from among the nine suspects.
