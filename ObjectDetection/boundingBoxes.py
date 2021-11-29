@@ -74,6 +74,15 @@ def getBoundingBox(img):
 
   return rectangle
 
+def addOffsetToBb(boundingBoxes, overlayX,overlayY):
+    for boundingBox in boundingBoxes:
+      boundingBox[0] = boundingBox[0] + overlayX
+      boundingBox[1] = boundingBox[1] + overlayY
+      boundingBox[2] = boundingBox[2] + overlayX
+      boundingBox[3] = boundingBox[3] + overlayY
+
+    return boundingBoxes
+
 def getCirclesBb(img, boundingBoxes):
   finalBbs = []
   for boundingBox in boundingBoxes:
