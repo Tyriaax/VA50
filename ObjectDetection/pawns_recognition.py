@@ -92,11 +92,11 @@ class PawnsRecognitionHelper:
     histoProbabilities = []
     for i in range(min(len(boundingBoxes), len(self.selectedEnum))):
       currentimg = selectedimg[boundingBoxes[i][1]:boundingBoxes[i][3], boundingBoxes[i][0]:boundingBoxes[i][2]]
-      siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos))
+      siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos,self.selectedSamplesResolution))
       histoProbabilities.append(histogramProbabilities(currentimg, self.samplesHistograms))
 
     if (len(boundingBoxes) > 0):
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.3, 0.7])
 
       #selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, self.selectedEnum, detectivePawns)
 
@@ -115,7 +115,7 @@ class PawnsRecognitionHelper:
 
     return img
 
-  def getDetectivePawnsPositions(self, assignedObjects,boundingBoxes):
+  def getDetectivePawnsPositions(self, assignedObjects, boundingBoxes):
     positions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     for i in range(len(boundingBoxes)):
       x = boundingBoxes[i][0]+ int((boundingBoxes[i][2]-boundingBoxes[i][0])/2) + self.detectivePawnsRectangle[0] #adding the overlay to the boudingbox

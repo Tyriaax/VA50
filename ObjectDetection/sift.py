@@ -11,14 +11,14 @@ class SiftInfo:
     sift = cv2.SIFT_create()
     self.keypoints, self.descriptors = sift.detectAndCompute(img, None)
 
-def sift_detection(img, samplesSiftInfos):
+def sift_detection(img, samplesSiftInfos, resolution = None):
   minMatches = 0
   knnDistance = 0.3
 
   index_params = dict(algorithm=1, trees=5)
   search_params = dict(checks=50)
 
-  siftInfosImg = SiftInfo(img)
+  siftInfosImg = SiftInfo(img,resolution)
 
   flann = cv2.FlannBasedMatcher(index_params, search_params)
 

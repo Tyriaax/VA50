@@ -20,6 +20,8 @@ class Cards(Enum):
 class CardsRecognitionHelper:
   selectedSamplesQuality = "LQ"
 
+  selectedSamplesResolution = 400
+
   def __init__(self, height, width, gameBoard):
     if self.selectedSamplesQuality == "HQ":
       path = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Cards"))
@@ -30,7 +32,7 @@ class CardsRecognitionHelper:
     self.cardRectangle = list()
     self.rectangles = list()
 
-    [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(path)
+    [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(path,self.selectedSamplesResolution)
 
  
 
@@ -66,9 +68,9 @@ class CardsRecognitionHelper:
 
         #currentimg = increaseImgColorContrast(currentimg)
 
-        siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos))
+        siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos,self.selectedSamplesResolution))
         histoProbabilities.append(histogramProbabilities(currentimg, self.samplesHistograms))#histogram_Probabilities(currentimg, self.samplesHistograms))
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0, 1])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.3, 0.7])
 
       #selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, Cards, cards)
 

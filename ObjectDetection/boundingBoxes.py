@@ -8,6 +8,8 @@ from skimage.draw import ellipse_perimeter
 from skimage.util import img_as_float
 from matplotlib import pyplot as plt
 
+rectangleMaxRatioDifference = 0.3
+
 def imageProcessingForFindingContours(img):
   # First we convert the frame to a grayscale image
   img2 = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -45,8 +47,9 @@ def getBoundingBoxes(img,maxarea,minarea):
     area = cv2.contourArea(c)
     if minarea <= area <= maxarea:
       x, y, w, h = cv2.boundingRect(c)
-      rectangle = [x, y, x+w, y+h]
-      rectangles.append(rectangle)
+      if (1-rectangleMaxRatioDifference)*h <= w <= (1+rectangleMaxRatioDifference)*h:
+        rectangle = [x, y, x+w, y+h]
+        rectangles.append(rectangle)
 
   return rectangles
 
