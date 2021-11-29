@@ -1,5 +1,11 @@
 import cv2
 import os
+from enum import Enum
+
+class GameStates(Enum):
+  GSWaitingHomography = 1
+  GSWaitingFirstRecognition = 2
+  GSGameStarted = 3
 
 from cards_recognition import*
 
@@ -7,7 +13,9 @@ class GameBoard():
   def __init__(self) -> None:
       self.cards = [0,0,0,0,0,0,0,0,0]
       self.detective_pawns = [0,0,0,0,0,0,0,0,0,0,0,0]
+      self.action_pawns = [0,0,0,0]
       self.board_file = os.path.abspath(os.path.join(os.path.dirname( __file__ ),"Game_state","JackPocketBoard.txt"))
+      self.state = GameStates.GSWaitingHomography
   
   def printState(self):
     cards_state = ""
@@ -22,6 +30,7 @@ class GameBoard():
 
 
     print(self.detective_pawns)
+    print(self.action_pawns)
   
   def getCards(self):
     return self.cards
@@ -32,6 +41,18 @@ class GameBoard():
   def setDetectivePawns(self,detective_pawns):
     self.detective_pawns = detective_pawns
 
+  def getActionPawns(self):
+    return self.action_pawns
+
+  def setActionPawns(self, action_pawns):
+    self.action_pawns = action_pawns
+
+  def updateGameStatus(self):
+    if self.state.value < len(GameStates):
+      self.state = GameStates(self.state.value + 1)
+
+  def getGameStatus(self):
+    return self.state
 
 class JackPocketGame():
   def __init__(self) -> None:

@@ -20,6 +20,8 @@ class Cards(Enum):
 class CardsRecognitionHelper:
   selectedSamplesQuality = "LQ"
 
+  selectedSamplesResolution = 400
+
   def __init__(self, height, width, gameBoard):
     if self.selectedSamplesQuality == "HQ":
       path = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Cards"))
@@ -30,7 +32,7 @@ class CardsRecognitionHelper:
     self.cardRectangle = list()
     self.rectangles = list()
 
-    [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(path)
+    [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(path,self.selectedSamplesResolution)
 
  
 
@@ -51,32 +53,27 @@ class CardsRecognitionHelper:
         self.rectangles.append([x,y,w,h])
         self.cardRectangle.append([width_portion * j, i * height_portion, (j + 1) * width_portion, (i + 1) * height_portion])
 
+    self.rectangles = addOffsetToBb(self.rectangles,coordinates[0],coordinates[1])
     self.coordinates = coordinates
 
   def ComputeFrame(self, img):
-    selectedimg = img[self.coordinates[1]:self.coordinates[3], self.coordinates[0]:self.coordinates[2]]
-
-    boundingBoxes = getCirclesBb(selectedimg, self.rectangles)
-
-    if(len(boundingBoxes) > 0):
+    if(len(self.rectangles) > 0):
       siftProbabilities = []
       histoProbabilities = []
-      for boundingBox in boundingBoxes:
-        currentimg = selectedimg[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
+      for boundingBox in self.rectangles:
+        currentimg = img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
 
-        #currentimg = increaseImgColorContrast(currentimg)
-
-        siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos))
-        histoProbabilities.append(histogramProbabilities(currentimg, self.samplesHistograms))#histogram_Probabilities(currentimg, self.samplesHistograms))
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0, 1])
-
-      #selectedimg = drawRectangleWithProbabilities(selectedimg, finalProbabilities, boundingBoxes, Cards, cards)
+        siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos,self.selectedSamplesResolution))
+        histoProbabilities.append(histogramProbabilities(currentimg, self.samplesHistograms))
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.3, 0.7])
 
       assignedObjects = linearAssignment(finalProbabilities,Cards)
       self.boardReference.setCards(assignedObjects)
-      selectedimg = drawRectanglesWithAssignment(selectedimg, assignedObjects, boundingBoxes)
 
-    img[self.coordinates[1]:self.coordinates[3],self.coordinates[0]:self.coordinates[2]] = selectedimg
+  def DrawFrame(self, img):
+    cards = self.boardReference.getCards()
+    img = drawRectanglesWithAssignment(img, cards, self.rectangles)
+
     return img
   
   def inSight(self, detectivePos, orientation, cards : list, heightCard, widthCard, inSightList):
