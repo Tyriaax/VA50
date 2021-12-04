@@ -67,7 +67,28 @@ class JackPocketGame():
       self.detectiveWins = False
       self.turn = ""
       #self.cardRecogntionHelper = CardsRecognitionHelper()
+  
+  def getTurnCount(self):
+    return self.turnCount
+  
+  def getMaxTurnCount(self):
+    return self.maxTurnCount
+  
+  def getNumberOfSuspects(self):
+    return self.numberOfSuspects
+  
+  def getJackHourglasses(self):
+    return self.jackHourglasses
+  
+  def getGameStage(self):
+    return self.gameStage
 
+  def getJackWins(self):
+    return self.jackWins
+
+  def getDetectiveWins(self):
+    return self.detectiveWins
+  
   def checkPiecesBorder(self): #Affiche les box pour checker si tout est à sa place et peut être détecter trnql
     pass
     #print("Boxes")
