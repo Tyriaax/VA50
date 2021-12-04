@@ -42,7 +42,7 @@ def video_recognition(path = None):
                 if not homographymatrixfound:
                     homographymatrix, coordinates = get_homography_matrix(img, np.array(list_board_coords), width, height)
                     
-                    cardsRecognitionHelper.GetScreenPortions(img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]],coordinates)
+                    cardsRecognitionHelper.GetScreenPortions(img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]],coordinates)                   
                     pawnsRecognitionHelper.GetScreenPortion(img,coordinates)
                     homographymatrixfound = True
                     gameBoard.updateGameStatus()
@@ -68,8 +68,9 @@ def video_recognition(path = None):
                 break
             if (key == 32 or capEveryFrame) and (gameBoard.getGameStatus().value > GameStates.GSWaitingHomography.value):
                 gameBoard.updateGameStatus()
-                cardsRecognitionHelper.isInLineOfSight(img, [], (0, 3), (1, 3))  # (1,0), (1,3))
-                cardsRecognitionHelper.ComputeFrame(img)
+                cardsRecognitionHelper.IsInLineOfSight(img, [], (0, 3), (1, 3))  # (1,0), (1,3))
+                cardsRecognitionHelper.GetEmptySideCards(img)
+                cardsRecognitionHelper.ComputeFrame(img)            
                 pawnsRecognitionHelper.ComputeFrame(img)
                 gameBoard.printState()
         else:

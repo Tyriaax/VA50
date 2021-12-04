@@ -1,5 +1,7 @@
 from enum import Enum
 
+from cv2 import FAST_FEATURE_DETECTOR_FAST_N
+
 from samples import *
 from boundingBoxes import *
 from probabilities import *
@@ -31,6 +33,7 @@ class CardsRecognitionHelper:
     self.boardReference = gameBoard
     self.cardRectangle = list()
     self.rectangles = list()
+    self.threshold = 95
 
     [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(path,self.selectedSamplesResolution)
 
@@ -76,7 +79,76 @@ class CardsRecognitionHelper:
 
     return img
   
-  def inSight(self, detectivePos, orientation, cards : list, heightCard, widthCard, inSightList):
+  def BinarizeCard(self, img):
+
+    portionImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    portionImg = cv2.GaussianBlur(portionImg, (7,7), cv2.BORDER_DEFAULT)
+    kernel = np.ones((5,5), np.uint8)
+    portionImg = cv2.erode(portionImg, kernel, cv2.BORDER_REFLECT) 
+
+    th, cardThresholded = cv2.threshold(src=portionImg, thresh= self.threshold, maxval= 255, type=cv2.THRESH_BINARY)
+
+    return cardThresholded
+
+  def GetEmptySideCards(self, img):
+    emptySideCardsPos = []
+    index = 0
+    selectedimg = img[self.coordinates[1]:self.coordinates[3], self.coordinates[0]:self.coordinates[2]]
+    if(len(self.rectangles) > 0):
+      for boundingBox in self.cardRectangle:
+
+        horizontalHalfLeft = False
+        horizontalHalfRight = False
+        horizontalLine = True
+
+        verticalHalfUp = False
+        verticalHalfDown = False
+        veticalLine = True
+
+        currentimg = selectedimg[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
+        heightCard,widthCard, _ = currentimg.shape
+        currentimgbinar = self.BinarizeCard(currentimg)
+
+        for a, b in zip(range(widthCard), range(widthCard - 1, -1, -1)):
+          if currentimgbinar[int(heightCard/2) - 1][a] != 255:
+            horizontalLine = False
+            if a >= int(widthCard/2):
+              horizontalHalfLeft = True
+
+          if currentimgbinar[int(heightCard/2) - 1][b] != 255:
+            horizontalLine = False
+            if b <= int(widthCard/2):
+              horizontalHalfRight = True
+
+        for c, d in zip(range(heightCard), range(heightCard - 1, -1, -1)):
+          if currentimgbinar[c][int(widthCard/2) - 1] != 255:
+            verticalLine = False
+            if c >= int(heightCard/2):
+              verticalHalfUp = True
+
+          if currentimgbinar[d][int(widthCard/2) - 1] != 255:
+            verticalLine = False
+            if d <= int(heightCard/2):
+              verticalHalfDown = True
+
+        if verticalLine and not horizontalLine:
+          if horizontalHalfLeft and not horizontalHalfRight:
+            emptySideCardsPos.append([index, "vertical Line - half towards left"])
+          elif not horizontalHalfLeft and horizontalHalfRight:
+            emptySideCardsPos.append([index, "vertical Line - half towards right"])
+        elif horizontalLine and not verticalLine:
+          if verticalHalfUp and not verticalHalfDown:
+            emptySideCardsPos.append([index, "horizontal Line - half towards up"])
+          elif not verticalHalfUp and verticalHalfDown:
+            emptySideCardsPos.append([index, "horizontal Line - half towards down"])
+        elif horizontalLine and verticalLine:
+          emptySideCardsPos.append([index, "cross"])
+
+        index += 1
+        
+    return emptySideCardsPos
+  
+  def InSight(self, detectivePos, orientation, cards : list, heightCard, widthCard, inSightList):
 
     if len(cards) == 0:
       return
@@ -117,7 +189,7 @@ class CardsRecognitionHelper:
     else:
       return
 
-  def isInLineOfSight(self, img, board : list, detectivePosition : tuple, jackPosition : tuple):
+  def IsInLineOfSight(self, img, board : list, detectivePosition : tuple, jackPosition : tuple):
     #DectivePosition : ligne, colonne
     possibleDetectivePos = (1,2,3)
     copy = img.copy()
@@ -143,24 +215,19 @@ class CardsRecognitionHelper:
       for i in range(3):
 
         if sight == "Vertical":
-          rectangleCard = self.cardRectangle[i * 3 + detectivePosition[1] - 1] 
           index = i * 3 + detectivePosition[1] - 1
+          rectangleCard = self.cardRectangle[index] 
+          
         elif sight == "Horizontal":
-          rectangleCard = self.cardRectangle[detectivePosition[0] * 3 - 1 - i ] 
           index = detectivePosition[0] * 3 - 1 - i 
-
+          rectangleCard = self.cardRectangle[index] 
+          
         portionImg = selectedimg[rectangleCard[1]:rectangleCard[3], rectangleCard[0]:rectangleCard[2]]
         heightCard,widthCard, _ = portionImg.shape
-        portionImg = cv2.cvtColor(portionImg, cv2.COLOR_BGR2GRAY)
-        portionImg = cv2.GaussianBlur(portionImg, (7,7), cv2.BORDER_DEFAULT)
-        kernel = np.ones((5,5), np.uint8)
-        portionImg = cv2.erode(portionImg, kernel, cv2.BORDER_REFLECT) 
+        
+        cardList.append([self.BinarizeCard(portionImg), index])
 
-        th, cardThreshold= cv2.threshold(src=portionImg, thresh= 95, maxval= 255, type=cv2.THRESH_BINARY)
-
-        cardList.append([cardThreshold, index])
-
-      self.inSight(detectivePosition, sight, cardList, heightCard, widthCard, inSightPos)
+      self.InSight(detectivePosition, sight, cardList, heightCard, widthCard, inSightPos)
 
       if len(inSightPos) > 0 :
         #print(len(inSightPos), "people in sight")

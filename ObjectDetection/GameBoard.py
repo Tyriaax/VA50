@@ -6,6 +6,8 @@ class GameStates(Enum):
   GSWaitingHomography = 1
   GSWaitingFirstRecognition = 2
   GSGameStarted = 3
+  GSWaitThrowActionPawns = 4
+  GSReturnActionsPawns = 5
 
 from cards_recognition import*
 
