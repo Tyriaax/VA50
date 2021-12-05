@@ -37,8 +37,6 @@ class CardsRecognitionHelper:
 
     [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(path,self.selectedSamplesResolution)
 
- 
-
   def GetScreenPortions(self, img,coordinates):
     img = img[coordinates[1]:coordinates[3], coordinates[0]:coordinates[2]]
     height, width = img.shape[0],img.shape[1] 

@@ -1,5 +1,6 @@
+import cv2.cv2
+
 from homography import *
-from mouseInput import *
 from pawns_recognition import *
 from cards_recognition import *
 from GameBoard import *
@@ -19,10 +20,14 @@ class GameProcessor:
         self.pawnsRecognitionHelper = PawnsRecognitionHelper(self.height, self.width, self.gameBoard)
         self.cardsRecognitionHelper = CardsRecognitionHelper(self.height, self.width, self.gameBoard)
 
+        cv2.setMouseCallback(self.window_name, self.ComputeMouseInput)
+
+        self.list_board_coords = []
+
     def ComputeFrame(self, img):
         if not self.homographymatrixfound:
-            if len(list_board_coords) >= 4:
-                self.homographymatrix, self.coordinates = get_homography_matrix(img, np.array(list_board_coords), self.width, self.height)
+            if len(self.list_board_coords) == 4:
+                self.homographymatrix, self.coordinates = get_homography_matrix(img, np.array(self.list_board_coords), self.width, self.height)
 
                 self.cardsRecognitionHelper.GetScreenPortions(img, self.coordinates)
                 self.pawnsRecognitionHelper.GetScreenPortion(img, self.coordinates)
@@ -36,8 +41,8 @@ class GameProcessor:
     def DrawFrame(self, img):
         modifiedimg = img.copy()
 
-        if len(list_board_coords) < 4:
-            for coord in list_board_coords:
+        if len(self.list_board_coords) < 4:
+            for coord in self.list_board_coords:
                 cv2.circle(modifiedimg, coord, 10, (0, 255, 0), -1)
         else:
             if self.gameBoard.getGameStatus() == GameStates.GSWaitingHomography:
@@ -54,9 +59,6 @@ class GameProcessor:
     def ComputeInputs(self, img):
         continuebool = True
 
-        if len(list_board_coords) < 4:
-            cv2.setMouseCallback(self.window_name, mousePoints)
-
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q') or key == 27:
             continuebool = False
@@ -69,3 +71,13 @@ class GameProcessor:
             self.gameBoard.printState()
 
         return continuebool
+
+    def ComputeMouseInput(self,event,x,y,flags,params):
+        if event == cv2.EVENT_LBUTTONDOWN:
+            if len(self.list_board_coords) < 4:
+                self.list_board_coords.append([x, y])
+            else:
+                actionPawnClicked = self.pawnsRecognitionHelper.actionPawnClick([x,y])
+                if actionPawnClicked:
+                    print("Action Pawn Clicked :" + actionPawnClicked)
+                    #TODO add code so that we compare the status of the new recognition with the old one and compare them to ensure action is possible

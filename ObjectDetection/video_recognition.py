@@ -17,6 +17,7 @@ def video_recognition(path = None):
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
     ret, img = cap.read()
+    cv2.imshow(window_name, img) #Need to show the window first so that we can set our MouseCallback on the windows
 
     gameProcessor = GameProcessor(img, window_name)
 
