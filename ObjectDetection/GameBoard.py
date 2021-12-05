@@ -27,6 +27,18 @@ class GameBoard():
       self.action_pawns = [0,0,0,0]
       self.board_file = os.path.abspath(os.path.join(os.path.dirname( __file__ ),"Game_state","JackPocketBoard.txt"))
       self.state = GameStates.GSWaitingHomography
+
+      self.alibiCardsDict = (
+        ("Joseph Lane", 1),
+        ("Madame", 2),
+        ("Insp. Lestrade", 0),
+        ("William Gull", 1),
+        ("Jeremy Bert", 1),
+        ("John Smith", 1),
+        ("Sgt Goodley", 0),
+        ("Miss Stealthy", 1),
+        ("John Pizer", 1),
+      )
   
   def printState(self):
     cards_state = ""
@@ -44,8 +56,15 @@ class GameBoard():
   
   def getCards(self):
     return self.cards
+
   def getPreviousCards(self):
     return self.previousCards
+
+  def getAlibiCardsDict(self):
+    return self.alibiCardsDict
+  
+  def setAlibiCardsDict(self, alibiCardDict):
+    self.alibiCardsDict = alibiCardDict
 
   def getPreviousCardsState(self):
     return self.previousCardsState
@@ -142,6 +161,9 @@ class JackPocketGame():
     else:
       self.turn = "Detectives"
       print("Detective starts: you can throw the tokens")
+  
+  def addJackHourglasses(self, numberOfHourglasses):
+    self.jackHourglasses += numberOfHourglasses
 
   def appealOfWitnesses(self, isJackSeen):
     if isJackSeen:

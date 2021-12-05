@@ -7,6 +7,7 @@ from boundingBoxes import *
 from probabilities import *
 import numpy
 from GameBoard import *
+import random
 
 class Cards(Enum):
   CBlack = 0
@@ -112,9 +113,9 @@ class CardsRecognitionHelper:
             self.gameBoard[index] = ["up", "front"]
         index += 1
     print("Front cards : ", self.gameBoard)
-    self.gameBoard.setCardsState(self.gameBoard)
+    self.boardReference.setCardsState(self.gameBoard)
 
-  def IsActionPawnRespected(self, action : str, turn : str):
+  def IsActionPawnRespected(self, action : str, turn : str, jackPocketGame: JackPocketGame):
     
     previousCardsState = self.boardReference.getPreviousCardsState()
     cardsState = self.boardReference.getCardsState()
@@ -124,6 +125,8 @@ class CardsRecognitionHelper:
 
     previousDetectivePawns = self.boardReference.getPreviousDetectivePawns()
     detectivePawns = self.boardReference.getDetectivePawns()
+    alibiCardDict = self.boardReference.getAlibiCardsDict()
+
     lengthDetectivePawnsList = len(detectivePawns) - 1
 
     previousIndexSherlock = previousDetectivePawns.index("DPSherlock")
@@ -135,6 +138,7 @@ class CardsRecognitionHelper:
     previousIndexWatson = previousDetectivePawns.index("DPWatson")
     indexWatson = detectivePawns.index("DPWatson")
 
+    
     if action == "Joker":
       if turn == "Jack":
         if (previousIndexSherlock + 1)%lengthDetectivePawnsList == indexSherlock and previousIndexToby == indexToby and previousIndexWatson == indexWatson:
@@ -188,7 +192,12 @@ class CardsRecognitionHelper:
               return True
 
     elif action == "alibi":
-      pass
+      randomIndex = random.randint(0,len(alibiCardDict))
+      randomAlibiCard = alibiCardDict.pop(randomIndex)
+      if randomAlibiCard:
+        self.boardReference.setAlibiCardsDict(alibiCardDict)
+        jackPocketGame.addJackHourglasses(randomAlibiCard[1])
+        return True
 
     return False
 
