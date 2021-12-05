@@ -29,14 +29,6 @@ def video_recognition(path = None):
             cv2.imshow(window_name, modifiedimg)
             if not gameProcessor.ComputeInputs(img) :
                 break
-            if (key == 32 or capEveryFrame) and (gameBoard.getGameStatus().value > GameStates.GSWaitingHomography.value):
-                gameBoard.updateGameStatus()
-                cardsRecognitionHelper.IsInLineOfSight(img, [], (0, 3), (1, 3))  # (1,0), (1,3))
-                cardsRecognitionHelper.GetEmptySideCards(img)
-                cardsRecognitionHelper.getFrontSideCards(img)
-                cardsRecognitionHelper.ComputeFrame(img)            
-                pawnsRecognitionHelper.ComputeFrame(img)
-                gameBoard.printState()
         else:
             cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 

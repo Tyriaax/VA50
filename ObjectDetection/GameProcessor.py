@@ -66,6 +66,7 @@ class GameProcessor:
             self.gameBoard.updateGameStatus()
             self.cardsRecognitionHelper.IsInLineOfSight(img, [], (0, 3), (1, 3))  # (1,0), (1,3))
             self.cardsRecognitionHelper.GetEmptySideCards(img)
+            self.cardsRecognitionHelper.getFrontSideCards(img)
             self.cardsRecognitionHelper.ComputeFrame(img)
             self.pawnsRecognitionHelper.ComputeFrame(img)
             self.gameBoard.printState()
