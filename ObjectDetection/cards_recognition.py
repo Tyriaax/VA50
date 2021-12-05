@@ -1,6 +1,6 @@
 from enum import Enum
 
-from cv2 import FAST_FEATURE_DETECTOR_FAST_N
+#from cv2 import FAST_FEATURE_DETECTOR_FAST_N
 
 from samples import *
 from boundingBoxes import *
@@ -40,6 +40,7 @@ class CardsRecognitionHelper:
  
 
   def GetScreenPortions(self, img,coordinates):
+    img = img[coordinates[1]:coordinates[3], coordinates[0]:coordinates[2]]
     height, width = img.shape[0],img.shape[1] 
     width_portion = int(width / 3)
     height_portion = int(height / 3)
