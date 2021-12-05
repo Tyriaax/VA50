@@ -1,11 +1,6 @@
 import cv2
 import numpy as np
 
-list_board_coords = []
-def mousePoints(event,x,y,flags,params):
-  if event == cv2.EVENT_LBUTTONDOWN and len(list_board_coords) < 4:
-    list_board_coords.append([x,y])
-
 def get_homography_matrix(img, pts_src, w, h):
 
   factor = 0.15

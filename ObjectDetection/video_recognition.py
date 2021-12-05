@@ -1,15 +1,9 @@
 import cv2
 import os
 
-from homography import *
-from pawns_recognition import *
-from cards_recognition import *
-from GameBoard import *
-from drawing import *
+from GameProcessor import *
 
 def video_recognition(path = None):
-    capEveryFrame = False
-
     window_name = "JACK"
     height = 720
     width = 1280
@@ -17,54 +11,23 @@ def video_recognition(path = None):
     if(path):
         cap = cv2.VideoCapture(path)
     else:
-        cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # Tochange in case
-
-    gameBoard = GameBoard()
+        cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # ToChange in case
 
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
-    pawnsRecognitionHelper = PawnsRecognitionHelper(height, width, gameBoard)
-    cardsRecognitionHelper = CardsRecognitionHelper(height, width, gameBoard)
+    ret, img = cap.read()
+    cv2.imshow(window_name, img) #Need to show the window first so that we can set our MouseCallback on the windows
 
-    homographymatrixfound = False
+    gameProcessor = GameProcessor(img, window_name)
 
-    _, img1 = cap.read()
-    cv2.imshow(window_name, img1)
     while True:
         ret, img = cap.read()
         if ret:
-            if len(list_board_coords) < 4:
-                cv2.setMouseCallback(window_name, mousePoints)
-                for coord in list_board_coords:
-                    cv2.circle(img, coord, 10, (0, 255, 0), -1)
-            else:
-                if not homographymatrixfound:
-                    homographymatrix, coordinates = get_homography_matrix(img, np.array(list_board_coords), width, height)
-                    
-                    cardsRecognitionHelper.GetScreenPortions(img[coordinates[1]:coordinates[3],coordinates[0]:coordinates[2]],coordinates)                   
-                    pawnsRecognitionHelper.GetScreenPortion(img,coordinates)
-                    homographymatrixfound = True
-                    gameBoard.updateGameStatus()
-
-                img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))
-
-            modifiedimg = img.copy()
-
-            if gameBoard.getGameStatus() == GameStates.GSWaitingHomography:
-                modifiedimg = drawText(modifiedimg,"Veuillez selectionner les quatres coins des 9 cartes")
-            if gameBoard.getGameStatus() == GameStates.GSWaitingFirstRecognition:
-                modifiedimg = pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg)
-                modifiedimg = drawText(modifiedimg,"Veuillez appuyer sur espace pour lancer une nouvelle detection")
-            if gameBoard.getGameStatus() == GameStates.GSGameStarted:
-                modifiedimg = pawnsRecognitionHelper.DrawFrame(modifiedimg)
-                modifiedimg = cardsRecognitionHelper.DrawFrame(modifiedimg)
-
+            img = gameProcessor.ComputeFrame(img)
+            modifiedimg = gameProcessor.DrawFrame(img)
             cv2.imshow(window_name, modifiedimg)
-
-
-            key = cv2.waitKey(1) & 0xFF
-            if key == ord('q') or key == 27:
+            if not gameProcessor.ComputeInputs(img) :
                 break
             if (key == 32 or capEveryFrame) and (gameBoard.getGameStatus().value > GameStates.GSWaitingHomography.value):
                 gameBoard.updateGameStatus()
@@ -79,4 +42,3 @@ def video_recognition(path = None):
 
     cap.release()
     cv2.destroyAllWindows()
-
