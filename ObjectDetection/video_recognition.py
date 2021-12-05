@@ -70,6 +70,7 @@ def video_recognition(path = None):
                 gameBoard.updateGameStatus()
                 cardsRecognitionHelper.IsInLineOfSight(img, [], (0, 3), (1, 3))  # (1,0), (1,3))
                 cardsRecognitionHelper.GetEmptySideCards(img)
+                cardsRecognitionHelper.getFrontSideCards(img)
                 cardsRecognitionHelper.ComputeFrame(img)            
                 pawnsRecognitionHelper.ComputeFrame(img)
                 gameBoard.printState()

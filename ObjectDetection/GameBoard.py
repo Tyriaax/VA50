@@ -13,8 +13,15 @@ from cards_recognition import*
 
 class GameBoard():
   def __init__(self) -> None:
+      self.previousCards = [0,0,0,0,0,0,0,0,0]
       self.cards = [0,0,0,0,0,0,0,0,0]
+
+      self.previousCardsState = []
+      self.cardsState = []
+
+      self.previousDetectivePawns = []
       self.detective_pawns = [0,0,0,0,0,0,0,0,0,0,0,0]
+
       self.action_pawns = [0,0,0,0]
       self.board_file = os.path.abspath(os.path.join(os.path.dirname( __file__ ),"Game_state","JackPocketBoard.txt"))
       self.state = GameStates.GSWaitingHomography
@@ -30,17 +37,36 @@ class GameBoard():
     with open(self.board_file, 'w') as file:
       file.write(cards_state)
 
-
     print(self.detective_pawns)
     print(self.action_pawns)
   
   def getCards(self):
     return self.cards
+  def getPreviousCards(self):
+    return self.previousCards
+
+  def getPreviousCardsState(self):
+    return self.previousCardsState
+
+  def getCardsState(self):
+    return self.cardsState
+  
+  def setCardsState(self, cardState):
+    self.previousCardsState = self.cardsState
+    self.cardsState = cardState
+
+  def getPreviousDetectivePawns(self):
+    return self.previousDetectivePawns
+
   def getDetectivePawns(self):
     return self.detective_pawns
+
   def setCards(self,cards):
+    self.previousCards = self.cards
     self.cards = cards
+
   def setDetectivePawns(self,detective_pawns):
+    self.previousDetectivePawns = self.detective_pawns
     self.detective_pawns = detective_pawns
 
   def getActionPawns(self):
@@ -109,10 +135,10 @@ class JackPocketGame():
 
   def manhunt(self):
     if self.turnCount % 2 == 0: 
-      self.self.turn = "Jack"
+      self.turn = "Jack"
       print("Flip back the tokens.")
     else:
-      self.self.turn = "Detectives"
+      self.turn = "Detectives"
       print("Detective starts: you can throw the tokens")
 
   def appealOfWitnesses(self, isJackSeen):

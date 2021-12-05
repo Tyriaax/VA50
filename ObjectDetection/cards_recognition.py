@@ -33,12 +33,12 @@ class CardsRecognitionHelper:
     self.boardReference = gameBoard
     self.cardRectangle = list()
     self.rectangles = list()
-    self.threshold = 95
+    self.threshold = 95 #55#
+    self.gameBoard = np.zeros((9,2), dtype= np.chararray)
 
     [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(path,self.selectedSamplesResolution)
 
  
-
   def GetScreenPortions(self, img,coordinates):
     height, width = img.shape[0],img.shape[1] 
     width_portion = int(width / 3)
@@ -90,8 +90,110 @@ class CardsRecognitionHelper:
 
     return cardThresholded
 
+  def getFrontSideCards(self, img):
+    index = 0
+    selectedimg = img[self.coordinates[1]:self.coordinates[3], self.coordinates[0]:self.coordinates[2]]
+    if(len(self.rectangles) == 9):
+      for boundingBox in self.cardRectangle:
+        if np.array_equal(self.gameBoard[index], np.array([0, 0], dtype=np.chararray)):
+          currentimg = selectedimg[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
+          heightCard,widthCard, _ = currentimg.shape
+          currentimgbinar = self.BinarizeCard(currentimg)
+          up, down, left, right = currentimgbinar[0][int(widthCard/2) - 1], currentimgbinar[heightCard - 1][int(widthCard/2)- 1], \
+            currentimgbinar[int(heightCard/2) - 1][0], currentimgbinar[int(heightCard/2) - 1][widthCard - 1]
+          
+          if up == 255 and down == 255 and left == 255:
+            self.gameBoard[index] = ["left", "front"]
+          elif up == 255 and down == 255 and right == 255:
+            self.gameBoard[index] = ["right", "front"]
+          elif right == 255 and down == 255 and left == 255:
+            self.gameBoard[index] = ["down", "front"]
+          elif right == 255 and up == 255 and left == 255:
+            self.gameBoard[index] = ["up", "front"]
+        index += 1
+    print("Front cards : ", self.gameBoard)
+    self.gameBoard.setCardsState(self.gameBoard)
+
+  def IsActionPawnRespected(self, action : str, turn : str):
+    
+    previousCardsState = self.boardReference.getPreviousCardsState()
+    cardsState = self.boardReference.getCardsState()
+
+    previousCards = self.boardReference.getPreviousCards()
+    cards = self.boardReference.getCards()
+
+    previousDetectivePawns = self.boardReference.getPreviousDetectivePawns()
+    detectivePawns = self.boardReference.getDetectivePawns()
+    lengthDetectivePawnsList = len(detectivePawns) - 1
+
+    previousIndexSherlock = previousDetectivePawns.index("DPSherlock")
+    indexSherlock = detectivePawns.index("DPSherlock")
+
+    previousIndexToby = previousDetectivePawns.index("DPToby")
+    indexToby= detectivePawns.index("DPToby")
+
+    previousIndexWatson = previousDetectivePawns.index("DPWatson")
+    indexWatson = detectivePawns.index("DPWatson")
+
+    if action == "Joker":
+      if turn == "Jack":
+        if (previousIndexSherlock + 1)%lengthDetectivePawnsList == indexSherlock and previousIndexToby == indexToby and previousIndexWatson == indexWatson:
+          return True
+        elif (previousIndexToby + 1)%lengthDetectivePawnsList == indexToby and previousIndexSherlock == indexSherlock and previousIndexWatson == indexWatson:
+          return True
+        elif (previousIndexWatson + 1)%lengthDetectivePawnsList == indexWatson and previousIndexSherlock == indexSherlock and previousIndexToby == indexToby:
+          return True
+        elif previousIndexToby == indexToby and previousIndexWatson == indexWatson and previousIndexSherlock == indexSherlock:
+          return True
+
+      elif turn == "Detectives":
+        if (previousIndexSherlock + 1)%lengthDetectivePawnsList == indexSherlock and previousIndexToby == indexToby and previousIndexWatson == indexWatson:
+          return True
+        elif (previousIndexToby + 1)%lengthDetectivePawnsList == indexToby and previousIndexSherlock == indexSherlock and previousIndexWatson == indexWatson:
+          return True
+        elif (previousIndexWatson + 1)%lengthDetectivePawnsList == indexWatson and previousIndexSherlock == indexSherlock and previousIndexToby == indexToby:
+          return True
+
+    elif action == "Holmes":  
+      if (previousIndexSherlock + 1)%lengthDetectivePawnsList == indexSherlock or (previousIndexSherlock + 2)%lengthDetectivePawnsList == indexSherlock :
+        return True 
+
+    elif action == "Dog":
+      if (previousIndexToby + 1)%lengthDetectivePawnsList == indexSherlock or (previousIndexToby + 2)%lengthDetectivePawnsList == indexSherlock :
+        return True 
+
+    elif action == "Watson":
+      if (previousIndexWatson + 1)%lengthDetectivePawnsList == indexSherlock or (previousIndexWatson + 2)%lengthDetectivePawnsList == indexSherlock :
+        return True 
+
+    elif action == "Rotation":
+      difference = 0
+      if previousCards == cards and previousCards:
+        for index in range(len(cardsState)):
+          if previousCardsState[index][0] != cardsState[index][0]  and previousCardsState[index][1] == cardsState[index][1]:
+            difference += 1
+        if difference <= 1:
+          return True
+
+    elif action == "Exchange":
+      indexs = []
+      if self.boardReference.getCards():
+        for index in range(len(cards)):
+          if not np.array_equal(previousCards[index], cards[index]):
+            indexs.append(index)
+
+        if len(indexs) == 2: 
+          if cards[indexs[0]] == previousCards[indexs[1]] and cards[indexs[1]] == previousCards[indexs[0]]:
+            if np.array_equal(previousCardsState[index], cardsState[index]):
+              return True
+
+    elif action == "alibi":
+      pass
+
+    return False
+
   def GetEmptySideCards(self, img):
-    emptySideCardsPos = []
+
     index = 0
     selectedimg = img[self.coordinates[1]:self.coordinates[3], self.coordinates[0]:self.coordinates[2]]
     if(len(self.rectangles) > 0):
@@ -103,11 +205,13 @@ class CardsRecognitionHelper:
 
         verticalHalfUp = False
         verticalHalfDown = False
-        veticalLine = True
+        verticalLine = True
 
         currentimg = selectedimg[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
         heightCard,widthCard, _ = currentimg.shape
         currentimgbinar = self.BinarizeCard(currentimg)
+
+        cv2.imshow(str(index), currentimgbinar)
 
         for a, b in zip(range(widthCard), range(widthCard - 1, -1, -1)):
           if currentimgbinar[int(heightCard/2) - 1][a] != 255:
@@ -133,20 +237,20 @@ class CardsRecognitionHelper:
 
         if verticalLine and not horizontalLine:
           if horizontalHalfLeft and not horizontalHalfRight:
-            emptySideCardsPos.append([index, "vertical Line - half towards left"])
+            self.gameBoard[index] = ["Left", "returned"]
           elif not horizontalHalfLeft and horizontalHalfRight:
-            emptySideCardsPos.append([index, "vertical Line - half towards right"])
+            self.gameBoard[index] = ["Right", "returned"]
         elif horizontalLine and not verticalLine:
           if verticalHalfUp and not verticalHalfDown:
-            emptySideCardsPos.append([index, "horizontal Line - half towards up"])
+            self.gameBoard[index] = ["Up", "returned"]
           elif not verticalHalfUp and verticalHalfDown:
-            emptySideCardsPos.append([index, "horizontal Line - half towards down"])
+            self.gameBoard[index] = ["Down", "returned"]
         elif horizontalLine and verticalLine:
-          emptySideCardsPos.append([index, "cross"])
+          self.gameBoard[index] = ["Cross", "returned"]
 
         index += 1
-        
-    return emptySideCardsPos
+
+    print("Empty cards: ", self.gameBoard)
   
   def InSight(self, detectivePos, orientation, cards : list, heightCard, widthCard, inSightList):
 
@@ -185,7 +289,7 @@ class CardsRecognitionHelper:
             pursue = True   
 
     if pursue == True:
-      self.inSight(detectivePos, orientation, cards, heightCard, widthCard, inSightList)
+      self.InSight(detectivePos, orientation, cards, heightCard, widthCard, inSightList)
     else:
       return
 
