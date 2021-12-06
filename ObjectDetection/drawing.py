@@ -1,4 +1,9 @@
 import cv2
+from enum import Enum
+
+class TextPositions(Enum):
+  TPTop = 1
+  TPCenter = 2
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 
@@ -13,14 +18,16 @@ def drawRectanglesWithAssignment(img, foundObjects, boundingBoxes):
 
   return img
 
-def drawText(img, text):
-  # get boundary of this text
+marginTop = 4
+def drawText(img, text, position, offset = 0):
   textsize = cv2.getTextSize(text, font, 1, 2)[0]
 
-  # get coords based on boundary
-  textX = (img.shape[1] - textsize[0]) / 2
-  textY = (img.shape[0] + textsize[1]) / 2
+  if position == TextPositions.TPCenter:
+    textX = (img.shape[1] - textsize[0]) / 2
+    textY = (img.shape[0]/2) - (textsize[1]/2) + (textsize[1]*offset)
+  else:
+    textX = 0
+    textY = (textsize[1]+marginTop) * (offset+1)
 
-  # add text centered on image
   cv2.putText(img, text, (int(textX), int(textY)), font, 1, (0, 255, 0), 2)
   return img

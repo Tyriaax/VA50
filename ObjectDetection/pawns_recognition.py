@@ -178,11 +178,15 @@ class PawnsRecognitionHelper:
     return positions
 
   def actionPawnClick(self, click_coordinates):
-    actionPawnClicked = None
+    actionPawnIndex = None
 
     for i in range(len(self.actionPawnsBb)):
       if ((self.actionPawnsBb[i][0] < click_coordinates[0] <  self.actionPawnsBb[i][2]) and
       (self.actionPawnsBb[i][1] < click_coordinates[1] <  self.actionPawnsBb[i][3])):
-        actionPawnClicked = self.boardReference.getActionPawns()[i]
+        actionPawnIndex= i
 
-    return actionPawnClicked
+    return actionPawnIndex
+
+  def actionPawnUsed(self, actionPawnIndex):
+    del self.actionPawnsBb[actionPawnIndex]
+

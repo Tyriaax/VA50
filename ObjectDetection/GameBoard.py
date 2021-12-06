@@ -3,13 +3,9 @@ import os
 from enum import Enum
 
 class GameStates(Enum):
-  GSWaitingHomography = 1
-  GSWaitingFirstRecognition = 2
-  GSGameStarted = 3
-  """
-  GSWaitThrowActionPawns = 4
-  GSReturnActionsPawns = 5
-  """
+  GSWaitingHomography = 0
+  GSWaitingActionPawns = 1
+  GSUseActionsPawns = 2
 
 from cards_recognition import*
 
@@ -96,9 +92,13 @@ class GameBoard():
   def setActionPawns(self, action_pawns):
     self.action_pawns = action_pawns
 
-  def updateGameStatus(self):
-    if self.state.value < len(GameStates):
-      self.state = GameStates(self.state.value + 1)
+  def tryUpdateGameStatus(self, gameState):
+    if ((gameState.value < len(GameStates)) and
+            ((gameState == self.state) or (gameState.value == self.state.value+1))):
+      self.state = gameState
+      return True
+    else:
+      return False
 
   def getGameStatus(self):
     return self.state

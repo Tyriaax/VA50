@@ -115,7 +115,7 @@ class CardsRecognitionHelper:
     print("Front cards : ", self.gameBoard)
     self.boardReference.setCardsState(self.gameBoard)
 
-  def IsActionPawnRespected(self, action : str, turn : str, jackPocketGame: JackPocketGame):
+  def IsActionPawnRespected(self, action : str, turn : str, jackPocketGame):
     
     previousCardsState = self.boardReference.getPreviousCardsState()
     cardsState = self.boardReference.getCardsState()
@@ -220,7 +220,7 @@ class CardsRecognitionHelper:
         heightCard,widthCard, _ = currentimg.shape
         currentimgbinar = self.BinarizeCard(currentimg)
 
-        cv2.imshow(str(index), currentimgbinar)
+        #cv2.imshow(str(index), currentimgbinar)
 
         for a, b in zip(range(widthCard), range(widthCard - 1, -1, -1)):
           if currentimgbinar[int(heightCard/2) - 1][a] != 255:

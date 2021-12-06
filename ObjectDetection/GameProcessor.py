@@ -32,7 +32,8 @@ class GameProcessor:
                 self.cardsRecognitionHelper.GetScreenPortions(img, self.coordinates)
                 self.pawnsRecognitionHelper.GetScreenPortion(img, self.coordinates)
                 self.homographymatrixfound = True
-                self.gameBoard.updateGameStatus()
+                if(self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawns)):
+                    self.cardsRecognitionHelper.ComputeFrame(img)
         else:
             img = cv2.warpPerspective(img, self.homographymatrix, (img.shape[1], img.shape[0]))
 
@@ -44,15 +45,21 @@ class GameProcessor:
         if len(self.list_board_coords) < 4:
             for coord in self.list_board_coords:
                 cv2.circle(modifiedimg, coord, 10, (0, 255, 0), -1)
-        else:
-            if self.gameBoard.getGameStatus() == GameStates.GSWaitingHomography:
-                modifiedimg = drawText(modifiedimg, "Veuillez selectionner les quatres coins des 9 cartes")
-            if self.gameBoard.getGameStatus() == GameStates.GSWaitingFirstRecognition:
-                modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg)
-                modifiedimg = drawText(modifiedimg, "Veuillez appuyer sur espace pour lancer une nouvelle detection")
-            if self.gameBoard.getGameStatus() == GameStates.GSGameStarted:
-                modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
-                modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
+
+        if self.gameBoard.getGameStatus() == GameStates.GSWaitingHomography:
+            modifiedimg = drawText(modifiedimg, "Selectionnez les quatres coins des 9 cartes",TextPositions.TPTop)
+        if self.gameBoard.getGameStatus() == GameStates.GSWaitingActionPawns:
+            modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg)
+            modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
+            modifiedimg = drawText(modifiedimg, "Appuyez sur P pour detecter les pions", TextPositions.TPTop)
+            modifiedimg = drawText(modifiedimg, "Ou sur C pour redetecter les cartes", TextPositions.TPTop, 1)
+        if self.gameBoard.getGameStatus() == GameStates.GSUseActionsPawns:
+            modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
+            modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
+            modifiedimg = drawText(modifiedimg, "Appuyez sur le jeton Action que vous voulez utiliser", TextPositions.TPTop)
+            modifiedimg = drawText(modifiedimg, "Ou sur P pour redetecter les pions", TextPositions.TPTop, 1)
+
+
 
         return modifiedimg
 
@@ -62,14 +69,17 @@ class GameProcessor:
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q') or key == 27:
             continuebool = False
-        if (key == 32 or self.capEveryFrame) and (self.gameBoard.getGameStatus().value > GameStates.GSWaitingHomography.value):
-            self.gameBoard.updateGameStatus()
-            self.cardsRecognitionHelper.IsInLineOfSight(img, [], (0, 3), (1, 3))  # (1,0), (1,3))
-            self.cardsRecognitionHelper.GetEmptySideCards(img)
-            self.cardsRecognitionHelper.getFrontSideCards(img)
-            self.cardsRecognitionHelper.ComputeFrame(img)
-            self.pawnsRecognitionHelper.ComputeFrame(img)
-            self.gameBoard.printState()
+        if (key == ord('c') or self.capEveryFrame):
+            if (self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawns)):
+                self.cardsRecognitionHelper.ComputeFrame(img)
+
+        if (key == ord('p') or self.capEveryFrame):
+            if (self.gameBoard.tryUpdateGameStatus(GameStates.GSUseActionsPawns)):
+                #self.cardsRecognitionHelper.IsInLineOfSight(img, [], (0, 3), (1, 3))  # (1,0), (1,3))
+                #self.cardsRecognitionHelper.GetEmptySideCards(img)
+                #self.cardsRecognitionHelper.getFrontSideCards(img)
+                self.pawnsRecognitionHelper.ComputeFrame(img)
+                self.gameBoard.printState()
 
         return continuebool
 
@@ -78,7 +88,8 @@ class GameProcessor:
             if len(self.list_board_coords) < 4:
                 self.list_board_coords.append([x, y])
             else:
-                actionPawnClicked = self.pawnsRecognitionHelper.actionPawnClick([x,y])
-                if actionPawnClicked:
-                    print("Action Pawn Clicked :" + actionPawnClicked)
+                actionPawnIndex = self.pawnsRecognitionHelper.actionPawnClick([x,y])
+                if actionPawnIndex is not None:
+                    print("Action Pawn Clicked :" + self.gameBoard.getActionPawns()[actionPawnIndex])
                     #TODO add code so that we compare the status of the new recognition with the old one and compare them to ensure action is possible
+                    self.pawnsRecognitionHelper.actionPawnUsed(actionPawnIndex)
