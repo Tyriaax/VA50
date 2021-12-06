@@ -47,23 +47,24 @@ class GameProcessor:
                 cv2.circle(modifiedimg, coord, 10, (0, 255, 0), -1)
 
         if self.gameBoard.getGameStatus() == GameStates.GSWaitingHomography:
-            modifiedimg = drawText(modifiedimg, "Selectionnez les quatres coins des 9 cartes",TextPositions.TPTop)
+            modifiedimg = drawText(modifiedimg, "Selectionnez les quatres coins des 9 cartes",TextPositions.TPCenter)
         if self.gameBoard.getGameStatus() == GameStates.GSWaitingActionPawns:
             modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg)
             modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
-            modifiedimg = drawText(modifiedimg, "Appuyez sur P pour detecter les pions", TextPositions.TPTop)
-            modifiedimg = drawText(modifiedimg, "Ou sur C pour redetecter les cartes", TextPositions.TPTop, 1)
+            modifiedimg = drawText(modifiedimg, "Appuyez sur P pour detecter les pions", TextPositions.TPTopL)
+            modifiedimg = drawText(modifiedimg, "Ou sur C pour redetecter les cartes", TextPositions.TPTopL, 1)
         if self.gameBoard.getGameStatus() == GameStates.GSUseActionsPawns:
             modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
             modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
-            modifiedimg = drawText(modifiedimg, "Appuyez sur le jeton Action que vous voulez utiliser", TextPositions.TPTop)
-            modifiedimg = drawText(modifiedimg, "Ou sur P pour redetecter les pions", TextPositions.TPTop, 1)
-
-
+            modifiedimg = drawText(modifiedimg, "Realisez votre Action puis appuyez sur le jeton que vous avez utilise", TextPositions.TPTopL)
+            modifiedimg = drawText(modifiedimg, "Ou sur P pour redetecter les pions", TextPositions.TPTopL, 1)
+            modifiedimg = drawText(modifiedimg, "Tour : " + str(self.gameBoard.getTurnCount()) + "/" + str(self.gameBoard.getMaxTurnCount()), TextPositions.TPTopR)
+            modifiedimg = drawText(modifiedimg, "Joueur : " + str(self.gameBoard.getCurrentPlayer()), TextPositions.TPTopR,1)
 
         return modifiedimg
 
     def ComputeInputs(self, img):
+        self.lastimg = img
         continuebool = True
 
         key = cv2.waitKey(1) & 0xFF
@@ -90,6 +91,16 @@ class GameProcessor:
             else:
                 actionPawnIndex = self.pawnsRecognitionHelper.actionPawnClick([x,y])
                 if actionPawnIndex is not None:
-                    print("Action Pawn Clicked :" + self.gameBoard.getActionPawns()[actionPawnIndex])
-                    #TODO add code so that we compare the status of the new recognition with the old one and compare them to ensure action is possible
-                    self.pawnsRecognitionHelper.actionPawnUsed(actionPawnIndex)
+                    actionPawnClicked = self.gameBoard.getActionPawns()[actionPawnIndex]
+                    selectedAP = ActionPawns[actionPawnClicked]
+                    print("Action Pawn Clicked : " + actionPawnClicked)
+                    if(selectedAP.value <= 4):
+                        self.pawnsRecognitionHelper.ComputeDetectivePawns(self.lastimg)
+                    elif(selectedAP.value <= 7):
+                        self.cardsRecognitionHelper.ComputeFrame(self.lastimg)
+
+                    if(self.gameBoard.IsActionPawnRespected(actionPawnClicked)):
+                        print("Action Pawn Used")
+                        self.pawnsRecognitionHelper.actionPawnUsed(actionPawnIndex)
+                    else:
+                        print("Action Pawn not Validated")

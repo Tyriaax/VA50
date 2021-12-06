@@ -8,11 +8,14 @@ from probabilities import *
 from GameBoard import *
 
 class ActionPawns(Enum):
-  APChangeCard = 0
-  APReturn = 1
-  APSherlock = 2
-  APToby = 3
-  APWatson = 4
+  APSherlock = 0
+  APToby = 1
+  APWatson = 2
+  APJoker = 3
+  APChangeCard = 4
+  APReturn = 5
+  APReturn2 = 6
+  APAlibi = 7
 
 class DetectivePawns(Enum):
   DPSherlock = 0
