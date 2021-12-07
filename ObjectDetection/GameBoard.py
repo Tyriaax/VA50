@@ -8,6 +8,8 @@ class GameStates(Enum):
   GSWaitingHomography = 0
   GSWaitingActionPawns = 1
   GSUseActionsPawns = 2
+  GSAppealOfWitness = 3
+  GSGameOver = 4
 
 from cards_recognition import*
 
@@ -118,7 +120,8 @@ class GameBoard():
   
   def tryUpdateGameStatus(self, gameState):
     if ((gameState.value < len(GameStates)) and
-            ((gameState == self.state) or (gameState.value == self.state.value+1))):
+            ((gameState == self.state) or (gameState.value == self.state.value+1))) or \
+            ((gameState == GameStates.GSWaitingActionPawns) and self.state == (GameStates.GSAppealOfWitness)):
       self.state = gameState
       return True
     else:

@@ -69,7 +69,7 @@ class CardsRecognitionHelper:
 
         siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos,self.selectedSamplesResolution))
         histoProbabilities.append(histogramProbabilities(currentimg, self.samplesHistograms))
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.3, 0.7])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5,0.5])
 
       assignedObjects = linearAssignment(finalProbabilities,Cards)
       self.boardReference.setCards(assignedObjects)
@@ -216,7 +216,7 @@ class CardsRecognitionHelper:
     else:
       return
 
-  def IsInLineOfSight(self, img, board : list, detectivePosition : tuple, jackPosition : tuple):
+  def IsInLineOfSight(self, img):
     #DectivePosition : ligne, colonne
     possibleDetectivePos = (1,2,3)
     copy = img.copy()

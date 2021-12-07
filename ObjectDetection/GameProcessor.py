@@ -61,6 +61,18 @@ class GameProcessor:
             modifiedimg = drawText(modifiedimg, "Ou sur P pour redetecter les pions", TextPositions.TPTopL, 2)
             modifiedimg = drawText(modifiedimg, "Tour : " + str(self.gameBoard.getTurnCount()) + "/" + str(self.gameBoard.getMaxTurnCount()), TextPositions.TPTopR)
             modifiedimg = drawText(modifiedimg, "Joueur : " + str(self.gameBoard.getCurrentPlayer()), TextPositions.TPTopR,1)
+        if self.gameBoard.getGameStatus() == GameStates.GSAppealOfWitness:
+            modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
+            modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
+            modifiedimg = drawText(modifiedimg, "Retournez les cartes innocentees", TextPositions.TPTopL)
+            modifiedimg = drawText(modifiedimg, "Puis appuyez sur c", TextPositions.TPTopL, 1)
+            modifiedimg = drawText(modifiedimg, "Tour : " + str(self.gameBoard.getTurnCount()) + "/" + str(self.gameBoard.getMaxTurnCount()), TextPositions.TPTopR)
+        if self.gameBoard.getGameStatus() == GameStates.GSGameOver:
+            modifiedimg = drawText(modifiedimg, "Partie terminee", TextPositions.TPCenter)
+            if(self.gameBoard.getDetectiveWins()):
+                modifiedimg = drawText(modifiedimg, "Vous avez gagne", TextPositions.TPCenter,1)
+            else:
+                modifiedimg = drawText(modifiedimg, "Jack a gagne", TextPositions.TPCenter,1)
 
         return modifiedimg
 
@@ -72,8 +84,11 @@ class GameProcessor:
         if key == ord('q') or key == 27:
             continuebool = False
         if (key == ord('c') or self.capEveryFrame):
-            if (self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawns)):
+            if (self.gameBoard.getDetectiveWins() or self.gameBoard.getJackWins()):
+                self.gameBoard.tryUpdateGameStatus(GameStates.GSGameOver)
+            elif (self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawns)):
                 self.cardsRecognitionHelper.ComputeFrame(img)
+
 
         if (key == ord('p') or self.capEveryFrame):
             if (self.gameBoard.tryUpdateGameStatus(GameStates.GSUseActionsPawns)):
@@ -102,6 +117,11 @@ class GameProcessor:
 
                     if(self.gameBoard.IsActionPawnRespected(actionPawnClicked)):
                         print("Action Pawn Used")
+                        self.gameBoard.manhunt()
                         self.pawnsRecognitionHelper.actionPawnUsed(actionPawnIndex)
+                        if(len(self.gameBoard.getActionPawns()) == 0):
+                            print("Turn Finished")
+                            if(self.gameBoard.tryUpdateGameStatus(GameStates.GSAppealOfWitness)):
+                                self.gameBoard.appealOfWitnesses(self.cardsRecognitionHelper.IsInLineOfSight(self.lastimg))
                     else:
                         print("Action Pawn not Validated")
