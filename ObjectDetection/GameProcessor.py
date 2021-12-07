@@ -47,7 +47,7 @@ class GameProcessor:
                 cv2.circle(modifiedimg, coord, 10, (0, 255, 0), -1)
 
         if self.gameBoard.getGameStatus() == GameStates.GSWaitingHomography:
-            modifiedimg = drawText(modifiedimg, "Selectionnez les quatres coins des 9 cartes",TextPositions.TPCenter)
+            modifiedimg = drawText(modifiedimg, "Selectionnez les quatre coins des 9 cartes",TextPositions.TPCenter)
         if self.gameBoard.getGameStatus() == GameStates.GSWaitingActionPawns:
             modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg)
             modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
@@ -56,8 +56,9 @@ class GameProcessor:
         if self.gameBoard.getGameStatus() == GameStates.GSUseActionsPawns:
             modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
             modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
-            modifiedimg = drawText(modifiedimg, "Realisez votre Action puis appuyez sur le jeton que vous avez utilise", TextPositions.TPTopL)
-            modifiedimg = drawText(modifiedimg, "Ou sur P pour redetecter les pions", TextPositions.TPTopL, 1)
+            modifiedimg = drawText(modifiedimg, "Realisez votre Action puis", TextPositions.TPTopL)
+            modifiedimg = drawText(modifiedimg, "Appuyez sur le jeton correspondant", TextPositions.TPTopL, 1)
+            modifiedimg = drawText(modifiedimg, "Ou sur P pour redetecter les pions", TextPositions.TPTopL, 2)
             modifiedimg = drawText(modifiedimg, "Tour : " + str(self.gameBoard.getTurnCount()) + "/" + str(self.gameBoard.getMaxTurnCount()), TextPositions.TPTopR)
             modifiedimg = drawText(modifiedimg, "Joueur : " + str(self.gameBoard.getCurrentPlayer()), TextPositions.TPTopR,1)
 

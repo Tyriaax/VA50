@@ -15,8 +15,8 @@ class Cards(Enum):
   CBrown = 2
   CGreen = 3
   COrange = 4
-  CPurple = 5
-  CRose = 6
+  CPink = 5
+  CPurple = 6
   CWhite = 7
   CYellow = 8
 
