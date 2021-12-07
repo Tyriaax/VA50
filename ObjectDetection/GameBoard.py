@@ -1,6 +1,8 @@
 import cv2
 import os
 from enum import Enum
+import numpy as np
+import random
 
 class GameStates(Enum):
   GSWaitingHomography = 0
@@ -40,37 +42,21 @@ class GameBoard():
       self.maxTurnCount = 8
       self.numberOfSuspects = 9
       self.jackHourglasses = 0
-      self.gameStage = ["Manhunt", "Appeal for Witnesses"]
+      self.stage = "Manhunt"
       self.jackWins = False
       self.detectiveWins = False
       self.currentPlayer = "Detective"
   
-  def printState(self):
-    cards_state = ""
-
-    for i in range(9):
-      if i%3 == 0:
-        cards_state += '\n'
-      cards_state += str(self.cards[i]) + "|"
-    print(cards_state)
-    with open(self.board_file, 'w') as file:
-      file.write(cards_state)
-
-    print(self.detective_pawns)
-    print(self.action_pawns)
-  
-  def getCards(self):
-    return self.cards
-
   def getPreviousCards(self):
     return self.previousCards
 
-  def getAlibiCardsDict(self):
-    return self.alibiCardsDict
-  
-  def setAlibiCardsDict(self, alibiCardDict):
-    self.alibiCardsDict = alibiCardDict
+  def getCards(self):
+    return self.cards
 
+  def setCards(self,cards):
+    self.previousCards = self.cards
+    self.cards = cards
+  
   def getPreviousCardsState(self):
     return self.previousCardsState
 
@@ -87,10 +73,6 @@ class GameBoard():
   def getDetectivePawns(self):
     return self.detective_pawns
 
-  def setCards(self,cards):
-    self.previousCards = self.cards
-    self.cards = cards
-
   def setDetectivePawns(self,detective_pawns):
     self.previousDetectivePawns = self.detective_pawns
     self.detective_pawns = detective_pawns
@@ -101,111 +83,14 @@ class GameBoard():
   def setActionPawns(self, action_pawns):
     self.action_pawns = action_pawns
 
-  def tryUpdateGameStatus(self, gameState):
-    if ((gameState.value < len(GameStates)) and
-            ((gameState == self.state) or (gameState.value == self.state.value+1))):
-      self.state = gameState
-      return True
-    else:
-      return False
+  def getAlibiCardsDict(self):
+    return self.alibiCardsDict
+  
+  def setAlibiCardsDict(self, alibiCardDict):
+    self.alibiCardsDict = alibiCardDict
 
   def getGameStatus(self):
     return self.state
-
-  def IsActionPawnRespected(self, action: str):
-
-    previousCardsState = self.getPreviousCardsState()
-    cardsState = self.getCardsState()
-
-    previousCards = self.getPreviousCards()
-    cards = self.getCards()
-
-    previousDetectivePawns = self.getPreviousDetectivePawns()
-    detectivePawns = self.getDetectivePawns()
-    alibiCardDict = self.getAlibiCardsDict()
-
-    lengthDetectivePawnsList = len(detectivePawns) - 1
-
-    previousIndexSherlock = previousDetectivePawns.index("DPSherlock")
-    indexSherlock = detectivePawns.index("DPSherlock")
-
-    previousIndexToby = previousDetectivePawns.index("DPToby")
-    indexToby = detectivePawns.index("DPToby")
-
-    previousIndexWatson = previousDetectivePawns.index("DPWatson")
-    indexWatson = detectivePawns.index("DPWatson")
-
-    if action == "Joker":
-      if self.currentPlayer == "Jack":
-        if (
-                previousIndexSherlock + 1) % lengthDetectivePawnsList == indexSherlock and previousIndexToby == indexToby and previousIndexWatson == indexWatson:
-          return True
-        elif (
-                previousIndexToby + 1) % lengthDetectivePawnsList == indexToby and previousIndexSherlock == indexSherlock and previousIndexWatson == indexWatson:
-          return True
-        elif (
-                previousIndexWatson + 1) % lengthDetectivePawnsList == indexWatson and previousIndexSherlock == indexSherlock and previousIndexToby == indexToby:
-          return True
-        elif previousIndexToby == indexToby and previousIndexWatson == indexWatson and previousIndexSherlock == indexSherlock:
-          return True
-
-      elif self.currentPlayer == "Detectives":
-        if (
-                previousIndexSherlock + 1) % lengthDetectivePawnsList == indexSherlock and previousIndexToby == indexToby and previousIndexWatson == indexWatson:
-          return True
-        elif (
-                previousIndexToby + 1) % lengthDetectivePawnsList == indexToby and previousIndexSherlock == indexSherlock and previousIndexWatson == indexWatson:
-          return True
-        elif (
-                previousIndexWatson + 1) % lengthDetectivePawnsList == indexWatson and previousIndexSherlock == indexSherlock and previousIndexToby == indexToby:
-          return True
-
-    elif action == "Holmes":
-      if (previousIndexSherlock + 1) % lengthDetectivePawnsList == indexSherlock or (
-              previousIndexSherlock + 2) % lengthDetectivePawnsList == indexSherlock:
-        return True
-
-    elif action == "Dog":
-      if (previousIndexToby + 1) % lengthDetectivePawnsList == indexSherlock or (
-              previousIndexToby + 2) % lengthDetectivePawnsList == indexSherlock:
-        return True
-
-    elif action == "Watson":
-      if (previousIndexWatson + 1) % lengthDetectivePawnsList == indexSherlock or (
-              previousIndexWatson + 2) % lengthDetectivePawnsList == indexSherlock:
-        return True
-
-    elif action == "Rotation":
-      difference = 0
-      if previousCards == cards and previousCards:
-        for index in range(len(cardsState)):
-          if previousCardsState[index][0] != cardsState[index][0] and previousCardsState[index][1] == cardsState[index][
-            1]:
-            difference += 1
-        if difference <= 1:
-          return True
-
-    elif action == "Exchange":
-      indexs = []
-      if self.getCards():
-        for index in range(len(cards)):
-          if not np.array_equal(previousCards[index], cards[index]):
-            indexs.append(index)
-
-        if len(indexs) == 2:
-          if cards[indexs[0]] == previousCards[indexs[1]] and cards[indexs[1]] == previousCards[indexs[0]]:
-            if np.array_equal(previousCardsState[index], cardsState[index]):
-              return True
-
-    elif action == "alibi":
-      randomIndex = random.randint(0, len(alibiCardDict))
-      randomAlibiCard = alibiCardDict.pop(randomIndex)
-      if randomAlibiCard:
-        self.setAlibiCardsDict(alibiCardDict)
-        jackPocketGame.addJackHourglasses(randomAlibiCard[1])
-        return True
-
-    return False
   
   def getTurnCount(self):
     return self.turnCount
@@ -231,17 +116,109 @@ class GameBoard():
   def getDetectiveWins(self):
     return self.detectiveWins
   
-  def checkPiecesBorder(self): #Affiche les box pour checker si tout est à sa place et peut être détecter trnql
-    pass
-    #print("Boxes")
-    #show Tkinter window to ask confirm
+  def tryUpdateGameStatus(self, gameState):
+    if ((gameState.value < len(GameStates)) and
+            ((gameState == self.state) or (gameState.value == self.state.value+1))):
+      self.state = gameState
+      return True
+    else:
+      return False
   
-  def checkVictory(self, stage, isJackSeen):
-    if stage == "Appeal for Witnesses":
+  def IsActionPawnRespected(self, action: str):
+
+    lengthDetectivePawnsList = len(self.detective_pawns) - 1
+
+    if "DPSherlock" in self.previousDetectivePawns and "DPSherlock" in self.detective_pawns:
+      previousIndexSherlock = self.previousDetectivePawns.index("DPSherlock")
+      indexSherlock = self.detective_pawns.index("DPSherlock")
+
+    if "DPToby" in self.previousDetectivePawns and "DPToby" in self.detective_pawns:
+      previousIndexToby = self.previousDetectivePawns.index("DPToby")
+      indexToby = self.detective_pawns.index("DPToby")
+
+    if "DPWatson" in self.previousDetectivePawns and "DPWatson" in self.detective_pawns:
+      previousIndexWatson = self.previousDetectivePawns.index("DPWatson")
+      indexWatson = self.detective_pawns.index("DPWatson")
+
+    if action == "APJoker":
+      if self.currentPlayer == "Jack":
+        if ((previousIndexSherlock + 1) % lengthDetectivePawnsList == indexSherlock and previousIndexToby == indexToby and previousIndexWatson == indexWatson) or \
+          ((previousIndexToby + 1) % lengthDetectivePawnsList == indexToby and previousIndexSherlock == indexSherlock and previousIndexWatson == indexWatson) or \
+          ((previousIndexWatson + 1) % lengthDetectivePawnsList == indexWatson and previousIndexSherlock == indexSherlock and previousIndexToby == indexToby) or \
+          (previousIndexToby == indexToby and previousIndexWatson == indexWatson and previousIndexSherlock == indexSherlock) :
+          return True
+
+      elif self.currentPlayer == "Detectives":
+        if ((previousIndexSherlock + 1) % lengthDetectivePawnsList == indexSherlock and previousIndexToby == indexToby and previousIndexWatson == indexWatson) or \
+          ((previousIndexToby + 1) % lengthDetectivePawnsList == indexToby and previousIndexSherlock == indexSherlock and previousIndexWatson == indexWatson) or \
+          ((previousIndexWatson + 1) % lengthDetectivePawnsList == indexWatson and previousIndexSherlock == indexSherlock and previousIndexToby == indexToby):
+          return True
+
+    elif action == "APHolmes":
+      if (previousIndexSherlock + 1) % lengthDetectivePawnsList == indexSherlock or (
+              previousIndexSherlock + 2) % lengthDetectivePawnsList == indexSherlock:
+        return True
+
+    elif action == "APToby":
+      if (previousIndexToby + 1) % lengthDetectivePawnsList == indexSherlock or (
+              previousIndexToby + 2) % lengthDetectivePawnsList == indexSherlock:
+        return True
+
+    elif action == "APWatson":
+      if (previousIndexWatson + 1) % lengthDetectivePawnsList == indexSherlock or (
+              previousIndexWatson + 2) % lengthDetectivePawnsList == indexSherlock:
+        return True
+
+    elif action == "APRotation":
+      difference = 0
+      if self.previousCards == self.cards and self.previousCards:
+        for index in range(len(self.cardsState)):
+          if self.previousCardsState[index][0] != self.cardsState[index][0] and self.previousCardsState[index][1] == self.cardsState[index][1]:
+            difference += 1
+        if difference <= 1:
+          return True
+
+    elif action == "APExchange":
+      indexs = []
+      if self.cards:
+        for index in range(len(self.cards)):
+          if not np.array_equal(self.previousCards[index], self.cards[index]):
+            indexs.append(index)
+
+        if len(indexs) == 2:
+          if self.cards[indexs[0]] == self.previousCards[indexs[1]] and self.cards[indexs[1]] == self.previousCards[indexs[0]]:
+            if np.array_equal(self.previousCardsState[index], self.cardsState[index]):
+              return True
+
+    elif action == "APAlibi":
+      randomIndex = random.randint(0, len(self.alibiCardsDict) - 1)
+      randomAlibiCard = self.alibiCardsDict.pop(randomIndex)
+      if randomAlibiCard:
+        self.addJackHourglasses(randomAlibiCard[1])
+        return True
+
+    return False
+  
+  def printState(self):
+    cards_state = ""
+
+    for i in range(9):
+      if i%3 == 0:
+        cards_state += '\n'
+      cards_state += str(self.cards[i]) + "|"
+    print(cards_state)
+    with open(self.board_file, 'w') as file:
+      file.write(cards_state)
+
+    print(self.detective_pawns)
+    print(self.action_pawns)
+   
+  def checkVictory(self, isJackSeen):
+    if self.stage == "Appeal for Witnesses":
       if self.numberOfSuspects == 1 and self.jackHourglasses == 6:
         if isJackSeen:
           self.detectiveWins = True
-        #else:
+        else:
           self.jackWins = True
 
       elif self.numberOfSuspects == 1 and self.jackHourglasses < 6:
@@ -250,6 +227,8 @@ class GameBoard():
         self.jackWins = True
 
   def manhunt(self):
+    self.stage = "Manhunt"
+
     if self.turnCount % 2 == 0: 
       self.currentPlayer = "Jack"
       print("Flip back the tokens.")
@@ -261,6 +240,7 @@ class GameBoard():
     self.jackHourglasses += numberOfHourglasses
 
   def appealOfWitnesses(self, isJackSeen):
+    self.stage = "Appeal Of Witnesses"
     if isJackSeen:
       print("Turn all the cards that are not in sight to their empty side")
       print("Detective wins this turn and get the round token !")
@@ -270,43 +250,4 @@ class GameBoard():
       print("Jack wins this turn and get the round token !")
     
     self.checkVictory("Appeal for Witnesses", True)
-
-  def launchGame(self):
-    while not self.jackWins and not self.detectiveWins:
-      pass
-
-    """
-    
-    Purpose:
-      Investigator aim: Discover which identity is being used by Mr. Jack from among the nine suspects.
-      To do so, there can only be one remaining Suspect before the end of the eighth turn.
-
-      Mr.Jack : Keep his identity a secret by causing the Investigator to waste as much time as possible.
-      This requires Mr. Jack to acquire six hourglasses before being indentified
-    
-    Turn :
-      Odd Turns (1-3-5-7) -> Investigator starts
-        He throws the four Action tokens in the air in such a way that they land on the table near
-        the district. The faces of the tokens show which actions are available during this turn.
-        Note: During the turn, be careful to leave the tokens as they were thrown, as the other sides
-        will be used in the following turn.
-        He selects one of the four actions and carries it out.
-        Then, Mr. Jack chooses two actions from the remaining three and plays them.
-        The order in which this is done is not important.
-        Finally, the Investigator plays the remaining available action. Play now moves to the second
-        stage, the Appeal for Witnesses.
-
-      Even Turns (2-4-6-8) – Mr. Jack starts
-        He turns over the four tokens to reveal the four actions that were hidden during
-        the previous turn.
-        He selects one of the four actions and carries it out.
-        Then the Investigator chooses two of the remaining three actions and carries them out.
-        The order in which this is done is not important.
-        Finally, Mr. Jack plays the remaining available action. Play now moves to the second stage,
-        the Appeal for Witnesses. 
-
-      Manhunt :
-      Appeal for Witnesses:
-        Mr. Jack tells the Investigator if his character is or is not in the Detectives’ line of sight
-    """
 
