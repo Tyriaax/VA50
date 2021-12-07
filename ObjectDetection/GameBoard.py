@@ -129,7 +129,7 @@ class GameBoard():
   
   def IsActionPawnRespected(self, action: str):
 
-    lengthDetectivePawnsList = len(self.detective_pawns) - 1
+    lengthDetectivePawnsList = len(self.detective_pawns)
 
     if "DPSherlock" in self.previousDetectivePawns and "DPSherlock" in self.detective_pawns:
       previousIndexSherlock = self.previousDetectivePawns.index("DPSherlock")
