@@ -139,7 +139,7 @@ class GameBoard():
 
   def getDetectivesPos(self):
     detectivesPawns = ['DPSherlock', 'DPWatson', 'DPToby']
-    correspondingIndexes = ((0,1), (0,2), (0,3), (1,4), (2,4), (3,4), (4,3), (4,2), (4,2), (3,0), (2,0), (1,0))
+    correspondingIndexes = ((0,1), (0,2), (0,3), (1,4), (2,4), (3,4), (4,3), (4,2), (4,1), (3,0), (2,0), (1,0))
     detectivesPawnsIndexs = list()
 
     for detectivePawn in detectivesPawns:

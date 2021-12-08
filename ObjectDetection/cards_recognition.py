@@ -1,4 +1,5 @@
 from enum import Enum
+from os import path
 
 #from cv2 import FAST_FEATURE_DETECTOR_FAST_N
 
@@ -128,22 +129,14 @@ class CardsRecognitionHelper:
       ]
   
     return pathValues
-    for pathValue in pathValues:
-      meanValues.append(pathValue.mean())
-    
-    print(meanValues)
-    #meanValues.sort(reverse=True)
-
-    return meanValues
 
   def BinarizeCard(self, img, heightCard, widthCard):
     meanValues = list()
     portionImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     pathValues = self.getMeanPathValuesCards(img, heightCard, widthCard)
+
     for pathValue in pathValues:
       meanValues.append(pathValue.mean())
-    
-    print(meanValues)
 
     binValue = sum(meanValues)/len(meanValues)
 
@@ -163,21 +156,27 @@ class CardsRecognitionHelper:
           currentimg = img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
           heightCard,widthCard, _ = currentimg.shape
           currentimgbinar = self.BinarizeCard(currentimg, heightCard, widthCard)
-          cv2.imshow(str(index), currentimgbinar)
-          up, down, left, right = currentimgbinar[0][int(widthCard/2) - 1], currentimgbinar[heightCard - 1][int(widthCard/2)- 1], \
-            currentimgbinar[int(heightCard/2) - 1][0], currentimgbinar[int(heightCard/2) - 1][widthCard - 1]
+          a = self.getMeanPathValuesCards(currentimgbinar, heightCard, widthCard)
           
-          if up == 255 and down == 255 and left == 255:
+          meanValues = list()
+          for pathValue in a:
+            meanValues.append(pathValue.mean())
+
+          up, down, left, right = meanValues[0], meanValues[1], meanValues[2], meanValues[3]
+          sortedMean = sorted(meanValues, reverse=True)[:3]
+          
+          if up in sortedMean and down in sortedMean and left in sortedMean:
             self.gameBoard[index] = ["left", "front"]
-          elif up == 255 and down == 255 and right == 255:
+          elif up in sortedMean and down in sortedMean and right in sortedMean:
             self.gameBoard[index] = ["right", "front"]
-          elif right == 255 and down == 255 and left == 255:
+          elif right in sortedMean and down in sortedMean and left in sortedMean:
             self.gameBoard[index] = ["down", "front"]
-          elif right == 255 and up == 255 and left == 255:
+          elif right in sortedMean and up in sortedMean and left in sortedMean:
             self.gameBoard[index] = ["up", "front"]
+
         index += 1
 
-    print("Front cards : ", self.gameBoard)
+    print("cards : ", self.gameBoard)
     self.boardReference.setCardsState(self.gameBoard)
 
   def GetEmptySideCards(self, img):
@@ -198,9 +197,8 @@ class CardsRecognitionHelper:
         heightCard,widthCard, _ = currentimg.shape
         currentimgbinar = self.BinarizeCard(currentimg, heightCard, widthCard)
 
-        cv2.imshow(str(index), currentimgbinar)
-
-        for a, b in zip(range(widthCard), range(widthCard - 1, -1, -1)):
+        pathPortion = 0.15
+        for a, b in zip(range(int(pathPortion * widthCard),widthCard), range(int(widthCard - pathPortion * widthCard), int(pathPortion * widthCard), -1)):
           if currentimgbinar[int(heightCard/2) - 1][a] != 255:
             horizontalLine = False
             if a >= int(widthCard/2):
@@ -211,7 +209,7 @@ class CardsRecognitionHelper:
             if b <= int(widthCard/2):
               horizontalHalfRight = True
 
-        for c, d in zip(range(heightCard), range(heightCard - 1, -1, -1)):
+        for c, d in zip(range(int(pathPortion * heightCard), heightCard), range(int(heightCard - pathPortion * heightCard), int(pathPortion * heightCard), -1)):
           if currentimgbinar[c][int(widthCard/2) - 1] != 255:
             verticalLine = False
             if c >= int(heightCard/2):
@@ -236,43 +234,42 @@ class CardsRecognitionHelper:
           self.gameBoard[index] = ["Cross", "returned"]
 
         index += 1
-
-    print("Empty cards: ", self.gameBoard)
   
   def InSight(self, detectivePos, orientation, cards : list, heightCard, widthCard, inSightList):
 
     if len(cards) == 0:
       return
 
+    pathPortion = 0.15
     pursue = False
     if orientation == "Horizontal":
       if detectivePos[1] == 0: #La cart le détective est sur la partie gauche
         card = cards.pop(-1)
-        if card[0][int(heightCard/2) - 1][0] == 255:
+        if card[0][int(heightCard/2) - 1][int(pathPortion * widthCard)] == 255:
           inSightList.append(card)
-          if card[0][int(heightCard/2) - 1][widthCard - 1] == 255:
+          if card[0][int(heightCard/2) - 1][int(widthCard - pathPortion * widthCard)] == 255:
             pursue = True
 
       elif detectivePos[1] == 4: #La cart le détective est sur la partie droite
         card = cards.pop(0)
-        if card[0][int(heightCard/2) - 1][widthCard - 1] == 255:
+        if card[0][int(heightCard/2) - 1][int(widthCard - pathPortion * widthCard)] == 255:
           inSightList.append(card)
-          if card[0][int(heightCard/2) - 1][0] == 255:
+          if card[0][int(heightCard/2) - 1][int(pathPortion * widthCard)] == 255:
             pursue = True
 
     elif orientation == "Vertical":
       if detectivePos[0] == 0: #La cart le détective est sur la partie haute
         card = cards.pop(0)
-        if card[0][0][int(widthCard/2) - 1] == 255:
+        if card[0][int(pathPortion * heightCard)][int(widthCard/2) - 1] == 255:
           inSightList.append(card)
-          if card[0][heightCard - 1][int(widthCard/2) - 1] == 255:
+          if card[0][int(heightCard - pathPortion * heightCard)][int(widthCard/2) - 1] == 255:
             pursue = True
 
       elif detectivePos[0] == 4: #La cart le détective est sur la partie basse
         card = cards.pop(-1)
-        if card[0][heightCard - 1][int(widthCard/2)- 1] == 255:
+        if card[0][int(heightCard - pathPortion * heightCard)][int(widthCard/2)- 1] == 255:
           inSightList.append(card)
-          if card[0][0][int(widthCard/2)- 1] == 255:
+          if card[0][int(pathPortion * heightCard)][int(widthCard/2)- 1] == 255:
             pursue = True
 
     if pursue == True:
@@ -320,6 +317,7 @@ class CardsRecognitionHelper:
             heightCard,widthCard, _ = portionImg.shape
             
             cardList.append([self.BinarizeCard(portionImg, heightCard, widthCard), index])
+            cv2.imshow(str(index), self.BinarizeCard(portionImg, heightCard, widthCard))
 
           self.InSight(detectivePosition, sight, cardList, heightCard, widthCard, inSightPos)
 
