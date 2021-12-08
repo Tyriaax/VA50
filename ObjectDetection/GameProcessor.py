@@ -50,7 +50,7 @@ class GameProcessor:
         if self.gameBoard.getGameStatus() == GameStates.GSWaitingHomography:
             modifiedimg = drawText(modifiedimg, "Selectionnez les quatre coins des 9 cartes",TextPositions.TPCenter)
         if self.gameBoard.getGameStatus() == GameStates.GSWaitingActionPawns:
-            modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg)
+            modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg, drawOffset=True)
             modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
             modifiedimg = drawText(modifiedimg, "Appuyez sur P pour detecter les pions", TextPositions.TPTopL)
             modifiedimg = drawText(modifiedimg, "Ou sur C pour redetecter les cartes", TextPositions.TPTopL, 1)

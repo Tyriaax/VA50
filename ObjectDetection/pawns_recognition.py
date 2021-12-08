@@ -48,7 +48,7 @@ class PawnsRecognitionHelper:
    
     self.cardSize = (int((coordinates[2]-coordinates[0])/3), int((coordinates[3]-coordinates[1])/3))
 
-    dPOverlayCardRatio = 0.5
+    dPOverlayCardRatio = 0.6
     self.dpOverlaySizePx = int(self.cardSize[0]*dPOverlayCardRatio)
 
     self.bBmaxArea = (self.cardSize[0]*self.cardSize[1])/2
@@ -139,7 +139,7 @@ class PawnsRecognitionHelper:
     self.ComputeDetectivePawns(img)
 
   def DrawFrame(self, img):
-    img = self.DrawZonesRectangles(img)
+    img = self.DrawZonesRectangles(img, drawOffset=True)
     img = self.DrawDetectivePawns(img)
     img = self.DrawActionPawns(img)
 
@@ -162,13 +162,18 @@ class PawnsRecognitionHelper:
 
     return img
 
-  def DrawZonesRectangles(self, img):
-    offsetpourcentage = 1
-    offset = int(self.dpOverlaySizePx*offsetpourcentage)
-    cv2.rectangle(img, (self.coordinates[0] - offset, self.coordinates[1] - offset),
-                  (self.coordinates[2] + offset, self.coordinates[3] + offset), (255, 0, 0),
+  def DrawZonesRectangles(self, img, drawOffset = False):
+    offsetpx = 10
+    cv2.rectangle(img, (self.coordinates[0] - self.dpOverlaySizePx, self.coordinates[1] - self.dpOverlaySizePx),
+                  (self.coordinates[2] + self.dpOverlaySizePx, self.coordinates[3] + self.dpOverlaySizePx), (0, 0, 255),
                   2)
     cv2.rectangle(img, (self.coordinates[0], self.coordinates[1]), (self.coordinates[2], self.coordinates[3]),
+                  (0, 0, 255), 2)
+    if (drawOffset):
+      cv2.rectangle(img, (self.coordinates[0] - self.dpOverlaySizePx + offsetpx, self.coordinates[1] - self.dpOverlaySizePx + offsetpx),
+                  (self.coordinates[2] + self.dpOverlaySizePx - offsetpx, self.coordinates[3] + self.dpOverlaySizePx - offsetpx), (255, 0, 0),
+                  2)
+      cv2.rectangle(img, (self.coordinates[0] - offsetpx, self.coordinates[1] - offsetpx), (self.coordinates[2] + offsetpx, self.coordinates[3] + offsetpx),
                   (255, 0, 0), 2)
     return img
 
