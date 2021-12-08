@@ -115,15 +115,43 @@ class CardsRecognitionHelper:
   def ComputeCards(self, img):
     self.GetEmptySideCards(img)
     self.getFrontSideCards(img)
+
+  def getMeanPathValuesCards(self, img, heightCard, widthCard):
+    pathPortion = 0.3
+    offset = 7
+    meanValues = list()
+    pathValues = [
+      img[0:int(pathPortion*(heightCard - 1)), int(widthCard/2) - offset:int(widthCard/2) + offset], #up
+      img[(heightCard - 1) - int(pathPortion*(heightCard - 1)):heightCard - 1, int(widthCard/2) - offset:int(widthCard/2) + offset], #down
+      img[int(heightCard/2) - offset:int(heightCard/2) + offset, 0:int(pathPortion*(widthCard - 1))], #left
+      img[int(heightCard/2) - offset:int(heightCard/2) + offset, (widthCard - 1) - int(pathPortion*(widthCard - 1)):widthCard - 1] #right
+      ]
   
-  def BinarizeCard(self, img):
+    return pathValues
+    for pathValue in pathValues:
+      meanValues.append(pathValue.mean())
+    
+    print(meanValues)
+    #meanValues.sort(reverse=True)
 
+    return meanValues
+
+  def BinarizeCard(self, img, heightCard, widthCard):
+    meanValues = list()
     portionImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    portionImg = cv2.GaussianBlur(portionImg, (7,7), cv2.BORDER_DEFAULT)
-    kernel = np.ones((5,5), np.uint8)
-    portionImg = cv2.erode(portionImg, kernel, cv2.BORDER_REFLECT) 
+    pathValues = self.getMeanPathValuesCards(img, heightCard, widthCard)
+    for pathValue in pathValues:
+      meanValues.append(pathValue.mean())
+    
+    print(meanValues)
 
-    th, cardThresholded = cv2.threshold(src=portionImg, thresh= self.threshold, maxval= 255, type=cv2.THRESH_BINARY)
+    binValue = sum(meanValues)/len(meanValues)
+
+    #portionImg = cv2.GaussianBlur(portionImg, (3,3), cv2.BORDER_DEFAULT)
+    kernel = np.ones((5,5), np.uint8)
+    portionImg = cv2.dilate(portionImg, kernel, iterations=1)
+
+    th, cardThresholded = cv2.threshold(src=portionImg, thresh= binValue, maxval= 255, type=cv2.THRESH_BINARY)
 
     return cardThresholded
 
@@ -134,7 +162,8 @@ class CardsRecognitionHelper:
         if np.array_equal(self.gameBoard[index], np.array([0, 0], dtype=np.chararray)):
           currentimg = img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
           heightCard,widthCard, _ = currentimg.shape
-          currentimgbinar = self.BinarizeCard(currentimg)
+          currentimgbinar = self.BinarizeCard(currentimg, heightCard, widthCard)
+          cv2.imshow(str(index), currentimgbinar)
           up, down, left, right = currentimgbinar[0][int(widthCard/2) - 1], currentimgbinar[heightCard - 1][int(widthCard/2)- 1], \
             currentimgbinar[int(heightCard/2) - 1][0], currentimgbinar[int(heightCard/2) - 1][widthCard - 1]
           
@@ -167,9 +196,9 @@ class CardsRecognitionHelper:
 
         currentimg = img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
         heightCard,widthCard, _ = currentimg.shape
-        currentimgbinar = self.BinarizeCard(currentimg)
+        currentimgbinar = self.BinarizeCard(currentimg, heightCard, widthCard)
 
-        #cv2.imshow(str(index), currentimgbinar)
+        cv2.imshow(str(index), currentimgbinar)
 
         for a, b in zip(range(widthCard), range(widthCard - 1, -1, -1)):
           if currentimgbinar[int(heightCard/2) - 1][a] != 255:
@@ -290,7 +319,7 @@ class CardsRecognitionHelper:
             portionImg = copy[rectangleCard[1]:rectangleCard[3], rectangleCard[0]:rectangleCard[2]]
             heightCard,widthCard, _ = portionImg.shape
             
-            cardList.append([self.BinarizeCard(portionImg), index])
+            cardList.append([self.BinarizeCard(portionImg, heightCard, widthCard), index])
 
           self.InSight(detectivePosition, sight, cardList, heightCard, widthCard, inSightPos)
 
