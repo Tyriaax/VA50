@@ -109,7 +109,7 @@ class PawnsRecognitionHelper:
       histoProbabilities.append(histogramProbabilities(currentimg, self.DPsamplesHistograms))
 
     if (len(boundingBoxes) > 0):
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.4, 0.6])
 
       assignedObjects = linearAssignment(finalProbabilities, DetectivePawns)
       DPpawnspositions = self.getDetectivePawnsPositions(assignedObjects,boundingBoxes)
@@ -129,7 +129,7 @@ class PawnsRecognitionHelper:
       histoProbabilities.append(histogramProbabilities(currentimg, self.APsamplesHistograms))
 
     if (len(boundingBoxes) > 0):
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.4, 0.6])
 
       assignedObjects = linearAssignment(finalProbabilities, ActionPawns)
       self.boardReference.setActionPawns(assignedObjects)
