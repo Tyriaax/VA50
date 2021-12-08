@@ -28,17 +28,17 @@ class GameBoard():
       self.board_file = os.path.abspath(os.path.join(os.path.dirname( __file__ ),"Game_state","JackPocketBoard.txt"))
       self.state = GameStates.GSWaitingHomography
 
-      self.alibiCardsDict = (
-        ("Joseph Lane", 1),
-        ("Madame", 2),
-        ("Insp. Lestrade", 0),
-        ("William Gull", 1),
-        ("Jeremy Bert", 1),
-        ("John Smith", 1),
-        ("Sgt Goodley", 0),
-        ("Miss Stealthy", 1),
-        ("John Pizer", 1),
-      )
+      self.alibiCardsDict = [
+        ("Joseph Lane", 1, "CBrown" ),
+        ("Madame", 2, "CPink"),
+        ("Insp. Lestrade", 0, "CBlue"),
+        ("William Gull", 1, "CPurple"),
+        ("Jeremy Bert", 1, "COrange"),
+        ("John Smith", 1, "CYellow"),
+        ("Sgt Goodley", 0, "CBlack"),
+        ("Miss Stealthy", 1, "CGreen"),
+        ("John Pizer", 1, "CWhite"),
+      ]
 
       self.turnCount = 1
       self.maxTurnCount = 8
@@ -48,6 +48,8 @@ class GameBoard():
       self.jackWins = False
       self.detectiveWins = False
       self.currentPlayer = "Detective"
+      self.jack = self.selectRandomJack()
+      self.actionPawnsPlayed = 0
   
   def getPreviousCards(self):
     return self.previousCards
@@ -126,51 +128,77 @@ class GameBoard():
       return True
     else:
       return False
-  
+
+  def getJackPos(self):
+
+    print("Jack is :", self.jack)
+    if self.jack in self.cards:
+       index = self.cards.index(self.jack)
+       x, y = index//3 + 1, index%3 + 1
+    return [x,y]
+
+  def getDetectivesPos(self):
+    detectivesPawns = ['DPSherlock', 'DPWatson', 'DPToby']
+    correspondingIndexes = ((0,1), (0,2), (0,3), (1,4), (2,4), (3,4), (4,3), (4,2), (4,2), (3,0), (2,0), (1,0))
+    detectivesPawnsIndexs = list()
+
+    for detectivePawn in detectivesPawns:
+      if detectivePawn in self.detective_pawns:
+        detectivesPawnsIndexs.append(correspondingIndexes[self.detective_pawns.index(detectivePawn)])
+
+    return detectivesPawnsIndexs
+
+  def selectRandomJack(self):
+    randomIndex = random.randint(0, len(self.alibiCardsDict) - 1)
+    return self.alibiCardsDict.pop(randomIndex)[2]
+
   def IsActionPawnRespected(self, action: str):
 
-    lengthDetectivePawnsList = len(self.detective_pawns)
+    if action in ["APJoker", "APHolmes", "APToby", "APWatson"]:
+      lengthDetectivePawnsList = len(self.detective_pawns)
+      indexWatson, previousIndexWatson, indexToby, previousIndexToby, indexSherlock, previousIndexSherlock = (str(),)*6
 
-    if "DPSherlock" in self.previousDetectivePawns and "DPSherlock" in self.detective_pawns:
-      previousIndexSherlock = self.previousDetectivePawns.index("DPSherlock")
-      indexSherlock = self.detective_pawns.index("DPSherlock")
+      if "DPSherlock" in self.previousDetectivePawns and "DPSherlock" in self.detective_pawns:
+        previousIndexSherlock = self.previousDetectivePawns.index("DPSherlock")
+        indexSherlock = self.detective_pawns.index("DPSherlock")
 
-    if "DPToby" in self.previousDetectivePawns and "DPToby" in self.detective_pawns:
-      previousIndexToby = self.previousDetectivePawns.index("DPToby")
-      indexToby = self.detective_pawns.index("DPToby")
+      if "DPToby" in self.previousDetectivePawns and "DPToby" in self.detective_pawns:
+        previousIndexToby = self.previousDetectivePawns.index("DPToby")
+        indexToby = self.detective_pawns.index("DPToby")
 
-    if "DPWatson" in self.previousDetectivePawns and "DPWatson" in self.detective_pawns:
-      previousIndexWatson = self.previousDetectivePawns.index("DPWatson")
-      indexWatson = self.detective_pawns.index("DPWatson")
+      if "DPWatson" in self.previousDetectivePawns and "DPWatson" in self.detective_pawns:
+        previousIndexWatson = self.previousDetectivePawns.index("DPWatson")
+        indexWatson = self.detective_pawns.index("DPWatson")
 
-    if action == "APJoker":
-      if self.currentPlayer == "Jack":
-        if ((previousIndexSherlock + 1) % lengthDetectivePawnsList == indexSherlock and previousIndexToby == indexToby and previousIndexWatson == indexWatson) or \
-          ((previousIndexToby + 1) % lengthDetectivePawnsList == indexToby and previousIndexSherlock == indexSherlock and previousIndexWatson == indexWatson) or \
-          ((previousIndexWatson + 1) % lengthDetectivePawnsList == indexWatson and previousIndexSherlock == indexSherlock and previousIndexToby == indexToby) or \
-          (previousIndexToby == indexToby and previousIndexWatson == indexWatson and previousIndexSherlock == indexSherlock) :
-          return True
+      if indexWatson and previousIndexWatson and indexToby and previousIndexToby and indexSherlock and previousIndexSherlock and lengthDetectivePawnsList > 0:
+        if action == "APJoker":
+          if self.currentPlayer == "Jack":
+            if ((previousIndexSherlock + 1) % lengthDetectivePawnsList == indexSherlock and previousIndexToby == indexToby and previousIndexWatson == indexWatson) or \
+              ((previousIndexToby + 1) % lengthDetectivePawnsList == indexToby and previousIndexSherlock == indexSherlock and previousIndexWatson == indexWatson) or \
+              ((previousIndexWatson + 1) % lengthDetectivePawnsList == indexWatson and previousIndexSherlock == indexSherlock and previousIndexToby == indexToby) or \
+              (previousIndexToby == indexToby and previousIndexWatson == indexWatson and previousIndexSherlock == indexSherlock) :
+              return True
 
-      elif self.currentPlayer == "Detectives":
-        if ((previousIndexSherlock + 1) % lengthDetectivePawnsList == indexSherlock and previousIndexToby == indexToby and previousIndexWatson == indexWatson) or \
-          ((previousIndexToby + 1) % lengthDetectivePawnsList == indexToby and previousIndexSherlock == indexSherlock and previousIndexWatson == indexWatson) or \
-          ((previousIndexWatson + 1) % lengthDetectivePawnsList == indexWatson and previousIndexSherlock == indexSherlock and previousIndexToby == indexToby):
-          return True
+          elif self.currentPlayer == "Detectives":
+            if ((previousIndexSherlock + 1) % lengthDetectivePawnsList == indexSherlock and previousIndexToby == indexToby and previousIndexWatson == indexWatson) or \
+              ((previousIndexToby + 1) % lengthDetectivePawnsList == indexToby and previousIndexSherlock == indexSherlock and previousIndexWatson == indexWatson) or \
+              ((previousIndexWatson + 1) % lengthDetectivePawnsList == indexWatson and previousIndexSherlock == indexSherlock and previousIndexToby == indexToby):
+              return True
 
-    elif action == "APHolmes":
-      if (previousIndexSherlock + 1) % lengthDetectivePawnsList == indexSherlock or (
-              previousIndexSherlock + 2) % lengthDetectivePawnsList == indexSherlock:
-        return True
+        elif action == "APHolmes":
+          if (previousIndexSherlock + 1) % lengthDetectivePawnsList == indexSherlock or (
+                  previousIndexSherlock + 2) % lengthDetectivePawnsList == indexSherlock:
+            return True
 
-    elif action == "APToby":
-      if (previousIndexToby + 1) % lengthDetectivePawnsList == indexSherlock or (
-              previousIndexToby + 2) % lengthDetectivePawnsList == indexSherlock:
-        return True
+        elif action == "APToby":
+          if (previousIndexToby + 1) % lengthDetectivePawnsList == indexSherlock or (
+                  previousIndexToby + 2) % lengthDetectivePawnsList == indexSherlock:
+            return True
 
-    elif action == "APWatson":
-      if (previousIndexWatson + 1) % lengthDetectivePawnsList == indexSherlock or (
-              previousIndexWatson + 2) % lengthDetectivePawnsList == indexSherlock:
-        return True
+        elif action == "APWatson":
+          if (previousIndexWatson + 1) % lengthDetectivePawnsList == indexSherlock or (
+                  previousIndexWatson + 2) % lengthDetectivePawnsList == indexSherlock:
+            return True
 
     elif action == "APRotation":
       difference = 0
@@ -228,9 +256,25 @@ class GameBoard():
         self.detectiveWins = True
       elif self.numberOfSuspects > 1 and self.jackHourglasses == 6:
         self.jackWins = True
+  
+  def switchPlayer(self):
+    if self.currentPlayer == "Jack":
+      self.currentPlayer = "Detectives"
+    else:
+      self.currentPlayer = "Jack"
+  
+  def getNextPlayerToUseActionsPawns(self):
+
+    self.actionPawnsPlayed += 1
+
+    if self.actionPawnsPlayed == 1:
+      self.switchPlayer()
+    elif self.actionPawnsPlayed == 3:
+      self.switchPlayer()
 
   def manhunt(self):
     self.stage = "Manhunt"
+    self.actionPawnsPlayed = 0
 
     if self.turnCount % 2 == 0: 
       self.currentPlayer = "Jack"

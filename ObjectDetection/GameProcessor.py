@@ -89,14 +89,12 @@ class GameProcessor:
             elif (self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawns)):
                 self.cardsRecognitionHelper.ComputeFrame(img)
 
-
         if (key == ord('p') or self.capEveryFrame):
             if (self.gameBoard.tryUpdateGameStatus(GameStates.GSUseActionsPawns)):
-                #self.cardsRecognitionHelper.IsInLineOfSight(img, [], (0, 3), (1, 3))  # (1,0), (1,3))
-                #self.cardsRecognitionHelper.GetEmptySideCards(img)
-                #self.cardsRecognitionHelper.getFrontSideCards(img)
+                self.cardsRecognitionHelper.ComputeCards(img)
                 self.pawnsRecognitionHelper.ComputeFrame(img)
                 self.gameBoard.printState()
+                self.cardsRecognitionHelper.IsInLineOfSight(self.lastimg)
 
         return continuebool
 
@@ -117,8 +115,8 @@ class GameProcessor:
 
                     if(self.gameBoard.IsActionPawnRespected(actionPawnClicked)):
                         print("Action Pawn Used")
-                        self.gameBoard.manhunt()
                         self.pawnsRecognitionHelper.actionPawnUsed(actionPawnIndex)
+                        self.gameBoard.getNextPlayerToUseActionsPawns()
                         if(len(self.gameBoard.getActionPawns()) == 0):
                             print("Turn Finished")
                             if(self.gameBoard.tryUpdateGameStatus(GameStates.GSAppealOfWitness)):

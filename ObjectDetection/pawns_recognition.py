@@ -48,7 +48,7 @@ class PawnsRecognitionHelper:
    
     self.cardSize = (int((coordinates[2]-coordinates[0])/3), int((coordinates[3]-coordinates[1])/3))
     self.dpOverlaySizePx = int(self.cardSize[0]/2)
-    self.bBmaxArea = (self.cardSize[0]*self.cardSize[1])/6
+    self.bBmaxArea = (self.cardSize[0]*self.cardSize[1])/4
     self.bBminArea = (self.cardSize[0]*self.cardSize[1])/30
 
     height, width = img.shape[0], img.shape[1]
