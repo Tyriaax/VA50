@@ -47,9 +47,12 @@ class PawnsRecognitionHelper:
     self.coordinates = coordinates
    
     self.cardSize = (int((coordinates[2]-coordinates[0])/3), int((coordinates[3]-coordinates[1])/3))
-    self.dpOverlaySizePx = int(self.cardSize[0]/2)
-    self.bBmaxArea = (self.cardSize[0]*self.cardSize[1])/4
-    self.bBminArea = (self.cardSize[0]*self.cardSize[1])/30
+
+    dPOverlayCardRatio = 0.5
+    self.dpOverlaySizePx = int(self.cardSize[0]*dPOverlayCardRatio)
+
+    self.bBmaxArea = (self.cardSize[0]*self.cardSize[1])/2
+    self.bBminArea = (self.cardSize[0]*self.cardSize[1])/12
 
     height, width = img.shape[0], img.shape[1]
 
@@ -110,10 +113,12 @@ class PawnsRecognitionHelper:
       assignedObjects = linearAssignment(finalProbabilities, DetectivePawns)
       DPpawnspositions = self.getDetectivePawnsPositions(assignedObjects,boundingBoxes)
       self.boardReference.setDetectivePawns(DPpawnspositions)
+      self.detectivePawnsBb = boundingBoxes[0:len(DetectivePawns)]
+      self.detectivePawnsBbOrder = assignedObjects
 
   def ComputeActionPawns(self, img):
     maskedimg = cv2.bitwise_and(img, img, mask=self.APmask)
-    boundingBoxes = getBoundingBoxes(maskedimg, self.bBmaxArea, self.bBminArea)
+    boundingBoxes = getBoundingBoxes(maskedimg, self.bBmaxArea, self.bBminArea, inspectInsideCountours = True)
 
     siftProbabilities = []
     histoProbabilities = []
@@ -123,12 +128,11 @@ class PawnsRecognitionHelper:
       histoProbabilities.append(histogramProbabilities(currentimg, self.APsamplesHistograms))
 
     if (len(boundingBoxes) > 0):
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.3, 0.7])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5, 0.5])
 
       assignedObjects = linearAssignment(finalProbabilities, ActionPawns)
       self.boardReference.setActionPawns(assignedObjects)
       self.actionPawnsBb = boundingBoxes[0:self.maxThrownActionPawnsNumber]
-
 
   def ComputeFrame(self, img):
     self.ComputeActionPawns(img)
@@ -142,10 +146,13 @@ class PawnsRecognitionHelper:
     return img
 
   def DrawDetectivePawns(self, img):
+    """
     detectivePawns = self.boardReference.getDetectivePawns()
     for i in range(len(detectivePawns)):
       if detectivePawns[i] != 0:
         img = drawRectangle(img,self.detectivePawnsLocations[i],detectivePawns[i])
+    """
+    img = drawRectanglesWithAssignment(img, self.detectivePawnsBbOrder, self.detectivePawnsBb)
 
     return img
 
@@ -156,8 +163,10 @@ class PawnsRecognitionHelper:
     return img
 
   def DrawZonesRectangles(self, img):
-    cv2.rectangle(img, (self.coordinates[0] - self.dpOverlaySizePx, self.coordinates[1] - self.dpOverlaySizePx),
-                  (self.coordinates[2] + self.dpOverlaySizePx, self.coordinates[3] + self.dpOverlaySizePx), (255, 0, 0),
+    offsetpourcentage = 1
+    offset = int(self.dpOverlaySizePx*offsetpourcentage)
+    cv2.rectangle(img, (self.coordinates[0] - offset, self.coordinates[1] - offset),
+                  (self.coordinates[2] + offset, self.coordinates[3] + offset), (255, 0, 0),
                   2)
     cv2.rectangle(img, (self.coordinates[0], self.coordinates[1]), (self.coordinates[2], self.coordinates[3]),
                   (255, 0, 0), 2)
@@ -176,7 +185,10 @@ class PawnsRecognitionHelper:
         ymax = self.detectivePawnsLocations[j][3]
 
         if((xmin < x < xmax) and (ymin < y < ymax)):
-          positions[j]=assignedObjects[i]
+          if positions[j] == 0:
+            positions[j]=assignedObjects[i]
+          else:
+            positions[j]=[positions[j], assignedObjects[i]]
 
     return positions
 

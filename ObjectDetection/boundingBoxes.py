@@ -33,16 +33,21 @@ def imageProcessingForFindingContours(img):
 
   return img2
 
-def getBoundingBoxes(img,maxarea,minarea):
+def getBoundingBoxes(img,maxarea,minarea,inspectInsideCountours = False):
   rectangles = []
 
   img2 = imageProcessingForFindingContours(img)
 
   # We then use findContours to get the contours of the shape
-  cnts = cv2.findContours(img2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+  if not inspectInsideCountours:
+    retrievalMode = cv2.RETR_EXTERNAL
+  else:
+    retrievalMode = cv2.RETR_LIST
+
+  cnts = cv2.findContours(img2, retrievalMode, cv2.CHAIN_APPROX_SIMPLE)
   cnts = cnts[0] if len(cnts) == 2 else cnts[1]
 
-  # We then loop through all the detected contours to onl²y retrieve the ones with a desired area
+  # We then loop through all the detected contours to only retrieve the ones with a desired area
   for c in cnts:
     area = cv2.contourArea(c)
     if minarea <= area <= maxarea:
@@ -90,7 +95,7 @@ def getCirclesBb(img, boundingBoxes):
     #rectangle = houghEllipseDetection(img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]])
     #rectangle = getBoundingBox(img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]])
     if(len(rectangle)>0):
-      finalBbs.append([boundingBox[0] + rectangle[0],boundingBox[1] + rectangle[1],boundingBox[0] + rectangle[2],boundingBox[1] + rectangle[3]])
+      finalBbs.append([boundingBox[0] + rectangle[0], boundingBox[1] + rectangle[1], boundingBox[0] + rectangle[2], boundingBox[1] + rectangle[3]])
     else:
       finalBbs.append(boundingBox)
 
