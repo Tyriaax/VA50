@@ -9,13 +9,14 @@ from GameBoard import *
 
 class ActionPawns(Enum):
   APSherlock = 0
-  APToby = 1
-  APWatson = 2
-  APJoker = 3
-  APChangeCard = 4
+  APAlibi = 1
+  APToby = 2
+  APWatson = 3
+  APJoker = 4
   APReturn = 5
-  APReturn2 = 6
-  APAlibi = 7
+  APChangeCard = 6
+  APReturn2 = 7
+
 
 class DetectivePawns(Enum):
   DPSherlock = 0
