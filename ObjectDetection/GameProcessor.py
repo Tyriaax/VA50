@@ -32,6 +32,7 @@ class GameProcessor:
                 self.cardsRecognitionHelper.GetScreenPortions(img, self.coordinates)
                 self.pawnsRecognitionHelper.GetScreenPortion(img, self.coordinates)
                 self.homographymatrixfound = True
+                img = cv2.warpPerspective(img, self.homographymatrix, (img.shape[1], img.shape[0]))
                 if(self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawns)):
                     self.cardsRecognitionHelper.ComputeFrame(img)
         else:
@@ -94,7 +95,7 @@ class GameProcessor:
                 self.cardsRecognitionHelper.ComputeCards(img)
                 self.pawnsRecognitionHelper.ComputeFrame(img)
                 self.gameBoard.printState()
-                self.cardsRecognitionHelper.IsInLineOfSight(self.lastimg)
+                self.cardsRecognitionHelper.IsInLineOfSight(img)
 
         return continuebool
 

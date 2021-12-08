@@ -8,7 +8,8 @@ def main():
     imagepath = os.path.abspath(os.path.join(os.path.dirname(__file__), 'plateau.jpg'))
 
     #image_recognition(imagepath)
-    video_recognition()
+    #video_recognition()
+    video_recognition(path)
 
 if __name__ == '__main__':
     main()

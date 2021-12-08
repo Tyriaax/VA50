@@ -20,16 +20,19 @@ class Cards(Enum):
   CWhite = 7
   CYellow = 8
 
+class SamplesQuality(Enum):
+  LQ = 1
+  HQ = 2
+  LAHQ = 3
+
 class CardsRecognitionHelper:
-  selectedSamplesQuality = "LQ"
+  selectedSamplesQuality = SamplesQuality.LAHQ
 
   selectedSamplesResolution = 400
 
   def __init__(self, height, width, gameBoard):
-    if self.selectedSamplesQuality == "HQ":
-      path = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Cards"))
-    elif self.selectedSamplesQuality == "LQ":
-      path = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "CardsWithContour3"))
+    pathHQ = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", "HQ", "Cards"))
+    pathLQ = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", "LQ", "CardsWithContour3"))
 
     self.boardReference = gameBoard
     self.cardRectangle = list()
@@ -37,7 +40,16 @@ class CardsRecognitionHelper:
     self.threshold = 90 #55#
     self.gameBoard = np.zeros((9,2), dtype= np.chararray)
 
-    [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(path,self.selectedSamplesResolution)
+    if self.selectedSamplesQuality == SamplesQuality.HQ:
+      [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(pathHQ,self.selectedSamplesResolution)
+    else:
+      [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(pathLQ, self.selectedSamplesResolution)
+      #"""
+      if self.selectedSamplesQuality == SamplesQuality.LAHQ:
+        [self.samplesSiftInfos2, self.samplesHistograms2] = loadSamples(pathHQ, self.selectedSamplesResolution)
+      #"""
+
+    self.selectedCirclesResolution = int(0.42*self.selectedSamplesResolution)
 
   def GetScreenPortions(self, img,coordinates):
     img = img[coordinates[1]:coordinates[3], coordinates[0]:coordinates[2]]
@@ -58,20 +70,40 @@ class CardsRecognitionHelper:
         self.cardRectangle.append([width_portion * j, i * height_portion, (j + 1) * width_portion, (i + 1) * height_portion])
 
     self.rectangles = addOffsetToBb(self.rectangles,coordinates[0],coordinates[1])
+    self.cardRectangle = addOffsetToBb(self.cardRectangle, coordinates[0], coordinates[1])
     self.coordinates = coordinates
 
   def ComputeFrame(self, img):
     if(len(self.rectangles) > 0):
       siftProbabilities = []
       histoProbabilities = []
-      for boundingBox in self.rectangles:
-        currentimg = img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
 
-        siftProbabilities.append(sift_detection(currentimg, self.samplesSiftInfos,self.selectedSamplesResolution))
-        histoProbabilities.append(histogramProbabilities(currentimg, self.samplesHistograms))
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5,0.5])
+      #"""Try with more than 1 sample
+      siftProbabilities2 = []
+      histoProbabilities2 = []
+      #"""
 
-      assignedObjects = linearAssignment(finalProbabilities,Cards)
+      for i in range(len(self.rectangles)):
+        cardimg = img[self.cardRectangle[i][1]:self.cardRectangle[i][3], self.cardRectangle[i][0]:self.cardRectangle[i][2]]
+        circleimg = img[self.rectangles[i][1]:self.rectangles[i][3], self.rectangles[i][0]:self.rectangles[i][2]]
+
+        siftProbabilities.append(sift_detection(cardimg, self.samplesSiftInfos, self.selectedCirclesResolution))
+        histoProbabilities.append(histogramProbabilities(circleimg, self.samplesHistograms))
+
+        #"""
+        if self.selectedSamplesQuality == SamplesQuality.LAHQ:
+          siftProbabilities2.append(sift_detection(cardimg, self.samplesSiftInfos, self.selectedCirclesResolution))
+          histoProbabilities2.append(histogramProbabilities(circleimg, self.samplesHistograms))
+        #"""
+
+      # """
+      if self.selectedSamplesQuality == SamplesQuality.LAHQ:
+        finalProbabilities = combineProbabilities([siftProbabilities,siftProbabilities2, histoProbabilities, histoProbabilities2], [0.1,0.1,0.4,0.4])
+      else:
+        # """
+        finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5,0.5])
+
+      assignedObjects = linearAssignment(finalProbabilities, Cards)
       self.boardReference.setCards(assignedObjects)
 
   def DrawFrame(self, img):
@@ -125,11 +157,10 @@ class CardsRecognitionHelper:
 
   def getFrontSideCards(self, img):
     index = 0
-    selectedimg = img[self.coordinates[1]:self.coordinates[3], self.coordinates[0]:self.coordinates[2]]
     if(len(self.rectangles) == 9):
       for boundingBox in self.cardRectangle:
         if np.array_equal(self.gameBoard[index], np.array([0, 0], dtype=np.chararray)):
-          currentimg = selectedimg[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
+          currentimg = img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
           heightCard,widthCard, _ = currentimg.shape
           currentimgbinar = self.BinarizeCard(currentimg, heightCard, widthCard)
           cv2.imshow(str(index), currentimgbinar)
@@ -152,7 +183,6 @@ class CardsRecognitionHelper:
   def GetEmptySideCards(self, img):
 
     index = 0
-    selectedimg = img[self.coordinates[1]:self.coordinates[3], self.coordinates[0]:self.coordinates[2]]
     if(len(self.rectangles) > 0):
       for boundingBox in self.cardRectangle:
 
@@ -164,7 +194,7 @@ class CardsRecognitionHelper:
         verticalHalfDown = False
         verticalLine = True
 
-        currentimg = selectedimg[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
+        currentimg = img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
         heightCard,widthCard, _ = currentimg.shape
         currentimgbinar = self.BinarizeCard(currentimg, heightCard, widthCard)
 
@@ -243,7 +273,7 @@ class CardsRecognitionHelper:
         if card[0][heightCard - 1][int(widthCard/2)- 1] == 255:
           inSightList.append(card)
           if card[0][0][int(widthCard/2)- 1] == 255:
-            pursue = True   
+            pursue = True
 
     if pursue == True:
       self.InSight(detectivePos, orientation, cards, heightCard, widthCard, inSightList)
@@ -254,7 +284,6 @@ class CardsRecognitionHelper:
  
     possibleDetectivePos = (1,2,3)
     copy = img.copy()
-    selectedimg = copy[self.coordinates[1]:self.coordinates[3], self.coordinates[0]:self.coordinates[2]]
 
     sight = ""
     inSightPos = []
@@ -287,7 +316,7 @@ class CardsRecognitionHelper:
               index = detectivePosition[0] * 3 - 1 - i 
               rectangleCard = self.cardRectangle[index] 
               
-            portionImg = selectedimg[rectangleCard[1]:rectangleCard[3], rectangleCard[0]:rectangleCard[2]]
+            portionImg = copy[rectangleCard[1]:rectangleCard[3], rectangleCard[0]:rectangleCard[2]]
             heightCard,widthCard, _ = portionImg.shape
             
             cardList.append([self.BinarizeCard(portionImg, heightCard, widthCard), index])
