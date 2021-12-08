@@ -20,16 +20,19 @@ class Cards(Enum):
   CWhite = 7
   CYellow = 8
 
+class SamplesQuality(Enum):
+  LQ = 1
+  HQ = 2
+  LAHQ = 3
+
 class CardsRecognitionHelper:
-  selectedSamplesQuality = "LQ"
+  selectedSamplesQuality = SamplesQuality.LAHQ
 
   selectedSamplesResolution = 400
 
   def __init__(self, height, width, gameBoard):
-    if self.selectedSamplesQuality == "HQ":
-      path = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Cards"))
-    elif self.selectedSamplesQuality == "LQ":
-      path = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "CardsWithContour3"))
+    pathHQ = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", "HQ", "Cards"))
+    pathLQ = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", "LQ", "CardsWithContour3"))
 
     self.boardReference = gameBoard
     self.cardRectangle = list()
@@ -37,7 +40,14 @@ class CardsRecognitionHelper:
     self.threshold = 90 #55#
     self.gameBoard = np.zeros((9,2), dtype= np.chararray)
 
-    [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(path,self.selectedSamplesResolution)
+    if self.selectedSamplesQuality == SamplesQuality.HQ:
+      [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(pathHQ,self.selectedSamplesResolution)
+    else:
+      [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(pathLQ, self.selectedSamplesResolution)
+      #"""
+      if self.selectedSamplesQuality == SamplesQuality.LAHQ:
+        [self.samplesSiftInfos2, self.samplesHistograms2] = loadSamples(pathHQ, self.selectedSamplesResolution)
+      #"""
 
     self.selectedCirclesResolution = int(0.42*self.selectedSamplesResolution)
 
@@ -67,13 +77,31 @@ class CardsRecognitionHelper:
     if(len(self.rectangles) > 0):
       siftProbabilities = []
       histoProbabilities = []
+
+      #"""Try with more than 1 sample
+      siftProbabilities2 = []
+      histoProbabilities2 = []
+      #"""
+
       for i in range(len(self.rectangles)):
         cardimg = img[self.cardRectangle[i][1]:self.cardRectangle[i][3], self.cardRectangle[i][0]:self.cardRectangle[i][2]]
         circleimg = img[self.rectangles[i][1]:self.rectangles[i][3], self.rectangles[i][0]:self.rectangles[i][2]]
 
         siftProbabilities.append(sift_detection(cardimg, self.samplesSiftInfos, self.selectedCirclesResolution))
         histoProbabilities.append(histogramProbabilities(circleimg, self.samplesHistograms))
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5,0.5])
+
+        #"""
+        if self.selectedSamplesQuality == SamplesQuality.LAHQ:
+          siftProbabilities2.append(sift_detection(cardimg, self.samplesSiftInfos, self.selectedCirclesResolution))
+          histoProbabilities2.append(histogramProbabilities(circleimg, self.samplesHistograms))
+        #"""
+
+      # """
+      if self.selectedSamplesQuality == SamplesQuality.LAHQ:
+        finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, siftProbabilities2, histoProbabilities2], [0.25,0.25,0.25,0.25])
+      else:
+        # """
+        finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5,0.5])
 
       assignedObjects = linearAssignment(finalProbabilities, Cards)
       self.boardReference.setCards(assignedObjects)
