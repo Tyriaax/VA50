@@ -36,9 +36,9 @@ class PawnsRecognitionHelper:
     APpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Pawns", "ActionPawns"))
 
 
-    [self.DPsamplesSiftInfos, self.DPsamplesHistograms] = loadSamples(DPpath, self.selectedSamplesResolution)
+    [self.DPsamplesSiftInfos, self.DPsamplesHistograms, _] = loadSamples(DPpath, self.selectedSamplesResolution)
 
-    [self.APsamplesSiftInfos, self.APsamplesHistograms] = loadSamples(APpath, self.selectedSamplesResolution)
+    [self.APsamplesSiftInfos, self.APsamplesHistograms, _] = loadSamples(APpath, self.selectedSamplesResolution)
 
     self.boardReference = gameBoard
     self.detectivePawnsLocations = list()

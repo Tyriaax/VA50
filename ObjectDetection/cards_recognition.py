@@ -179,7 +179,6 @@ class CardsRecognitionHelper:
 
         index += 1
 
-    print("cards : ", self.gameBoard)
     self.boardReference.setCardsState(self.gameBoard)
 
   def GetEmptySideCards(self, img):
