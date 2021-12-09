@@ -1,6 +1,7 @@
 import os
 from sift import *
 from HistogramComparison import*
+from zncc import *
 
 def loadSamples(path, resolution = None):
   dir = os.listdir(path)
