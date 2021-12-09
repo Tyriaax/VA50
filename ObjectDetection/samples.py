@@ -8,6 +8,7 @@ def loadSamples(path, resolution = None):
 
   samplesSiftInfoList = []
   histoClassifier = HistogramColorClassifier(channels=[0, 1, 2], hist_size=[128, 128, 128], hist_range=[0, 256, 0, 256, 0, 256], hist_type='BGR')
+  samplesZncc = []
 
   for image in dir:
     img = cv2.imread(os.path.join(path, image))
@@ -21,7 +22,9 @@ def loadSamples(path, resolution = None):
     #cv2.imshow(image, img)
     addToClassifier(histoClassifier, img, image)
 
-  return [samplesSiftInfoList, histoClassifier]  
+    samplesZncc.append(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
+
+  return [samplesSiftInfoList, histoClassifier, samplesZncc]  
 
 def increaseImgColorContrast(img):
   hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
