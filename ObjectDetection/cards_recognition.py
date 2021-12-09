@@ -104,7 +104,7 @@ class CardsRecognitionHelper:
         finalProbabilities = combineProbabilities([siftProbabilities,siftProbabilities2, histoProbabilities, histoProbabilities2, znccProbabilities], [0.0,0.0,0.0,0.0,1])
       else:
         # """
-        finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5,0.5])
+        finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilities], [0.1,0.2,0.7])
 
       assignedObjects = linearAssignment(finalProbabilities, Cards)
       self.boardReference.setCards(assignedObjects)
