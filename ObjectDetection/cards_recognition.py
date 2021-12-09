@@ -101,7 +101,7 @@ class CardsRecognitionHelper:
 
       # """
       if self.selectedSamplesQuality == SamplesQuality.LAHQ:
-        finalProbabilities = combineProbabilities([siftProbabilities,siftProbabilities2, histoProbabilities, histoProbabilities2, znccProbabilities], [0.1,0.1,0.2,0.2,0.4])
+        finalProbabilities = combineProbabilities([siftProbabilities,siftProbabilities2, histoProbabilities, histoProbabilities2, znccProbabilities], [0.0,0.0,0.0,0.0,1])
       else:
         # """
         finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5,0.5])

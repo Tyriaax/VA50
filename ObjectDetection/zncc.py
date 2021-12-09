@@ -51,10 +51,10 @@ def zncc_score(circleimg, samples = [], orientation = 'up'):
         cardCCscore.append(max(0,zncc(cv2.cvtColor(circleimg,cv2.COLOR_BGR2GRAY), resizedSample, 15, 15, 15, 15, 40)))
 
     total = sum(cardCCscore)
-    coef = total/len(cardCCscore)
     cardProba = []
-    for sample in cardCCscore:
-        cardProba = sample * coef
+
+    for i in range(len(cardCCscore)):
+        cardProba.append(cardCCscore[i]/total)
 
     return cardProba
 

@@ -39,10 +39,10 @@ def sift_detection(img, samplesSiftInfos, resolution = None):
 
   totalsum = sum(numberoffoundpoints)
 
-  probabilities = [0 for i in range(len(numberoffoundpoints))]
+  probabilities = []
 
   if totalsum > 2*minMatches:
     for i in range(len(numberoffoundpoints)):
-      probabilities[i] = numberoffoundpoints[i]/totalsum
+      probabilities.append(numberoffoundpoints[i]/totalsum)
 
   return probabilities
