@@ -35,6 +35,7 @@ class GameProcessor:
                 img = cv2.warpPerspective(img, self.homographymatrix, (img.shape[1], img.shape[0]))
                 if(self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawns)):
                     self.cardsRecognitionHelper.ComputeFrame(img)
+                    self.cardsRecognitionHelper.ComputeCards(img)
         else:
             img = cv2.warpPerspective(img, self.homographymatrix, (img.shape[1], img.shape[0]))
 
@@ -88,14 +89,14 @@ class GameProcessor:
             if (self.gameBoard.getDetectiveWins() or self.gameBoard.getJackWins()):
                 self.gameBoard.tryUpdateGameStatus(GameStates.GSGameOver)
             elif (self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawns)):
+                self.cardsRecognitionHelper.ComputeCards(img)
                 self.cardsRecognitionHelper.ComputeFrame(img)
 
         if (key == ord('p') or self.capEveryFrame):
             if (self.gameBoard.tryUpdateGameStatus(GameStates.GSUseActionsPawns)):
-                self.cardsRecognitionHelper.ComputeCards(img)
                 self.pawnsRecognitionHelper.ComputeFrame(img)
                 self.gameBoard.printState()
-                self.cardsRecognitionHelper.IsInLineOfSight(img)
+                print("previous : " , self.gameBoard.previousDetectivePawns , "actual : ", self.gameBoard.detective_pawns)
 
         return continuebool
 

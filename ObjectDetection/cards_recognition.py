@@ -114,6 +114,7 @@ class CardsRecognitionHelper:
     return img
   
   def ComputeCards(self, img):
+    self.gameBoard = np.zeros((9,2), dtype= np.chararray)
     self.GetEmptySideCards(img)
     self.getFrontSideCards(img)
 
@@ -176,7 +177,6 @@ class CardsRecognitionHelper:
 
         index += 1
 
-    print("cards : ", self.gameBoard)
     self.boardReference.setCardsState(self.gameBoard)
 
   def GetEmptySideCards(self, img):
