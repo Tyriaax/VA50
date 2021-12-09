@@ -40,15 +40,15 @@ def zncc_score(circleimg, samples = [], orientation = 'up'):
 
     for sample in samples:
         resizedSample = sample
-        if(orientation == 'right'):
+        if(orientation == 'left'):
             resizedSample =cv2.rotate(resizedSample,cv2.ROTATE_90_COUNTERCLOCKWISE)
-        elif(orientation == 'left'):
+        elif(orientation == 'right'):
             resizedSample =cv2.rotate(resizedSample,cv2.ROTATE_90_CLOCKWISE)
         elif(orientation == 'down'):
             resizedSample =cv2.rotate(resizedSample,cv2.ROTATE_180)
         resizedSample = cv2.resize(resizedSample, (circleimg.shape[1],circleimg.shape[0]))
 
-        cardCCscore.append(max(0,zncc(cv2.cvtColor(circleimg,cv2.COLOR_BGR2GRAY), resizedSample, 15, 15, 15, 15, 40)))
+        cardCCscore.append(max(0,zncc(cv2.cvtColor(circleimg,cv2.COLOR_BGR2GRAY), resizedSample, 15, 15, 15, 15, 25)))
 
     total = sum(cardCCscore)
     cardProba = []
