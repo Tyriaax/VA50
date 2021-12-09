@@ -317,7 +317,6 @@ class CardsRecognitionHelper:
             heightCard,widthCard, _ = portionImg.shape
             
             cardList.append([self.BinarizeCard(portionImg, heightCard, widthCard), index])
-            cv2.imshow(str(index), self.BinarizeCard(portionImg, heightCard, widthCard))
 
           self.InSight(detectivePosition, sight, cardList, heightCard, widthCard, inSightPos)
 
