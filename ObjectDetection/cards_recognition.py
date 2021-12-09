@@ -42,12 +42,12 @@ class CardsRecognitionHelper:
     self.gameBoard = np.zeros((9,2), dtype= np.chararray)
 
     if self.selectedSamplesQuality == SamplesQuality.HQ:
-      [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(pathHQ,self.selectedSamplesResolution)
+      [self.samplesSiftInfos, self.samplesHistograms, self.samplesZncc] = loadSamples(pathHQ,self.selectedSamplesResolution)
     else:
-      [self.samplesSiftInfos, self.samplesHistograms] = loadSamples(pathLQ, self.selectedSamplesResolution)
+      [self.samplesSiftInfos, self.samplesHistograms, self.samplesZncc] = loadSamples(pathLQ, self.selectedSamplesResolution)
       #"""
       if self.selectedSamplesQuality == SamplesQuality.LAHQ:
-        [self.samplesSiftInfos2, self.samplesHistograms2] = loadSamples(pathHQ, self.selectedSamplesResolution)
+        [self.samplesSiftInfos2, self.samplesHistograms2, self.samplesZncc] = loadSamples(pathHQ, self.selectedSamplesResolution)
       #"""
 
     self.selectedCirclesResolution = int(0.42*self.selectedSamplesResolution)
@@ -78,6 +78,7 @@ class CardsRecognitionHelper:
     if(len(self.rectangles) > 0):
       siftProbabilities = []
       histoProbabilities = []
+      znccProbabilities = []
 
       #"""Try with more than 1 sample
       siftProbabilities2 = []
@@ -90,6 +91,7 @@ class CardsRecognitionHelper:
 
         siftProbabilities.append(sift_detection(cardimg, self.samplesSiftInfos, self.selectedCirclesResolution))
         histoProbabilities.append(histogramProbabilities(circleimg, self.samplesHistograms))
+        znccProbabilities.append(zncc_score(circleimg,self.samplesZncc))
 
         #"""
         if self.selectedSamplesQuality == SamplesQuality.LAHQ:
@@ -99,7 +101,7 @@ class CardsRecognitionHelper:
 
       # """
       if self.selectedSamplesQuality == SamplesQuality.LAHQ:
-        finalProbabilities = combineProbabilities([siftProbabilities,siftProbabilities2, histoProbabilities, histoProbabilities2], [0.1,0.1,0.4,0.4])
+        finalProbabilities = combineProbabilities([siftProbabilities,siftProbabilities2, histoProbabilities, histoProbabilities2, znccProbabilities], [0.1,0.1,0.2,0.2,0.4])
       else:
         # """
         finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.5,0.5])
@@ -177,6 +179,7 @@ class CardsRecognitionHelper:
 
         index += 1
 
+    print("cards : ", self.gameBoard)
     self.boardReference.setCardsState(self.gameBoard)
 
   def GetEmptySideCards(self, img):
@@ -317,6 +320,7 @@ class CardsRecognitionHelper:
             heightCard,widthCard, _ = portionImg.shape
             
             cardList.append([self.BinarizeCard(portionImg, heightCard, widthCard), index])
+            cv2.imshow(str(index), self.BinarizeCard(portionImg, heightCard, widthCard))
 
           self.InSight(detectivePosition, sight, cardList, heightCard, widthCard, inSightPos)
 
