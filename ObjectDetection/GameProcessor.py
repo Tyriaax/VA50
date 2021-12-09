@@ -34,8 +34,8 @@ class GameProcessor:
                 self.homographymatrixfound = True
                 img = cv2.warpPerspective(img, self.homographymatrix, (img.shape[1], img.shape[0]))
                 if(self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawns)):
-                    self.cardsRecognitionHelper.ComputeFrame(img)
                     self.cardsRecognitionHelper.ComputeCards(img)
+                    self.cardsRecognitionHelper.ComputeFrame(img)          
         else:
             img = cv2.warpPerspective(img, self.homographymatrix, (img.shape[1], img.shape[0]))
 

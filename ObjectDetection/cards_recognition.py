@@ -91,7 +91,7 @@ class CardsRecognitionHelper:
 
         siftProbabilities.append(sift_detection(cardimg, self.samplesSiftInfos, self.selectedCirclesResolution))
         histoProbabilities.append(histogramProbabilities(circleimg, self.samplesHistograms))
-        znccProbabilities.append(zncc_score(circleimg,self.samplesZncc))
+        znccProbabilities.append(zncc_score(circleimg,self.samplesZncc, orientation=self.gameBoard[i][0]))
 
         #"""
         if self.selectedSamplesQuality == SamplesQuality.LAHQ:
@@ -178,7 +178,7 @@ class CardsRecognitionHelper:
             self.gameBoard[index] = ["up", "front"]
 
         index += 1
-
+    print(self.gameBoard)
     self.boardReference.setCardsState(self.gameBoard)
 
   def GetEmptySideCards(self, img):
