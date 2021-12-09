@@ -8,3 +8,4 @@ model_weights.pth
 *.avi
 *.idea
 *.txt
+ObjectDetection/Game_state/JackPocketBoard.txt
