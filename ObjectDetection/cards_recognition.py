@@ -283,9 +283,8 @@ class CardsRecognitionHelper:
     possibleDetectivePos = (1,2,3)
     copy = img.copy()
 
-    sight = ""
-    inSightPos = []
-    cardList = []
+    inSightList = list()
+    jackInSight = False
 
     cards = self.boardReference.getCards()
     cards = np.array(cards)
@@ -294,15 +293,17 @@ class CardsRecognitionHelper:
     jackPosition = self.boardReference.getJackPos()
     detectivesPosition = self.boardReference.getDetectivesPos()
 
-    print("Jack and detectives pos: ", jackPosition, detectivesPosition)
-    if jackPosition and detectivesPosition:
+    if bool(jackPosition) and bool(detectivesPosition):
       for detectivePosition in detectivesPosition:
-        if bool(detectivePosition) and bool(jackPosition):
-          if detectivePosition[0] in possibleDetectivePos and jackPosition[0] == detectivePosition[0]:
-            sight = "Horizontal"
+        inSightPos = []
+        cardList = []
+        sight = ""
+        
+        if detectivePosition[0] in possibleDetectivePos and detectivePosition[1] in [0,4]:#jackPosition[0] == detectivePosition[0]:
+          sight = "Horizontal"
 
-          elif detectivePosition[1] in possibleDetectivePos and jackPosition[1] == detectivePosition[1]:
-            sight = "Vertical"
+        elif detectivePosition[1] in possibleDetectivePos and detectivePosition[0] in [0,4]: #jackPosition[1] == detectivePosition[1]:
+          sight = "Vertical"
 
         if bool(sight):
           for i in range(3):
@@ -318,20 +319,20 @@ class CardsRecognitionHelper:
             heightCard,widthCard, _ = portionImg.shape
             
             cardList.append([self.BinarizeCard(portionImg, heightCard, widthCard), index])
-            cv2.imshow(str(index), self.BinarizeCard(portionImg, heightCard, widthCard))
 
           self.InSight(detectivePosition, sight, cardList, heightCard, widthCard, inSightPos)
 
           if len(inSightPos) > 0 :
-            #print(len(inSightPos), "people in sight")
-            for pos in inSightPos:
+            for pos in inSightPos:            
               x, y = pos[1]//3 + 1, pos[1]%3 + 1
-              inSightList = []
               inSightList.append((x,y))
-              if jackPosition[0] == x and jackPosition[1] == y:
-                print("JACK IN SIGHT")
-                return True, inSightList
-                
-    print("Jack not in sight") 
-    return False, []
+              if jackPosition[0] == x and jackPosition[1] == y: 
+                jackInSight = True
+    
+    if jackInSight:
+      print("JACK IN SIGHT")
+      return True, inSightList
+    else:
+      print("Jack not in sight") 
+      return False, inSightList
 
