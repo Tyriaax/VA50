@@ -15,14 +15,14 @@ from cards_recognition import*
 
 class GameBoard():
   def __init__(self) -> None:
-      self.previousCards = [0,0,0,0,0,0,0,0,0]
-      self.cards = [0,0,0,0,0,0,0,0,0]
+      self.previousCards = list()
+      self.cards = list()
 
-      self.previousCardsState = []
-      self.cardsState = []
+      self.previousCardsState = list()
+      self.cardsState = list()
 
-      self.previousDetectivePawns = []
-      self.detective_pawns = [0,0,0,0,0,0,0,0,0,0,0,0]
+      self.previousDetectivePawns = list()
+      self.detective_pawns = list()
 
       self.action_pawns = [0,0,0,0]
       self.board_file = os.path.abspath(os.path.join(os.path.dirname( __file__ ),"Game_state","JackPocketBoard.txt"))
@@ -58,7 +58,8 @@ class GameBoard():
     return self.cards
 
   def setCards(self,cards):
-    self.previousCards = self.cards
+    if not len(self.previousCards):
+      self.previousCards = self.cards
     self.cards = cards
   
   def getPreviousCardsState(self):
@@ -68,7 +69,8 @@ class GameBoard():
     return self.cardsState
   
   def setCardsState(self, cardState):
-    self.previousCardsState = self.cardsState
+    if not len(self.previousCardsState):
+      self.previousCardsState = self.cardsState
     self.cardsState = cardState
 
   def getPreviousDetectivePawns(self):
@@ -78,7 +80,8 @@ class GameBoard():
     return self.detective_pawns
 
   def setDetectivePawns(self,detective_pawns):
-    self.previousDetectivePawns = self.detective_pawns
+    if not len(self.previousDetectivePawns):
+      self.previousDetectivePawns = detective_pawns
     self.detective_pawns = detective_pawns
 
   def getActionPawns(self):
@@ -147,13 +150,20 @@ class GameBoard():
         detectivesPawnsIndexs.append(correspondingIndexes[self.detective_pawns.index(detectivePawn)])
 
     return detectivesPawnsIndexs
+  
+  def updatePreviousCardsState(self):
+    self.previousCards = self.cards
+    self.previousCardsState = self.cardsState
+  
+  def updatePreviousPawnsState(self):
+    self.previousDetectivePawns = self.detective_pawns
 
   def selectRandomJack(self):
     randomIndex = random.randint(0, len(self.alibiCardsDict) - 1)
     return self.alibiCardsDict.pop(randomIndex)[2]
 
   def IsActionPawnRespected(self, action: str):
-
+    
     if action in ["APJoker", "APHolmes", "APToby", "APWatson"]:
       lengthDetectivePawnsList = len(self.detective_pawns)
       indexWatson, previousIndexWatson, indexToby, previousIndexToby, indexSherlock, previousIndexSherlock = (str(),)*6
@@ -170,7 +180,8 @@ class GameBoard():
         previousIndexWatson = self.previousDetectivePawns.index("DPWatson")
         indexWatson = self.detective_pawns.index("DPWatson")
 
-      if indexWatson and previousIndexWatson and indexToby and previousIndexToby and indexSherlock and previousIndexSherlock and lengthDetectivePawnsList > 0:
+      
+      if None not in [indexWatson, previousIndexWatson, indexToby, previousIndexToby, indexSherlock, previousIndexSherlock] and lengthDetectivePawnsList > 0:
         if action == "APJoker":
           if self.currentPlayer == "Jack":
             if ((previousIndexSherlock + 1) % lengthDetectivePawnsList == indexSherlock and previousIndexToby == indexToby and previousIndexWatson == indexWatson) or \
@@ -187,20 +198,21 @@ class GameBoard():
 
         elif action == "APHolmes":
           if (previousIndexSherlock + 1) % lengthDetectivePawnsList == indexSherlock or (
-                  previousIndexSherlock + 2) % lengthDetectivePawnsList == indexSherlock:
+                  previousIndexSherlock + 2) % lengthDetectivePawnsList == indexSherlock and (previousIndexToby == indexToby and previousIndexWatson == indexWatson):
             return True
 
         elif action == "APToby":
-          if (previousIndexToby + 1) % lengthDetectivePawnsList == indexSherlock or (
-                  previousIndexToby + 2) % lengthDetectivePawnsList == indexSherlock:
+          print("previous : ", (previousIndexToby + 1) % lengthDetectivePawnsList , "current : ", indexToby )
+          if (previousIndexToby + 1) % lengthDetectivePawnsList == indexToby or (
+                  previousIndexToby + 2) % lengthDetectivePawnsList == indexToby and (previousIndexSherlock == indexSherlock and previousIndexWatson == indexWatson):
             return True
 
         elif action == "APWatson":
           if (previousIndexWatson + 1) % lengthDetectivePawnsList == indexSherlock or (
-                  previousIndexWatson + 2) % lengthDetectivePawnsList == indexSherlock:
+                  previousIndexWatson + 2) % lengthDetectivePawnsList == indexSherlock and (previousIndexSherlock == indexSherlock and previousIndexToby == indexToby):
             return True
 
-    elif action == "APRotation":
+    elif action in ["APReturn", "APReturn2"]:
       difference = 0
       if self.previousCards == self.cards and self.previousCards:
         for index in range(len(self.cardsState)):
@@ -209,7 +221,7 @@ class GameBoard():
         if difference <= 1:
           return True
 
-    elif action == "APExchange":
+    elif action == "APChangeCard":
       indexs = []
       if self.cards:
         for index in range(len(self.cards)):
@@ -218,7 +230,7 @@ class GameBoard():
 
         if len(indexs) == 2:
           if self.cards[indexs[0]] == self.previousCards[indexs[1]] and self.cards[indexs[1]] == self.previousCards[indexs[0]]:
-            if np.array_equal(self.previousCardsState[index], self.cardsState[index]):
+            if np.array_equal(self.previousCardsState[indexs[0]], self.cardsState[indexs[1]]) and np.array_equal(self.previousCardsState[indexs[1]], self.cardsState[indexs[0]]):
               return True
 
     elif action == "APAlibi":
@@ -296,5 +308,6 @@ class GameBoard():
       print("Turn all the cards in sight to their empty side")
       print("Jack wins this turn and get the round token !")
     
-    self.checkVictory("Appeal for Witnesses", True)
+    self.checkVictory(isJackSeen)
+    self.turnCount += 1
 

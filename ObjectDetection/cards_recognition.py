@@ -27,7 +27,7 @@ class SamplesQuality(Enum):
   LAHQ = 3
 
 class CardsRecognitionHelper:
-  selectedSamplesQuality = SamplesQuality.LAHQ
+  selectedSamplesQuality = SamplesQuality.LQ
 
   selectedSamplesResolution = 400
 
@@ -178,7 +178,6 @@ class CardsRecognitionHelper:
             self.gameBoard[index] = ["up", "front"]
 
         index += 1
-    print(self.gameBoard)
     self.boardReference.setCardsState(self.gameBoard)
 
   def GetEmptySideCards(self, img):
