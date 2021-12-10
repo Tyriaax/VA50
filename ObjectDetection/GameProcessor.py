@@ -96,7 +96,6 @@ class GameProcessor:
             if (self.gameBoard.tryUpdateGameStatus(GameStates.GSUseActionsPawns)):
                 self.pawnsRecognitionHelper.ComputeFrame(img)
                 self.gameBoard.printState()
-                self.cardsRecognitionHelper.IsInLineOfSight(self.lastimg)
 
         return continuebool
 
