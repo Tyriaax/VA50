@@ -96,7 +96,6 @@ class GameProcessor:
             if (self.gameBoard.tryUpdateGameStatus(GameStates.GSUseActionsPawns)):
                 self.pawnsRecognitionHelper.ComputeFrame(img)
                 self.gameBoard.printState()
-                self.gameBoard.manhunt()
 
         return continuebool
 
@@ -107,6 +106,9 @@ class GameProcessor:
             else:
                 actionPawnIndex = self.pawnsRecognitionHelper.actionPawnClick([x,y])
                 if actionPawnIndex is not None:
+                    if (self.gameBoard.actionPawnsPlayed == 0):
+                        self.gameBoard.manhunt()
+
                     actionPawnClicked = self.gameBoard.getActionPawns()[actionPawnIndex]
                     selectedAP = ActionPawns[actionPawnClicked]
                     print("Action Pawn Clicked : " + actionPawnClicked)
