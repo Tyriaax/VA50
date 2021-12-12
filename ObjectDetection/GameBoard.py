@@ -180,7 +180,6 @@ class GameBoard():
         previousIndexWatson = self.previousDetectivePawns.index("DPWatson")
         indexWatson = self.detective_pawns.index("DPWatson")
 
-      
       if None not in [indexWatson, previousIndexWatson, indexToby, previousIndexToby, indexSherlock, previousIndexSherlock] and lengthDetectivePawnsList > 0:
         if action == "APJoker":
           if self.currentPlayer == "Jack":
@@ -202,7 +201,6 @@ class GameBoard():
             return True
 
         elif action == "APToby":
-          print("previous : ", (previousIndexToby + 1) % lengthDetectivePawnsList , "current : ", indexToby )
           if (previousIndexToby + 1) % lengthDetectivePawnsList == indexToby or (
                   previousIndexToby + 2) % lengthDetectivePawnsList == indexToby and (previousIndexSherlock == indexSherlock and previousIndexWatson == indexWatson):
             return True
@@ -240,6 +238,8 @@ class GameBoard():
         self.addJackHourglasses(randomAlibiCard[1])
         return True
 
+    print("current cards :\n ", self.cards , "previous cards:\n ", self.previousCards)
+    print("current state :\n ", self.cardsState , "previous state:\n ", self.previousCardsState)
     return False
   
   def printState(self):
@@ -283,10 +283,11 @@ class GameBoard():
       self.switchPlayer()
     elif self.actionPawnsPlayed == 3:
       self.switchPlayer()
+    elif self.actionPawnsPlayed >= 4:
+      self.actionPawnsPlayed = 0
 
   def manhunt(self):
     self.stage = "Manhunt"
-    self.actionPawnsPlayed = 0
 
     if self.turnCount % 2 == 0: 
       self.currentPlayer = "Jack"

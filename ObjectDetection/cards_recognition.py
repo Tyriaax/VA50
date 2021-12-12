@@ -38,7 +38,6 @@ class CardsRecognitionHelper:
     self.boardReference = gameBoard
     self.cardRectangle = list()
     self.rectangles = list()
-    self.threshold = 90 #55#
     self.gameBoard = np.zeros((9,2), dtype= np.chararray)
 
     if self.selectedSamplesQuality == SamplesQuality.HQ:
@@ -53,12 +52,13 @@ class CardsRecognitionHelper:
     self.selectedCirclesResolution = int(0.42*self.selectedSamplesResolution)
 
   def GetScreenPortions(self, img,coordinates):
+    cardToCircleProportion = 0.26
     img = img[coordinates[1]:coordinates[3], coordinates[0]:coordinates[2]]
     height, width = img.shape[0],img.shape[1] 
     width_portion = int(width / 3)
     height_portion = int(height / 3)
-    proportionh = int(0.28 * height_portion)
-    proportionw = int(0.28 * width_portion)
+    proportionh = int(cardToCircleProportion * height_portion)
+    proportionw = int(cardToCircleProportion * width_portion)
 
     for i in range(3):
       for j in range(3):
