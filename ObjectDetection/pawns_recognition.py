@@ -133,7 +133,7 @@ class PawnsRecognitionHelper:
       znccProbabilites.append(zncc_pawn(currentimg, self.APsamplesZncc))
 
     if (len(boundingBoxes) > 0):
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilites], [0,0.2,0.8])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilites],  [0,0,1])
 
       assignedObjects = linearAssignment(finalProbabilities, ActionPawns)
       self.boardReference.setActionPawns(assignedObjects)

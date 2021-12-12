@@ -68,13 +68,13 @@ def zncc_pawn(img, samples = []):
         (cX, cY) = (w // 2, h // 2)
         #cv2.imshow(str(-1), resizedSample)
 
-        maxScore = abs(zncc(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), resizedSample, 15, 15, 15, 15, 25))  # TODO Max a voir ?
+        maxScore = max(0,zncc(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), resizedSample, 15, 15, 15, 15, 25)) # TODO Max a voir ?
         for i in range(7):
             M = cv2.getRotationMatrix2D((cX, cY), 45, 1.0)
             resizedSample = cv2.warpAffine(resizedSample, M, (w, h))
 
             #cv2.imshow(str(i),resizedSample)
-            maxScore = max(maxScore,abs(zncc(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY), resizedSample, 15, 15, 15, 15, 25)))
+            maxScore = max(maxScore,zncc(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY), resizedSample, 15, 15, 15, 15, 25))
 
         pawnCCscore.append(maxScore)
 
