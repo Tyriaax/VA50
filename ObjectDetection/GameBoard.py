@@ -54,6 +54,9 @@ class GameBoard():
   def getPreviousCards(self):
     return self.previousCards
 
+  def LaunchGame(self):
+    self.manhunt()
+
   def getCards(self):
     return self.cards
 

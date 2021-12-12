@@ -24,7 +24,7 @@ class DetectivePawns(Enum):
   DPWatson = 2
 
 class PawnsRecognitionHelper:
-  selectedSamplesQuality = "LQ"
+  selectedSamplesQuality = "HQ" #TODO Change back
 
   selectedSamplesResolution = 400
 
