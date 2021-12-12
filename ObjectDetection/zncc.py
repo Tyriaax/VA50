@@ -62,14 +62,16 @@ def zncc_score(circleimg, samples = [], orientation = 'up'):
 def zncc_pawn(img, samples = []):
 
     pawnCCscore = []
-    print(samples[0])
     for sample in samples:
         resizedSample = cv2.resize(sample, (img.shape[1],img.shape[0]))
-        maxScore = zncc(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY), resizedSample, 15, 15, 15, 15, 25) #TODO Max a voir ?
-        for i in range(7):
-            rotated = ndimage.rotate(sample, (i+1)*45)
+        maxScore = abs(zncc(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY), resizedSample, 15, 15, 15, 15, 25)) #TODO Max a voir ?
+        if maxScore < 0:
+            print(maxScore)
+        for i in range(15):
+            rotated = ndimage.rotate(sample, (i+1)*22.5)
+            cv2.imshow(str(i), rotated)
             resizedSample = cv2.resize(rotated, (img.shape[1],img.shape[0]))
-            maxScore = max(maxScore,zncc(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY), resizedSample, 15, 15, 15, 15, 25))
+            maxScore = max(maxScore,abs(zncc(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY), resizedSample, 15, 15, 15, 15, 25)))
 
         pawnCCscore.append(maxScore)
 
