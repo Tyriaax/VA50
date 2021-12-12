@@ -36,9 +36,9 @@ class PawnsRecognitionHelper:
     APpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Pawns", "ActionPawns"))
 
 
-    [self.DPsamplesSiftInfos, self.DPsamplesHistograms, _] = loadSamples(DPpath, self.selectedSamplesResolution)
+    [self.DPsamplesSiftInfos, self.DPsamplesHistograms, self.DPsamplesZncc] = loadSamples(DPpath, self.selectedSamplesResolution)
 
-    [self.APsamplesSiftInfos, self.APsamplesHistograms, _] = loadSamples(APpath, self.selectedSamplesResolution)
+    [self.APsamplesSiftInfos, self.APsamplesHistograms, self.APsamplesZncc] = loadSamples(APpath, self.selectedSamplesResolution)
 
     self.boardReference = gameBoard
     self.detectivePawnsLocations = list()
@@ -103,13 +103,15 @@ class PawnsRecognitionHelper:
 
     siftProbabilities = []
     histoProbabilities = []
+    znccProbabilities = []
     for i in range(min(len(boundingBoxes), len(DetectivePawns))):
       currentimg = img[boundingBoxes[i][1]:boundingBoxes[i][3], boundingBoxes[i][0]:boundingBoxes[i][2]]
       siftProbabilities.append(sift_detection(currentimg, self.DPsamplesSiftInfos,self.selectedSamplesResolution))
       histoProbabilities.append(histogramProbabilities(currentimg, self.DPsamplesHistograms))
+      znccProbabilities.append(zncc_pawn(currentimg,self.DPsamplesZncc))
 
     if (len(boundingBoxes) > 0):
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.4, 0.6])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities,znccProbabilities], [0, 0,1])
 
       assignedObjects = linearAssignment(finalProbabilities, DetectivePawns)
       DPpawnspositions = self.getDetectivePawnsPositions(assignedObjects,boundingBoxes)
@@ -123,13 +125,15 @@ class PawnsRecognitionHelper:
 
     siftProbabilities = []
     histoProbabilities = []
+    znccProbabilites = []
     for i in range(min(len(boundingBoxes), self.maxThrownActionPawnsNumber)):
       currentimg = maskedimg[boundingBoxes[i][1]:boundingBoxes[i][3], boundingBoxes[i][0]:boundingBoxes[i][2]]
       siftProbabilities.append(sift_detection(currentimg, self.APsamplesSiftInfos, self.selectedSamplesResolution))
       histoProbabilities.append(histogramProbabilities(currentimg, self.APsamplesHistograms))
+      znccProbabilites.append(zncc_pawn(currentimg, self.APsamplesZncc))
 
     if (len(boundingBoxes) > 0):
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities], [0.4, 0.6])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilites], [0,0,1])
 
       assignedObjects = linearAssignment(finalProbabilities, ActionPawns)
       self.boardReference.setActionPawns(assignedObjects)

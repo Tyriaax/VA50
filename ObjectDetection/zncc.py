@@ -1,5 +1,6 @@
 import cv2
 import os
+from scipy import ndimage
 
 from numpy.core.fromnumeric import resize
 
@@ -58,3 +59,24 @@ def zncc_score(circleimg, samples = [], orientation = 'up'):
 
     return cardProba
 
+def zncc_pawn(img, samples = []):
+
+    pawnCCscore = []
+    print(samples[0])
+    for sample in samples:
+        resizedSample = cv2.resize(sample, (img.shape[1],img.shape[0]))
+        maxScore = max(0,zncc(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY), resizedSample, 15, 15, 15, 15, 25))
+        for i in range(7):
+            rotated = ndimage.rotate(sample, (i+1)*45)
+            resizedSample = cv2.resize(rotated, (img.shape[1],img.shape[0]))
+            maxScore = max(maxScore,zncc(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY), resizedSample, 15, 15, 15, 15, 25))
+
+        pawnCCscore.append(maxScore)
+
+    total = sum(pawnCCscore)
+    pawnProba = []
+
+    for i in range(len(pawnCCscore)):
+        pawnProba.append(pawnCCscore[i]/total)
+
+    return pawnProba
