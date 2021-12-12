@@ -65,7 +65,7 @@ def zncc_pawn(img, samples = []):
     print(samples[0])
     for sample in samples:
         resizedSample = cv2.resize(sample, (img.shape[1],img.shape[0]))
-        maxScore = max(0,zncc(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY), resizedSample, 15, 15, 15, 15, 25))
+        maxScore = zncc(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY), resizedSample, 15, 15, 15, 15, 25) #TODO Max a voir ?
         for i in range(7):
             rotated = ndimage.rotate(sample, (i+1)*45)
             resizedSample = cv2.resize(rotated, (img.shape[1],img.shape[0]))
@@ -76,7 +76,10 @@ def zncc_pawn(img, samples = []):
     total = sum(pawnCCscore)
     pawnProba = []
 
-    for i in range(len(pawnCCscore)):
-        pawnProba.append(pawnCCscore[i]/total)
+    if (total>0):
+        for i in range(len(pawnCCscore)):
+            pawnProba.append(pawnCCscore[i]/total)
+    else:
+        pawnProba = pawnCCscore
 
     return pawnProba
