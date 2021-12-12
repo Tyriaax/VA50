@@ -96,7 +96,6 @@ class GameProcessor:
             if (self.gameBoard.tryUpdateGameStatus(GameStates.GSUseActionsPawns)):
                 self.pawnsRecognitionHelper.ComputeFrame(img)
                 self.gameBoard.printState()
-                print("previous : " , self.gameBoard.previousDetectivePawns , "actual : ", self.gameBoard.detective_pawns)
 
         return continuebool
 
@@ -113,15 +112,22 @@ class GameProcessor:
                     if(selectedAP.value <= 4):
                         self.pawnsRecognitionHelper.ComputeDetectivePawns(self.lastimg)
                     elif(selectedAP.value <= 7):
+                        self.cardsRecognitionHelper.ComputeCards(self.lastimg)
+                        #print("Previous : \n", self.gameBoard.getPreviousCardsState(), "\nCurrent: \n", self.gameBoard.getCardsState())
                         self.cardsRecognitionHelper.ComputeFrame(self.lastimg)
 
                     if(self.gameBoard.IsActionPawnRespected(actionPawnClicked)):
                         print("Action Pawn Used")
                         self.pawnsRecognitionHelper.actionPawnUsed(actionPawnIndex)
+                        if(selectedAP.value <= 4):
+                            self.gameBoard.updatePreviousPawnsState()
+                        else:
+                            self.gameBoard.updatePreviousCardsState()
                         self.gameBoard.getNextPlayerToUseActionsPawns()
                         if(len(self.gameBoard.getActionPawns()) == 0):
                             print("Turn Finished")
                             if(self.gameBoard.tryUpdateGameStatus(GameStates.GSAppealOfWitness)):
                                 self.gameBoard.appealOfWitnesses(self.cardsRecognitionHelper.IsInLineOfSight(self.lastimg))
+                                self.gameBoard.manhunt()
                     else:
                         print("Action Pawn not Validated")
