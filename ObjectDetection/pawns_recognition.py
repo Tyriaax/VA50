@@ -33,7 +33,7 @@ class PawnsRecognitionHelper:
   def __init__(self, height, width, gameBoard):
 
     DPpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Pawns", "DetectivePawns"))
-    APpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Pawns", "ActionPawnsAureCam"))
+    APpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Pawns", "ActionPawns3"))
 
 
     [self.DPsamplesSiftInfos, self.DPsamplesHistograms, self.DPsamplesZncc] = loadSamples(DPpath, self.selectedSamplesResolution)
@@ -111,7 +111,7 @@ class PawnsRecognitionHelper:
       znccProbabilities.append(zncc_pawn(currentimg,self.DPsamplesZncc))
 
     if (len(boundingBoxes) > 0):
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities,znccProbabilities], [0,0,1])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities,znccProbabilities], [0.5,0.5,0])
 
       assignedObjects = linearAssignment(finalProbabilities, DetectivePawns)
       DPpawnspositions = self.getDetectivePawnsPositions(assignedObjects,boundingBoxes)
@@ -133,7 +133,7 @@ class PawnsRecognitionHelper:
       znccProbabilites.append(zncc_pawn(currentimg, self.APsamplesZncc))
 
     if (len(boundingBoxes) > 0):
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilites],  [0,0,1])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilites],  [0,0, 1])
 
       assignedObjects = linearAssignment(finalProbabilities, ActionPawns)
       self.boardReference.setActionPawns(assignedObjects)

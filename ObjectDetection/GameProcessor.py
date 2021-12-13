@@ -111,9 +111,9 @@ class GameProcessor:
                     print("Action Pawn Clicked : " + actionPawnClicked)
                     if(selectedAP.value <= 4):
                         self.pawnsRecognitionHelper.ComputeDetectivePawns(self.lastimg)
+                        print("Previous : \n", self.gameBoard.getPreviousDetectivePawns(), "\nCurrent: \n", self.gameBoard.getDetectivePawns())
                     elif(selectedAP.value <= 7):
                         self.cardsRecognitionHelper.ComputeCards(self.lastimg)
-                        #print("Previous : \n", self.gameBoard.getPreviousCardsState(), "\nCurrent: \n", self.gameBoard.getCardsState())
                         self.cardsRecognitionHelper.ComputeFrame(self.lastimg)
 
                     if(self.gameBoard.IsActionPawnRespected(actionPawnClicked)):

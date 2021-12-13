@@ -80,8 +80,8 @@ def zncc_pawn(img, samples = []):
             totalScore += score
             maxScore = max(maxScore,score)
 
-        #pawnCCscore.append(maxScore)
-        pawnCCscore.append(maxScore+totalScore)
+        pawnCCscore.append(maxScore)
+        #pawnCCscore.append(maxScore+totalScore)
 
     total = sum(pawnCCscore)
     pawnProba = []
