@@ -33,7 +33,7 @@ class PawnsRecognitionHelper:
   def __init__(self, height, width, gameBoard):
 
     DPpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Pawns", "DetectivePawns"))
-    APpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Pawns", "ActionPawns"))
+    APpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Pawns", "ActionPawnsAureCam"))
 
 
     [self.DPsamplesSiftInfos, self.DPsamplesHistograms, self.DPsamplesZncc] = loadSamples(DPpath, self.selectedSamplesResolution)
