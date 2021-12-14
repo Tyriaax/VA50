@@ -12,10 +12,17 @@ class JackAi():
     score = self.minimax(next_game_board, steps - 1, False)
     return score
   
-  def do_action(self, game_board, action): #Effectue une action
-    pass
+  def do_action(self, game_board, action): #Effectue une action qui va cahnger le board
+    if action in ["APJoker", "APHolmes", "APToby", "APWatson"]:
+      pass
+    elif action in ["APReturn", "APReturn2"]:
+      pass
+    elif action == "APChangeCard":
+      pass
+    elif action == "APAlibi":
+      pass
 
-  def get_heuristic(self, game_board): #Calcul la valeur heuristique pour un gameBoard
+  def get_heuristic(self, game_board): #Calcul la valeur heuristique pour un game_board
     pass
     # 100000 quand il gagne
     # 1 point quand il gagne un sablier
