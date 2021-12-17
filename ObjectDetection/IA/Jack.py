@@ -5,24 +5,27 @@ import copy
 class JackAi():
   def jack(self, game_board): #obs : infos utiles (nb de sablier etc)
     steps = 4
-    self.valid_actions = ["APJoker", "APSherlock", "APToby", "APWatson", "APReturn", "APReturn2", "APChangeCard"]
-    for action in self.valid_actions:
-      print(action, self.score_move(game_board, action, steps), sep = '', end='\n')
+
+    #check si APReturn 1 et 2 si oui suppr un
+    valid_actions = ["APJoker", "APSherlock","APReturn", "APChangeCard"]
+    for action in valid_actions:
+      print(action, self.score_move(game_board, action, steps, copy.deepcopy(valid_actions)), sep = '', end='\n')
     #scores = dict(zip(valid_actions, [self.score_move(game_board, action, steps) for action in #valid_actions]))
     #return max(scores)
 
-  def score_move(self, game_board, action, steps): #Calcul score lorsque Jack fait une action
-    scoreMax = 0
+  def score_move(self, game_board, action, steps, valid_actions): #Calcul score lorsque Jack fait une action
+    scoreMax = - np.Inf
     best_move = None
-    next_game_boards = self.get_possible_actions(game_board, action)
+    next_game_boards, valid_actions_remaining = self.get_possible_actions(game_board, action, copy.deepcopy(valid_actions))
     for next_game_board in next_game_boards:
-      score = self.minimax(next_game_board[0], steps - 1, False)
+      score = self.minimax(next_game_board[0], steps - 1, False, valid_actions_remaining)
       if score > scoreMax:
+        scoreMax = score
         best_move = next_game_boards[1]
 
-    return best_move
+    return best_move, scoreMax
 
-  def get_possible_actions(self, game_board, action): #Effectue une action qui va cahnger le board
+  def get_possible_actions(self, game_board, action, valid_actions): #Effectue une action qui va cahnger le board
     next_game_boards = []
 
     if action in ["APJoker", "APSherlock", "APToby", "APWatson"]:
@@ -51,8 +54,8 @@ class JackAi():
     elif action == "APAlibi":
       pass
     
-    self.valid_actions.remove(action)
-    return next_game_boards
+    valid_actions.remove(action)
+    return next_game_boards, valid_actions
 
   def do_return_action(self, game_board, index, orientation):
     next_game_board = game_board
@@ -63,9 +66,26 @@ class JackAi():
   def do_action_on_detective_pawns(self, game_board, detective_pawn, move_of):
     #Handle same char on same place
     next_game_board = game_board
+    # for element_detective_pawns in next_game_board["dectectivePawns"]:
+    #   print(element_detective_pawns)
+    #   if detective_pawn in element_detective_pawns:
+    
     index_detective = next_game_board["dectectivePawns"].index(detective_pawn)
-    next_game_board["dectectivePawns"][index_detective] = 0
-    next_game_board["dectectivePawns"][(index_detective + move_of)%len(next_game_board["dectectivePawns"])] = detective_pawn
+    
+    # if type(next_game_board["dectectivePawns"][index_detective]) == list():
+    #   next_game_board["dectectivePawns"][index_detective].remove(detective_pawn)
+    # else:
+    #   next_game_board["dectectivePawns"][index_detective] = 0
+    # destination_index = (index_detective + move_of)%len(next_game_board["dectectivePawns"])
+    # if  next_game_board["dectectivePawns"][destination_index] == 0:
+    #   next_game_board["dectectivePawns"][destination_index] = detective_pawn
+    # else:
+    #   next_game_board["dectectivePawns"][destination_index] = [next_game_board["dectectivePawns"][destination_index], detective_pawn]
+
+    destination_index = (index_detective + move_of)%len(next_game_board["dectectivePawns"])
+    if next_game_board["dectectivePawns"][destination_index] == 0:
+      next_game_board["dectectivePawns"][index_detective] = 0
+      next_game_board["dectectivePawns"][destination_index] = detective_pawn
 
     return next_game_board
   
@@ -98,7 +118,6 @@ class JackAi():
     for index in range(len(game_board["cardsOrientation"])):
       matrix[index//3 + 1][index%3 + 1] = game_board["cardsOrientation"][index]
 
-    #ligne
     jack_in_sight = False
     for detectivePosition in detectivesPosition:
       if detectivePosition[0] == jack_index_x: #check ligne
@@ -115,39 +134,40 @@ class JackAi():
       elif detectivePosition[1] == jack_index_y: #check colonne
         if detectivePosition[0] == 0:
           for index in range(1,4):
-              if matrix[index][detectivePosition[1]][0] in ["Right", "Up", "Left"]:
-                if jack_index_x == index:
-                  jack_in_sight = True
+            if matrix[index][detectivePosition[1]][0] in ["Right", "Up", "Left"]:
+              if jack_index_x == index:
+                jack_in_sight = True
         elif detectivePosition[0] == 4:
-          if matrix[index][detectivePosition[1]][0] in ["Right", "Down", "Left"]:
+          for index in range(1,4):
+            if matrix[index][detectivePosition[1]][0] in ["Right", "Down", "Left"]:
               if jack_index_x == index:
                   jack_in_sight = True
     
     if jack_in_sight:
-      return 10000
-    else:
       return -1000
+    else:
+      return 10000
 
   def is_terminal_node(self, game_board):# check si la partie est terminé
     pass
 
-  def minimax(self, node, depth, maximizingPlayer):
+  def minimax(self, node, depth, maximizingPlayer, valid_actions):
     is_terminal = self.is_terminal_node(node)
     if depth == 0 or is_terminal:
         return self.get_heuristic(node)
     if maximizingPlayer:
         value = -np.Inf
-        for action in self.valid_actions:
-          childs = self.get_possible_actions(node, action)
+        for action in valid_actions:
+          childs, valid_actions_remaining = self.get_possible_actions(node, action, copy.deepcopy(valid_actions))
           for child in childs:
-            value = max(value, self.minimax(child[0], depth-1, False))
+            value = max(value, self.minimax(child[0], depth-1, False, valid_actions_remaining))
         return value
     else:
         value = np.Inf
-        for action in self.valid_actions:
-          childs = self.get_possible_actions(node, action)
+        for action in valid_actions:
+          childs, valid_actions_remaining = self.get_possible_actions(node, action, copy.deepcopy(valid_actions))
           for child in childs:
-            value = min(value, self.minimax(child[0], depth-1, True))
+            value = min(value, self.minimax(child[0], depth-1, True, valid_actions_remaining))
         return value
 
 
