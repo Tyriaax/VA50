@@ -15,9 +15,8 @@ class JackAi():
     scoreMax = 0
     best_move = None
     next_game_boards = self.get_possible_actions(game_board, action)
-    for next_game_board in next_game_boards[0]:
-      #pass
-      score = self.minimax(next_game_board, steps - 1, False)
+    for next_game_board in next_game_boards:
+      score = self.minimax(next_game_board[0], steps - 1, False)
       if score > scoreMax:
         best_move = next_game_boards[1]
 
@@ -85,9 +84,8 @@ class JackAi():
   def get_heuristic(self, game_board): #Calcul la valeur heuristique pour un game_board
     correspondingIndexes = ((0,1), (0,2), (0,3), (1,4), (2,4), (3,4), (4,3), (4,2), (4,1), (3,0), (2,0), (1,0))
 
-    print(game_board)
+    #print(game_board)
     jack_index = game_board["cardsPosition"].index(game_board["jack"])
-    print(jack_index)
     jack_index_x, jack_index_y = jack_index//3 + 1 , jack_index%3 + 1
     detectivesPosition = [] 
 
@@ -135,22 +133,21 @@ class JackAi():
 
   def minimax(self, node, depth, maximizingPlayer):
     is_terminal = self.is_terminal_node(node)
-    valid_actions = "action" #get Valid moves
     if depth == 0 or is_terminal:
         return self.get_heuristic(node)
     if maximizingPlayer:
         value = -np.Inf
         for action in self.valid_actions:
           childs = self.get_possible_actions(node, action)
-          for child in childs[0]:
-            value = max(value, self.minimax(child, depth-1, False))
+          for child in childs:
+            value = max(value, self.minimax(child[0], depth-1, False))
         return value
     else:
         value = np.Inf
         for action in self.valid_actions:
           childs = self.get_possible_actions(node, action)
-          for child in childs[0]:
-            value = min(value, self.minimax(child, depth-1, True))
+          for child in childs:
+            value = min(value, self.minimax(child[0], depth-1, True))
         return value
 
 
@@ -162,11 +159,10 @@ game_board = {
   "jack" : "purple" 
 } 
 
-#Problème référence dans get_possible_actions
 #Ajout de plusieurs dp sur une case
 #Action alibi
 
-#pop action faite
+#pop action faite mais pouvouir les refaire coup après
 
 a = JackAi()
 #a.do_return_action(game_board,0, "left")
