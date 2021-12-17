@@ -24,7 +24,6 @@ class JackAi():
     return best_move
 
   def get_possible_actions(self, game_board, action): #Effectue une action qui va cahnger le board
-    copy_game_board = copy.deepcopy(game_board)
     next_game_boards = []
 
     if action in ["APJoker", "APSherlock", "APToby", "APWatson"]:
@@ -33,22 +32,22 @@ class JackAi():
       if action == "APJoker":
         for detective_pawn in detectives_pawns:
           for move in range(2):
-            next_game_boards.append((self.do_action_on_detective_pawns(game_board, detective_pawn, move), (detective_pawn, move)))
+            next_game_boards.append((self.do_action_on_detective_pawns(copy.deepcopy(game_board), detective_pawn, move), (detective_pawn, move)))
       else:
         detective_pawn = detectives_pawns[actions_pawns.index(action)]
         for move in range(1,3):
-          next_game_boards.append((self.do_action_on_detective_pawns(game_board, detective_pawn, move), (detective_pawn, move)))
+          next_game_boards.append((self.do_action_on_detective_pawns(copy.deepcopy(game_board), detective_pawn, move), (detective_pawn, move)))
     
     elif action in ["APReturn", "APReturn2"]: #[index, "orientation"]
       orientations = ["Up", "Down", "Left", "Right"]
       for index in range(9):
         for orientation in orientations:
-          next_game_boards.append((self.do_return_action(game_board, index, orientation), (index, orientation)))
+          next_game_boards.append((self.do_return_action(copy.deepcopy(game_board), index, orientation), (index, orientation)))
 
     elif action == "APChangeCard":
       for index1 in range(9):
         for index2 in [index for index in range(9) if index != index1]:
-          next_game_boards.append((self.do_change_card_action(game_board, index1, index2), (index1, index2)))
+          next_game_boards.append((self.do_change_card_action(copy.deepcopy(game_board), index1, index2), (index1, index2)))
 
     elif action == "APAlibi":
       pass
@@ -86,7 +85,9 @@ class JackAi():
   def get_heuristic(self, game_board): #Calcul la valeur heuristique pour un game_board
     correspondingIndexes = ((0,1), (0,2), (0,3), (1,4), (2,4), (3,4), (4,3), (4,2), (4,1), (3,0), (2,0), (1,0))
 
+    print(game_board)
     jack_index = game_board["cardsPosition"].index(game_board["jack"])
+    print(jack_index)
     jack_index_x, jack_index_y = jack_index//3 + 1 , jack_index%3 + 1
     detectivesPosition = [] 
 
@@ -98,8 +99,6 @@ class JackAi():
 
     for index in range(len(game_board["cardsOrientation"])):
       matrix[index//3 + 1][index%3 + 1] = game_board["cardsOrientation"][index]
-    
-    print(matrix)
 
     #ligne
     jack_in_sight = False
