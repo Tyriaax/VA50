@@ -9,7 +9,7 @@ class JackAi():
     #check si APReturn 1 et 2 si oui suppr un
     valid_actions = ["APJoker", "APSherlock","APReturn", "APChangeCard"]
     for action in valid_actions:
-      print(action, self.score_move(game_board, action, steps, copy.deepcopy(valid_actions)), sep = '', end='\n')
+      print(action + ': ', self.score_move(game_board, action, steps, copy.deepcopy(valid_actions)), sep = ' ', end='\n' * 2)
     #scores = dict(zip(valid_actions, [self.score_move(game_board, action, steps) for action in #valid_actions]))
     #return max(scores)
 
@@ -18,7 +18,7 @@ class JackAi():
     best_move = None
     next_game_boards, valid_actions_remaining = self.get_possible_actions(game_board, action, copy.deepcopy(valid_actions))
     for next_game_board in next_game_boards:
-      score = self.minimax(next_game_board[0], steps - 1, False, valid_actions_remaining)
+      score = self.minimax(next_game_board[0], steps - 1, True, valid_actions_remaining)
       if score > scoreMax:
         scoreMax = score
         best_move = next_game_boards[1]
@@ -100,53 +100,65 @@ class JackAi():
 
   def do_alibi_action(self, obs):
     pass
+  
+  def in_sight(self, cards, jack, orientations):
+    jack_in_sight = False
+    number_of_people_in_sight = 0
+
+    for card in cards:
+      if card[1][0] in orientations:
+        if card[1][1] == "front":
+          number_of_people_in_sight += 1   
+        if jack == card[0]:
+          jack_in_sight = True
+      else:
+        break
     
-  def get_heuristic(self, game_board): #Calcul la valeur heuristique pour un game_board
-    correspondingIndexes = ((0,1), (0,2), (0,3), (1,4), (2,4), (3,4), (4,3), (4,2), (4,1), (3,0), (2,0), (1,0))
+    return jack_in_sight, number_of_people_in_sight
 
-    #print(game_board)
-    jack_index = game_board["cardsPosition"].index(game_board["jack"])
-    jack_index_x, jack_index_y = jack_index//3 + 1 , jack_index%3 + 1
-    detectivesPosition = [] 
+  def get_heuristic(self, game_board):
+    board_score = 0
+    detectives_position = []
+    number_of_people_in_sight = 0
+    number_of_detectives_who_see_jack = 0
+    jack_has_been_seen = False
+    range_corresponding_cards = ((0, 3, 6), (1, 4, 7),(2, 5, 8),
+                                (2, 1, 0), (5, 4, 3), (8, 7, 6),
+                                (8, 5, 2), (7, 4, 1), (6, 3, 0),
+                                (6, 7, 8), (3, 4, 5),(0, 1, 2))
 
-    matrix = np.zeros((5, 5), dtype= np.chararray)
     for index in range(len(game_board["dectectivePawns"])):
       if game_board["dectectivePawns"][index] in ["DPWatson", "DPSherlock", "DPToby"]:
-        detectivesPosition.append([correspondingIndexes[index][0], correspondingIndexes[index][1]])
-        matrix[correspondingIndexes[index][0]][correspondingIndexes[index][1]] = game_board["dectectivePawns"][index]
+        detectives_position.append(index)
 
-    for index in range(len(game_board["cardsOrientation"])):
-      matrix[index//3 + 1][index%3 + 1] = game_board["cardsOrientation"][index]
+    for detective_position in detectives_position:
+      cards = []
+      for index_card in range_corresponding_cards[detective_position]:
+        cards.append([game_board["cardsPosition"][index_card], game_board["cardsOrientation"][index_card]]) 
+      
+      print("cards :" ,cards)
+      print("detective pos :" ,detective_position)
+      if detective_position in (9, 10, 11):
+        jack_in_sight, in_sight_of_detective = self.in_sight(cards, game_board["jack"], ["Left", "Up", "Down"])
+      elif detective_position in (3, 4, 5):
+        jack_in_sight, in_sight_of_detective = self.in_sight(cards, game_board["jack"], ["Right", "Up", "Down"])
+      elif detective_position in (0, 1, 2):
+        jack_in_sight, in_sight_of_detective = self.in_sight(cards, game_board["jack"], ["Right", "Up", "Left"])
+      elif detective_position in (6, 7, 8):
+        jack_in_sight, in_sight_of_detective = self.in_sight(cards, game_board["jack"], ["Right", "Down", "Left"])
 
-    jack_in_sight = False
-    for detectivePosition in detectivesPosition:
-      if detectivePosition[0] == jack_index_x: #check ligne
-        if detectivePosition[1] == 0:
-          for index in range(1,4):
-            if matrix[detectivePosition[0]][index][0] in ["Left", "Up", "Down"]:
-              if jack_index_y == index:
-                jack_in_sight = True
-        elif detectivePosition[1] == 4:
-          for index in range(1,4):
-            if matrix[detectivePosition[0]][index][0] in ["Right", "Up", "Down"]:
-              if jack_index_y == index:
-                jack_in_sight = True
-      elif detectivePosition[1] == jack_index_y: #check colonne
-        if detectivePosition[0] == 0:
-          for index in range(1,4):
-            if matrix[index][detectivePosition[1]][0] in ["Right", "Up", "Left"]:
-              if jack_index_x == index:
-                jack_in_sight = True
-        elif detectivePosition[0] == 4:
-          for index in range(1,4):
-            if matrix[index][detectivePosition[1]][0] in ["Right", "Down", "Left"]:
-              if jack_index_x == index:
-                  jack_in_sight = True
-    
-    if jack_in_sight:
-      return -1000
+      print("insightdec, jackinsight :" ,in_sight_of_detective, jack_in_sight)
+
+      number_of_people_in_sight += in_sight_of_detective
+      if jack_in_sight:
+        number_of_detectives_who_see_jack += 1
+        jack_has_been_seen = True
+
+
+    if jack_has_been_seen:
+      return -1000 + number_of_people_in_sight * 50 - number_of_detectives_who_see_jack * 15
     else:
-      return 10000
+      return 10000 - number_of_people_in_sight * 50 
 
   def is_terminal_node(self, game_board):# check si la partie est terminé
     pass
@@ -173,7 +185,7 @@ class JackAi():
 
 game_board = {
   "cardsPosition" : ["red", "blue", "black", "purple", "pink", "yellow", "brown", "orange", "white"],
-  "cardsOrientation" : [["Left", "front"], ["Right", "front"], ["Down", "front"], ["Up", "front"], ["Left", "front"], ["Left", "front"], ["Down", "front"], ["Up", "front"], ["Up", "front"]],
+  "cardsOrientation" : [["Left", "back"], ["Right", "front"], ["Down", "front"], ["Up", "front"], ["Left", "front"], ["Left", "front"], ["Down", "front"], ["Up", "front"], ["Up", "front"]],
   "dectectivePawns" : ["DPWatson", 0, 0, 0, "DPToby", 0,0,0, "DPSherlock",0,0,0],
   "hourglasses" : 4,
   "jack" : "purple" 
@@ -181,13 +193,14 @@ game_board = {
 
 #Ajout de plusieurs dp sur une case
 #Action alibi
+#Add switch like real game Min - Max - Max - Min
 
-#pop action faite mais pouvouir les refaire coup après
+
 
 a = JackAi()
+s = a.get_heuristic(game_board)
+print(s)
 #a.do_return_action(game_board,0, "left")
-a.jack(game_board)
-#score = a.get_heuristic(game_board)
-#print(score)
+#a.jack(game_board)
 
 
