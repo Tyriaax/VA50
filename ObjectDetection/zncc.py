@@ -70,14 +70,18 @@ def zncc_pawn(img, samples = []):
         #cv2.imshow(str(-1), resizedSample)
 
         maxScore = max(0,zncc(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), resizedSample, a,a,a,a,n)) # TODO Valeurs à revoir ?
-        """ for i in range(7):
+        totalScore = maxScore
+        for i in range(7):
             M = cv2.getRotationMatrix2D((cX, cY), 45, 1.0)
             resizedSample = cv2.warpAffine(resizedSample, M, (w, h))
 
             #cv2.imshow(str(i),resizedSample)
-            maxScore = max(maxScore,zncc(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY), resizedSample, a,a,a,a,n))"""
+            score = max(0, zncc(cv2.cvtColor(img,cv2.COLOR_BGR2GRAY), resizedSample, a,a,a,a,n))
+            totalScore += score
+            maxScore = max(maxScore,score)
 
         pawnCCscore.append(maxScore)
+        #pawnCCscore.append(maxScore+totalScore)
 
     total = sum(pawnCCscore)
     pawnProba = []

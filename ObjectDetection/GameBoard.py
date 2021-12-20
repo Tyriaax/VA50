@@ -166,6 +166,7 @@ class GameBoard():
     return self.alibiCardsDict.pop(randomIndex)[2]
 
   def IsActionPawnRespected(self, action: str):
+
     
     if action in ["APJoker", "APHolmes", "APToby", "APWatson"]:
       lengthDetectivePawnsList = len(self.detective_pawns)
@@ -183,6 +184,8 @@ class GameBoard():
         previousIndexWatson = self.previousDetectivePawns.index("DPWatson")
         indexWatson = self.detective_pawns.index("DPWatson")
 
+      print("indexs : ", (previousIndexSherlock + 1) % lengthDetectivePawnsList, indexSherlock, previousIndexToby, indexToby,  previousIndexWatson,indexWatson )
+
       if None not in [indexWatson, previousIndexWatson, indexToby, previousIndexToby, indexSherlock, previousIndexSherlock] and lengthDetectivePawnsList > 0:
         if action == "APJoker":
           if self.currentPlayer == "Jack":
@@ -198,7 +201,7 @@ class GameBoard():
               ((previousIndexWatson + 1) % lengthDetectivePawnsList == indexWatson and previousIndexSherlock == indexSherlock and previousIndexToby == indexToby):
               return True
 
-        elif action == "APHolmes":
+        elif action == "APSherlock":
           if (previousIndexSherlock + 1) % lengthDetectivePawnsList == indexSherlock or (
                   previousIndexSherlock + 2) % lengthDetectivePawnsList == indexSherlock and (previousIndexToby == indexToby and previousIndexWatson == indexWatson):
             return True
@@ -209,8 +212,8 @@ class GameBoard():
             return True
 
         elif action == "APWatson":
-          if (previousIndexWatson + 1) % lengthDetectivePawnsList == indexSherlock or (
-                  previousIndexWatson + 2) % lengthDetectivePawnsList == indexSherlock and (previousIndexSherlock == indexSherlock and previousIndexToby == indexToby):
+          if (previousIndexWatson + 1) % lengthDetectivePawnsList == indexWatson or (
+                  previousIndexWatson + 2) % lengthDetectivePawnsList == indexWatson and (previousIndexSherlock == indexSherlock and previousIndexToby == indexToby):
             return True
 
     elif action in ["APReturn", "APReturn2"]:
