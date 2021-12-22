@@ -9,7 +9,7 @@ from skimage.util import img_as_float
 from matplotlib import pyplot as plt
 import random
 
-rectangleMaxRatioDifference = 0.3
+rectangleMaxRatioDifference = 0.4
 
 def imageProcessingForFindingContours(img):
   # First we convert the frame to a grayscale image
@@ -39,14 +39,26 @@ def getBoundingBoxes(img,maxarea,minarea,inspectInsideCountours = False):
 
   img2 = imageProcessingForFindingContours(img)
 
+  """
+  if inspectInsideCountours:
+    cv2.imshow("ContoursImg", img2)
+  """
+
   # We then use findContours to get the contours of the shape
   if not inspectInsideCountours:
     retrievalMode = cv2.RETR_EXTERNAL
   else:
     retrievalMode = cv2.RETR_LIST
 
+  #cnts = cv2.findContours(img2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
   cnts = cv2.findContours(img2, retrievalMode, cv2.CHAIN_APPROX_SIMPLE)
   cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+
+  """
+  if inspectInsideCountours:
+    cv2.drawContours(img, cnts, -1, (0, 255, 0), 3)
+    cv2.imshow("ContoursImg", img)
+  """
 
   # We then loop through all the detected contours to only retrieve the ones with a desired area
   for c in cnts:

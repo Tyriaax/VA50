@@ -121,6 +121,7 @@ class PawnsRecognitionHelper:
 
   def ComputeActionPawns(self, img):
     maskedimg = cv2.bitwise_and(img, img, mask=self.APmask)
+    #cv2.imshow("ActionPawnsImg",maskedimg)
     boundingBoxes = getBoundingBoxes(maskedimg, self.bBmaxArea, self.bBminArea, inspectInsideCountours = True)
 
     siftProbabilities = []
