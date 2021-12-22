@@ -85,6 +85,8 @@ class CardsRecognitionHelper:
       histoProbabilities2 = []
       #"""
 
+      boundingBoxes = getCirclesBb(img,self.rectangles)
+
       for i in range(len(self.rectangles)):
         cardimg = img[self.cardRectangle[i][1]:self.cardRectangle[i][3], self.cardRectangle[i][0]:self.cardRectangle[i][2]]
         circleimg = img[self.rectangles[i][1]:self.rectangles[i][3], self.rectangles[i][0]:self.rectangles[i][2]]

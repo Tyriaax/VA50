@@ -37,5 +37,5 @@ def gradient(pathImg):
         if key == ord('q') or key == 27:
             break  
 
-gradient("Samples\LQ\Pawns\ActionPawns\AP1Sherlock.png") 
+gradient("..\Samples\LQ\Pawns\ActionPawns\AP1Sherlock.png")
 
