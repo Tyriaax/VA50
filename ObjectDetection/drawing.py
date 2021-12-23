@@ -35,3 +35,19 @@ def drawText(img, text, position, offset = 0):
 
   cv2.putText(img, text, (int(textX), int(textY)), font, 1, (0, 255, 0), 2)
   return img
+
+def drawMultipleLinesOfText(img, texts, position):
+  for i in range(len(texts)):
+    img = drawText(img,texts[i],position,i)
+
+  return img
+
+def drawPlayerAndTurn(img, player, turn):
+  img = drawMultipleLinesOfText(img, ["Joueur : " + player, "Tour : " + str(turn) + "/8"],TextPositions.TPTopR)
+
+  return img
+
+def drawTurn(img, turn):
+  img = drawText(img, "Tour : " + str(turn) + "/8", TextPositions.TPTopR)
+
+  return img
