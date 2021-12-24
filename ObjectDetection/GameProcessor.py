@@ -39,7 +39,6 @@ class GameProcessor:
                 self.pawnsRecognitionHelper.GetScreenPortion(img, self.coordinates)
 
                 # Then directly compute the cards and their orientation
-                self.cardsRecognitionHelper.ComputeCards(img)
                 self.cardsRecognitionHelper.ComputeFrame(img)
 
                 self.homographymatrixfound = True
@@ -57,7 +56,6 @@ class GameProcessor:
                     print("Previous : \n", self.gameBoard.getPreviousDetectivePawns(), "\nCurrent: \n",
                           self.gameBoard.getDetectivePawns())
                 elif (self.actionPawnClicked.value <= 7):
-                    self.cardsRecognitionHelper.ComputeCards(img)
                     self.cardsRecognitionHelper.ComputeFrame(img)
 
                 # We then check if the action pawns has been respected
@@ -107,7 +105,7 @@ class GameProcessor:
         elif self.gameBoard.getGameStatus() == GameStates.GSAppealOfWitness:
             modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
             modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
-            modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Retournez les cartes innocentees","Puis appuyez sur c"], TextPositions.TPTopL)
+            modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Retournez les cartes innocentees","Puis appuyez sur C"], TextPositions.TPTopL)
             modifiedimg = drawTurn(modifiedimg,self.gameBoard.getTurnCount())
         elif self.gameBoard.getGameStatus() == GameStates.GSGameOver:
             if (self.gameBoard.getDetectiveWins()):
