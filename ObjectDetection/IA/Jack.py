@@ -3,22 +3,21 @@ import copy
 
 
 class JackAi():
-  def jack(self, game_board): #obs : infos utiles (nb de sablier etc)
-    steps = 4
+  def jack(self, game_board, turn, is_jack_first, valid_actions): #isJackFirst = True, turn 1 else , turn = 2
+    steps = 5 - turn
 
-    #check si APReturn 1 et 2 si oui suppr un
-    valid_actions = ["APJoker", "APSherlock","APReturn", "APChangeCard"]
     for action in valid_actions:
-      print(action + ': ', self.score_move(game_board, action, steps, copy.deepcopy(valid_actions)), sep = ' ', end='\n' * 2)
+      print(action + ': ', self.score_move(game_board, action, steps, copy.deepcopy(valid_actions), turn, is_jack_first), sep = ' ', end='\n' * 2)
     #scores = dict(zip(valid_actions, [self.score_move(game_board, action, steps) for action in #valid_actions]))
     #return max(scores)
 
-  def score_move(self, game_board, action, steps, valid_actions): #Calcul score lorsque Jack fait une action
+  def score_move(self, game_board, action, steps, valid_actions, turn, is_jack_first): #Calcul score lorsque Jack fait une action
     scoreMax = - np.Inf
     best_move = None
+
     next_game_boards, valid_actions_remaining = self.get_possible_actions(game_board, action, copy.deepcopy(valid_actions))
     for next_game_board in next_game_boards:
-      score = self.minimax(next_game_board[0], steps - 1, True, valid_actions_remaining)
+      score = self.minimax(next_game_board[0], steps - 1, is_jack_first, valid_actions_remaining, turn)
       if score > scoreMax:
         scoreMax = score
         best_move = next_game_boards[1]
@@ -136,8 +135,6 @@ class JackAi():
       for index_card in range_corresponding_cards[detective_position]:
         cards.append([game_board["cardsPosition"][index_card], game_board["cardsOrientation"][index_card]]) 
       
-      print("cards :" ,cards)
-      print("detective pos :" ,detective_position)
       if detective_position in (9, 10, 11):
         jack_in_sight, in_sight_of_detective = self.in_sight(cards, game_board["jack"], ["Left", "Up", "Down"])
       elif detective_position in (3, 4, 5):
@@ -146,8 +143,6 @@ class JackAi():
         jack_in_sight, in_sight_of_detective = self.in_sight(cards, game_board["jack"], ["Right", "Up", "Left"])
       elif detective_position in (6, 7, 8):
         jack_in_sight, in_sight_of_detective = self.in_sight(cards, game_board["jack"], ["Right", "Down", "Left"])
-
-      print("insightdec, jackinsight :" ,in_sight_of_detective, jack_in_sight)
 
       number_of_people_in_sight += in_sight_of_detective
       if jack_in_sight:
@@ -163,10 +158,30 @@ class JackAi():
   def is_terminal_node(self, game_board):# check si la partie est terminé
     pass
 
-  def minimax(self, node, depth, maximizingPlayer, valid_actions):
+  def minimax(self, node, depth, isJackFirst, valid_actions, turn):
     is_terminal = self.is_terminal_node(node)
     if depth == 0 or is_terminal:
         return self.get_heuristic(node)
+    if (isJackFirst and (turn == 1 or turn == 4)) or (not isJackFirst and (turn == 2 or turn == 3)):
+        value = -np.Inf
+        for action in valid_actions:
+          childs, valid_actions_remaining = self.get_possible_actions(node, action, copy.deepcopy(valid_actions))
+          for child in childs:
+            value = max(value, self.minimax(child[0], depth-1, isJackFirst, valid_actions_remaining, turn + 1))
+        return value
+    else:
+        value = np.Inf
+        for action in valid_actions:
+          childs, valid_actions_remaining = self.get_possible_actions(node, action, copy.deepcopy(valid_actions))
+          for child in childs:
+            value = min(value, self.minimax(child[0], depth-1, isJackFirst, valid_actions_remaining, turn + 1))
+        return value
+
+def old_minimax(self, node, depth, maximizingPlayer, valid_actions):
+    is_terminal = self.is_terminal_node(node)
+    if depth == 0 or is_terminal:
+        return self.get_heuristic(node)
+    #If JackFirst and turn == 1 || 4 or not JackFirst and turn == 2 or 3:
     if maximizingPlayer:
         value = -np.Inf
         for action in valid_actions:
@@ -186,7 +201,7 @@ class JackAi():
 game_board = {
   "cardsPosition" : ["red", "blue", "black", "purple", "pink", "yellow", "brown", "orange", "white"],
   "cardsOrientation" : [["Left", "back"], ["Right", "front"], ["Down", "front"], ["Up", "front"], ["Left", "front"], ["Left", "front"], ["Down", "front"], ["Up", "front"], ["Up", "front"]],
-  "dectectivePawns" : ["DPWatson", 0, 0, 0, "DPToby", 0,0,0, "DPSherlock",0,0,0],
+  "dectectivePawns" : ["DPWatson", 0, 0, 0, "DPToby", 0,0,0, 0,0,"DPSherlock",0],
   "hourglasses" : 4,
   "jack" : "purple" 
 } 
@@ -195,12 +210,16 @@ game_board = {
 #Action alibi
 #Add switch like real game Min - Max - Max - Min
 
+#Enlever max min player pour mettre le nombre de tour à la place
+#If jack start the turn : 1 - 4
+# : 2 - 3 
 
+valid_actions = ["APJoker", "APSherlock","APReturn"] #"APChangeCard"]
 
 a = JackAi()
-s = a.get_heuristic(game_board)
-print(s)
+#s = a.get_heuristic(game_board)
+#print(s)
 #a.do_return_action(game_board,0, "left")
-#a.jack(game_board)
+a.jack(game_board, 2, False, valid_actions)
 
 
