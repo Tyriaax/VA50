@@ -7,8 +7,9 @@ from skimage.feature import canny
 from skimage.draw import ellipse_perimeter
 from skimage.util import img_as_float
 from matplotlib import pyplot as plt
+import random
 
-rectangleMaxRatioDifference = 0.3
+rectangleMaxRatioDifference = 0.4
 
 def imageProcessingForFindingContours(img):
   # First we convert the frame to a grayscale image
@@ -38,14 +39,26 @@ def getBoundingBoxes(img,maxarea,minarea,inspectInsideCountours = False):
 
   img2 = imageProcessingForFindingContours(img)
 
+  """
+  if inspectInsideCountours:
+    cv2.imshow("ContoursImg", img2)
+  """
+
   # We then use findContours to get the contours of the shape
   if not inspectInsideCountours:
     retrievalMode = cv2.RETR_EXTERNAL
   else:
     retrievalMode = cv2.RETR_LIST
 
+  #cnts = cv2.findContours(img2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
   cnts = cv2.findContours(img2, retrievalMode, cv2.CHAIN_APPROX_SIMPLE)
   cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+
+  """
+  if inspectInsideCountours:
+    cv2.drawContours(img, cnts, -1, (0, 255, 0), 3)
+    cv2.imshow("ContoursImg", img)
+  """
 
   # We then loop through all the detected contours to only retrieve the ones with a desired area
   for c in cnts:
@@ -94,6 +107,7 @@ def getCirclesBb(img, boundingBoxes):
     rectangle = []
     #rectangle = houghEllipseDetection(img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]])
     #rectangle = getBoundingBox(img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]])
+    #center = blobCentroidDetection(img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]])
     if(len(rectangle)>0):
       finalBbs.append([boundingBox[0] + rectangle[0], boundingBox[1] + rectangle[1], boundingBox[0] + rectangle[2], boundingBox[1] + rectangle[3]])
     else:
@@ -135,3 +149,30 @@ def houghEllipseDetection(img):
     plt.show()
 
   return rectangle
+
+def blobCentroidDetection(img):
+  # convert image to grayscale image
+  gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+  #gray_image = cv2.medianBlur(gray_image, 5)
+
+  # convert the grayscale image to binary image
+  thresh = cv2.adaptiveThreshold(gray_image,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,15,2)
+
+  morph_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+  thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, morph_kernel, iterations=1)  # We apply a close transformation
+
+  # calculate moments of binary image
+  M = cv2.moments(thresh)
+
+  # calculate x,y coordinate of center
+  cX = int(M["m10"] / M["m00"])
+  cY = int(M["m01"] / M["m00"])
+
+  #"""
+  finalimg = cv2.cvtColor(thresh,cv2.COLOR_GRAY2RGB)
+  cv2.circle(finalimg, (cX, cY), 5, (0, 255, 0), -1)
+  cv2.imshow(str(random.randint(1,10000)),finalimg)
+  #"""
+
+  return [cX, cY]

@@ -5,11 +5,10 @@ import numpy as np
 import random
 
 class GameStates(Enum):
-  GSWaitingHomography = 0
-  GSWaitingActionPawns = 1
-  GSUseActionsPawns = 2
-  GSAppealOfWitness = 3
-  GSGameOver = 4
+  GSWaitingActionPawnsThrow = 0
+  GSUsingActionPawns = 1
+  GSAppealOfWitness = 2
+  GSGameOver = 3
 
 from cards_recognition import*
 
@@ -26,8 +25,7 @@ class GameBoard():
 
       self.action_pawns = [0,0,0,0]
       self.board_file = os.path.abspath(os.path.join(os.path.dirname( __file__ ),"Game_state","JackPocketBoard.txt"))
-      self.state = GameStates.GSWaitingHomography
-
+      self.state = GameStates.GSWaitingActionPawnsThrow
       self.alibiCardsDict = [
         ("Joseph Lane", 1, "CBrown" ),
         ("Madame", 2, "CPink"),
@@ -129,7 +127,7 @@ class GameBoard():
   def tryUpdateGameStatus(self, gameState):
     if ((gameState.value < len(GameStates)) and
             ((gameState == self.state) or (gameState.value == self.state.value+1))) or \
-            ((gameState == GameStates.GSWaitingActionPawns) and self.state == (GameStates.GSAppealOfWitness)):
+            ((gameState == GameStates.GSWaitingActionPawnsThrow) and self.state == (GameStates.GSAppealOfWitness)):
       self.state = gameState
       return True
     else:

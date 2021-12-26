@@ -44,10 +44,10 @@ class CardsRecognitionHelper:
       [self.samplesSiftInfos, self.samplesHistograms, self.samplesZncc] = loadSamples(pathHQ,self.selectedSamplesResolution)
     else:
       [self.samplesSiftInfos, self.samplesHistograms, self.samplesZncc] = loadSamples(pathLQ, self.selectedSamplesResolution)
-      #"""
+      """
       if self.selectedSamplesQuality == SamplesQuality.LAHQ:
         [self.samplesSiftInfos2, self.samplesHistograms2, self.samplesZncc] = loadSamples(pathHQ, self.selectedSamplesResolution)
-      #"""
+      """
 
     self.selectedCirclesResolution = int(0.42*self.selectedSamplesResolution)
 
@@ -75,39 +75,59 @@ class CardsRecognitionHelper:
     self.coordinates = coordinates
 
   def ComputeFrame(self, img):
+    self.ComputeCardsOrientation(img)
+    self.ComputeCards(img)
+
+
+  def ComputeCards(self, img, dontCheckReturnedAndInnocentedCards = False):
     if(len(self.rectangles) > 0):
       siftProbabilities = []
       histoProbabilities = []
       znccProbabilities = []
 
-      #"""Try with more than 1 sample
+      """Try with more than 1 sample
       siftProbabilities2 = []
       histoProbabilities2 = []
-      #"""
+      """
+
+      boundingBoxes = getCirclesBb(img,self.rectangles)
 
       for i in range(len(self.rectangles)):
-        cardimg = img[self.cardRectangle[i][1]:self.cardRectangle[i][3], self.cardRectangle[i][0]:self.cardRectangle[i][2]]
-        circleimg = img[self.rectangles[i][1]:self.rectangles[i][3], self.rectangles[i][0]:self.rectangles[i][2]]
+        # Only add the probabilities if the card is on the front side
+        if(self.gameBoard[i][1] == "front"):
+          cardimg = img[self.cardRectangle[i][1]:self.cardRectangle[i][3], self.cardRectangle[i][0]:self.cardRectangle[i][2]]
+          circleimg = img[self.rectangles[i][1]:self.rectangles[i][3], self.rectangles[i][0]:self.rectangles[i][2]]
 
-        siftProbabilities.append(sift_detection(cardimg, self.samplesSiftInfos, self.selectedCirclesResolution))
-        histoProbabilities.append(histogramProbabilities(circleimg, self.samplesHistograms))
-        znccProbabilities.append(zncc_score(circleimg,self.samplesZncc, orientation=self.gameBoard[i][0]))
+          siftProbabilities.append(sift_detection(cardimg, self.samplesSiftInfos, self.selectedCirclesResolution))
+          histoProbabilities.append(histogramProbabilities(circleimg, self.samplesHistograms))
+          znccProbabilities.append(zncc_score(circleimg,self.samplesZncc, orientation=self.gameBoard[i][0]))
 
-        #"""
-        if self.selectedSamplesQuality == SamplesQuality.LAHQ:
-          siftProbabilities2.append(sift_detection(cardimg, self.samplesSiftInfos, self.selectedCirclesResolution))
-          histoProbabilities2.append(histogramProbabilities(circleimg, self.samplesHistograms))
-        #"""
+          """
+          if self.selectedSamplesQuality == SamplesQuality.LAHQ:
+            siftProbabilities2.append(sift_detection(cardimg, self.samplesSiftInfos, self.selectedCirclesResolution))
+            histoProbabilities2.append(histogramProbabilities(circleimg, self.samplesHistograms))
+          """
 
-      # """
+      """
       if self.selectedSamplesQuality == SamplesQuality.LAHQ:
         finalProbabilities = combineProbabilities([siftProbabilities,siftProbabilities2, histoProbabilities, histoProbabilities2, znccProbabilities], [0.0,0.0,0.0,0.0,1])
       else:
-        # """
-        finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilities], [0.1,0.2,0.7])
+      """
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilities], [0.1,0.2,0.7])
 
       assignedObjects = linearAssignment(finalProbabilities, Cards)
-      self.boardReference.setCards(assignedObjects)
+
+      # Now we assign back the objects to only the front turned cards
+      finalAssignedObjects = []
+      j = 0 # Counts the cards returned
+      for i in range(len(self.gameBoard)):
+        if (self.gameBoard[i][1] == "front"):
+          finalAssignedObjects.append(assignedObjects[j])
+          j = j + 1
+        else:
+          finalAssignedObjects.append(None)
+
+      self.boardReference.setCards(finalAssignedObjects)
 
   def DrawFrame(self, img):
     cards = self.boardReference.getCards()
@@ -115,7 +135,7 @@ class CardsRecognitionHelper:
 
     return img
   
-  def ComputeCards(self, img):
+  def ComputeCardsOrientation(self, img):
     self.gameBoard = np.zeros((9,2), dtype= np.chararray)
     self.GetEmptySideCards(img)
     self.getFrontSideCards(img)

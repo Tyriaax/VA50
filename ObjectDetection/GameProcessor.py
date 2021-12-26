@@ -23,77 +23,122 @@ class GameProcessor:
         cv2.setMouseCallback(self.window_name, self.ComputeMouseInput)
 
         self.list_board_coords = []
+        self.actionPawnClicked = None
 
     def ComputeFrame(self, img):
+
+        # If we are still waiting for the homography points
         if not self.homographymatrixfound:
+            # When we have the 4 coordinates we can compute it
             if len(self.list_board_coords) == 4:
+                # When we get the points for homography, set homographymatrix
                 self.homographymatrix, self.coordinates = get_homography_matrix(img, np.array(self.list_board_coords), self.width, self.height)
 
+                # Compute coordinates required for pawns and cards recognition helper
                 self.cardsRecognitionHelper.GetScreenPortions(img, self.coordinates)
                 self.pawnsRecognitionHelper.GetScreenPortion(img, self.coordinates)
+
+                # Then directly compute the cards and their orientation
+                self.cardsRecognitionHelper.ComputeFrame(img)
+
                 self.homographymatrixfound = True
                 img = cv2.warpPerspective(img, self.homographymatrix, (img.shape[1], img.shape[0]))
-                if(self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawns)):
-                    self.cardsRecognitionHelper.ComputeCards(img)
-                    self.cardsRecognitionHelper.ComputeFrame(img)          
         else:
+            # We need to apply homography here so that the frames are correctly computed
             img = cv2.warpPerspective(img, self.homographymatrix, (img.shape[1], img.shape[0]))
+
+            # If we have a clicked Action Pawn to compute
+            if self.actionPawnClicked is not None:
+
+                # Different actions depending on the AP clicked
+                if (self.actionPawnClicked.value <= 4):
+                    self.pawnsRecognitionHelper.ComputeDetectivePawns(img)
+                    print("Previous : \n", self.gameBoard.getPreviousDetectivePawns(), "\nCurrent: \n",
+                          self.gameBoard.getDetectivePawns())
+                elif (self.actionPawnClicked.value <= 7):
+                    self.cardsRecognitionHelper.ComputeFrame(img)
+
+                # We then check if the action pawns has been respected
+                if (self.gameBoard.IsActionPawnRespected(self.actionPawnClicked.name)):
+                    # TODO Why here Aurel ?
+                    if (self.actionPawnClicked.value <= 4):
+                        self.gameBoard.updatePreviousPawnsState()
+                    else:
+                        self.gameBoard.updatePreviousCardsState()
+
+                    # We used the Action Pawns and now we remove it
+                    print("Action Pawn Used")
+                    self.pawnsRecognitionHelper.actionPawnUsed(self.actionPawnClicked)
+
+                    self.gameBoard.getNextPlayerToUseActionsPawns()
+
+                    # If we used all the action pawns move to the next Game Event : Manhunt
+                    if (len(self.gameBoard.getActionPawns()) == 0):
+                        print("Turn Finished")
+                        if (self.gameBoard.tryUpdateGameStatus(GameStates.GSAppealOfWitness)):
+                            self.gameBoard.appealOfWitnesses(self.cardsRecognitionHelper.IsInLineOfSight(self.lastimg))
+                            self.gameBoard.manhunt()
+                else:
+                    print("Action Pawn not Validated")
+
+                # Either we were able to use the action pawn or not, it is not clicked anymore
+                self.actionPawnClicked = None
 
         return img
 
     def DrawFrame(self, img):
         modifiedimg = img.copy()
 
-        if len(self.list_board_coords) < 4:
+        if not self.homographymatrixfound:
+            modifiedimg = drawText(modifiedimg, "Selectionnez les quatre coins des 9 cartes",TextPositions.TPCenter)
             for coord in self.list_board_coords:
                 cv2.circle(modifiedimg, coord, 10, (0, 255, 0), -1)
-
-        if self.gameBoard.getGameStatus() == GameStates.GSWaitingHomography:
-            modifiedimg = drawText(modifiedimg, "Selectionnez les quatre coins des 9 cartes",TextPositions.TPCenter)
-        if self.gameBoard.getGameStatus() == GameStates.GSWaitingActionPawns:
+        elif self.gameBoard.getGameStatus() == GameStates.GSWaitingActionPawnsThrow:
             modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg, drawOffset=True)
             modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
-            modifiedimg = drawText(modifiedimg, "Appuyez sur P pour detecter les pions", TextPositions.TPTopL)
-            modifiedimg = drawText(modifiedimg, "Ou sur C pour redetecter les cartes", TextPositions.TPTopL, 1)
-        if self.gameBoard.getGameStatus() == GameStates.GSUseActionsPawns:
+            modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Appuyez sur P pour detecter les pions", "Ou sur C pour redetecter les cartes"], TextPositions.TPTopL)
+        elif self.gameBoard.getGameStatus() == GameStates.GSUsingActionPawns:
             modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
             modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
-            modifiedimg = drawText(modifiedimg, "Realisez votre Action puis", TextPositions.TPTopL)
-            modifiedimg = drawText(modifiedimg, "Appuyez sur le jeton correspondant", TextPositions.TPTopL, 1)
-            modifiedimg = drawText(modifiedimg, "Ou sur P pour redetecter les pions", TextPositions.TPTopL, 2)
-            modifiedimg = drawText(modifiedimg, "Tour : " + str(self.gameBoard.getTurnCount()) + "/" + str(self.gameBoard.getMaxTurnCount()), TextPositions.TPTopR)
-            modifiedimg = drawText(modifiedimg, "Joueur : " + str(self.gameBoard.getCurrentPlayer()), TextPositions.TPTopR,1)
-        if self.gameBoard.getGameStatus() == GameStates.GSAppealOfWitness:
+            modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Realisez votre Action puis","Appuyez sur le jeton correspondant","Ou sur P pour redetecter les pions"], TextPositions.TPTopL)
+            modifiedimg = drawPlayerAndTurn(modifiedimg, self.gameBoard.getCurrentPlayer(), self.gameBoard.getTurnCount())
+        elif self.gameBoard.getGameStatus() == GameStates.GSAppealOfWitness:
             modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
             modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
-            modifiedimg = drawText(modifiedimg, "Retournez les cartes innocentees", TextPositions.TPTopL)
-            modifiedimg = drawText(modifiedimg, "Puis appuyez sur c", TextPositions.TPTopL, 1)
-            modifiedimg = drawText(modifiedimg, "Tour : " + str(self.gameBoard.getTurnCount()) + "/" + str(self.gameBoard.getMaxTurnCount()), TextPositions.TPTopR)
-        if self.gameBoard.getGameStatus() == GameStates.GSGameOver:
-            modifiedimg = drawText(modifiedimg, "Partie terminee", TextPositions.TPCenter)
-            if(self.gameBoard.getDetectiveWins()):
-                modifiedimg = drawText(modifiedimg, "Vous avez gagne", TextPositions.TPCenter,1)
+            modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Retournez les cartes innocentees","Puis appuyez sur C"], TextPositions.TPTopL)
+            modifiedimg = drawTurn(modifiedimg,self.gameBoard.getTurnCount())
+        elif self.gameBoard.getGameStatus() == GameStates.GSGameOver:
+            if (self.gameBoard.getDetectiveWins()):
+                winnerstring = "Vous avez gagne"
             else:
-                modifiedimg = drawText(modifiedimg, "Jack a gagne", TextPositions.TPCenter,1)
+                winnerstring = "Jack a gagne"
+            modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Partie terminee",winnerstring], TextPositions.TPCenter)
+
 
         return modifiedimg
 
     def ComputeInputs(self, img):
-        self.lastimg = img
         continuebool = True
 
         key = cv2.waitKey(1) & 0xFF
+
+        # Exit if Q or ESC pressed
         if key == ord('q') or key == 27:
             continuebool = False
+        # If we press C for detect Cards
         if (key == ord('c') or self.capEveryFrame):
+            # First this is here we check for victory, when we detect the cards after a ManHunt
             if (self.gameBoard.getDetectiveWins() or self.gameBoard.getJackWins()):
                 self.gameBoard.tryUpdateGameStatus(GameStates.GSGameOver)
-            elif (self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawns)):
+
+            elif (self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)):
                 self.cardsRecognitionHelper.ComputeCards(img)
                 self.cardsRecognitionHelper.ComputeFrame(img)
 
+        # If we press P for detect Pawns
         if (key == ord('p') or self.capEveryFrame):
-            if (self.gameBoard.tryUpdateGameStatus(GameStates.GSUseActionsPawns)):
+
+            if (self.gameBoard.tryUpdateGameStatus(GameStates.GSUsingActionPawns)):
                 self.pawnsRecognitionHelper.ComputeFrame(img)
                 self.gameBoard.printState()
 
@@ -101,33 +146,15 @@ class GameProcessor:
 
     def ComputeMouseInput(self,event,x,y,flags,params):
         if event == cv2.EVENT_LBUTTONDOWN:
+            # If we are still at the homography stage record the first 4 points coordinates
             if len(self.list_board_coords) < 4:
                 self.list_board_coords.append([x, y])
             else:
                 actionPawnIndex = self.pawnsRecognitionHelper.actionPawnClick([x,y])
+
+                # If we click on a (remaining) action pawn bounding box
                 if actionPawnIndex is not None:
                     actionPawnClicked = self.gameBoard.getActionPawns()[actionPawnIndex]
-                    selectedAP = ActionPawns[actionPawnClicked]
                     print("Action Pawn Clicked : " + actionPawnClicked)
-                    if(selectedAP.value <= 4):
-                        self.pawnsRecognitionHelper.ComputeDetectivePawns(self.lastimg)
-                        print("Previous : \n", self.gameBoard.getPreviousDetectivePawns(), "\nCurrent: \n", self.gameBoard.getDetectivePawns())
-                    elif(selectedAP.value <= 7):
-                        self.cardsRecognitionHelper.ComputeCards(self.lastimg)
-                        self.cardsRecognitionHelper.ComputeFrame(self.lastimg)
 
-                    if(self.gameBoard.IsActionPawnRespected(actionPawnClicked)):
-                        print("Action Pawn Used")
-                        self.pawnsRecognitionHelper.actionPawnUsed(actionPawnIndex)
-                        if(selectedAP.value <= 4):
-                            self.gameBoard.updatePreviousPawnsState()
-                        else:
-                            self.gameBoard.updatePreviousCardsState()
-                        self.gameBoard.getNextPlayerToUseActionsPawns()
-                        if(len(self.gameBoard.getActionPawns()) == 0):
-                            print("Turn Finished")
-                            if(self.gameBoard.tryUpdateGameStatus(GameStates.GSAppealOfWitness)):
-                                self.gameBoard.appealOfWitnesses(self.cardsRecognitionHelper.IsInLineOfSight(self.lastimg))
-                                self.gameBoard.manhunt()
-                    else:
-                        print("Action Pawn not Validated")
+                    self.actionPawnClicked = ActionPawns[actionPawnClicked]

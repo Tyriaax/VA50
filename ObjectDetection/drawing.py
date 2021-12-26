@@ -15,7 +15,8 @@ def drawRectangle(img,boundingBox,name):
 
 def drawRectanglesWithAssignment(img, foundObjects, boundingBoxes):
   for i in range(len(boundingBoxes)):
-    img = drawRectangle(img, boundingBoxes[i], foundObjects[i])
+    if (foundObjects[i] is not None):
+      img = drawRectangle(img, boundingBoxes[i], foundObjects[i])
 
   return img
 
@@ -34,4 +35,20 @@ def drawText(img, text, position, offset = 0):
     textY = (textsize[1] + marginTop) * (offset + 1)
 
   cv2.putText(img, text, (int(textX), int(textY)), font, 1, (0, 255, 0), 2)
+  return img
+
+def drawMultipleLinesOfText(img, texts, position):
+  for i in range(len(texts)):
+    img = drawText(img,texts[i],position,i)
+
+  return img
+
+def drawPlayerAndTurn(img, player, turn):
+  img = drawMultipleLinesOfText(img, ["Joueur : " + player, "Tour : " + str(turn) + "/8"],TextPositions.TPTopR)
+
+  return img
+
+def drawTurn(img, turn):
+  img = drawText(img, "Tour : " + str(turn) + "/8", TextPositions.TPTopR)
+
   return img
