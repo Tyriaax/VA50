@@ -217,9 +217,6 @@ game_board = {
 valid_actions = ["APJoker", "APSherlock","APReturn"] #"APChangeCard"]
 
 a = JackAi()
-#s = a.get_heuristic(game_board)
-#print(s)
-#a.do_return_action(game_board,0, "left")
 a.jack(game_board, 2, False, valid_actions)
 
 

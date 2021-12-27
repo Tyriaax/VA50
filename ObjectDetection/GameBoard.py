@@ -48,6 +48,8 @@ class GameBoard():
       self.currentPlayer = "Detective"
       self.jack = self.selectRandomJack()
       self.actionPawnsPlayed = 0
+
+      self.innocentCards = list()
   
   def getPreviousCards(self):
     return self.previousCards
@@ -138,8 +140,8 @@ class GameBoard():
     print("Jack is :", self.jack)
     if self.jack in self.cards:
        index = self.cards.index(self.jack)
-       x, y = index//3 + 1, index%3 + 1
-    return [x,y]
+       #x, y = index//3 + 1, index%3 + 1
+    return index
 
   def getDetectivesPos(self):
     detectivesPawns = ['DPSherlock', 'DPWatson', 'DPToby']
@@ -315,4 +317,7 @@ class GameBoard():
     
     self.checkVictory(isJackSeen)
     self.turnCount += 1
+
+  def setInnocentCard(self, innocentCards):
+    self.innocentCards = innocentCards
 

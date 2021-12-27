@@ -40,7 +40,7 @@ class GameProcessor:
 
                 # Then directly compute the cards and their orientation
                 self.cardsRecognitionHelper.ComputeFrame(img)
-
+                
                 self.homographymatrixfound = True
                 img = cv2.warpPerspective(img, self.homographymatrix, (img.shape[1], img.shape[0]))
         else:

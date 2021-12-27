@@ -344,15 +344,24 @@ class CardsRecognitionHelper:
 
           if len(inSightPos) > 0 :
             for pos in inSightPos:            
-              x, y = pos[1]//3 + 1, pos[1]%3 + 1
-              inSightList.append((x,y))
-              if jackPosition[0] == x and jackPosition[1] == y: 
+              #x, y = pos[1]//3 + 1, pos[1]%3 + 1
+              #inSightList.append((x,y))
+              #if jackPosition[0] == x and jackPosition[1] == y: 
+              if jackPosition == pos[1]:
                 jackInSight = True
-    
+
+    cards =  self.boardReference.cards()
     if jackInSight:
       print("JACK IN SIGHT")
-      return True, inSightList
+      for pos in inSightPos: 
+        inSightList.append(cards[pos[1]]) #Index des cartes en lignes de vues par les détectiives    
+      self.boardReference.setInnocentCard(inSightList)
+      return True
     else:
       print("Jack not in sight") 
-      return False, inSightList
+      inSightList = [cards[index] for index in range(9)]
+      for pos in inSightPos: 
+        inSightList.pop(pos[i]) #Index des cartes en lignes de vues par les détectiives
+      self.boardReference.setInnocentCard(inSightList)
+      return False
 
