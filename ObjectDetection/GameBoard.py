@@ -4,13 +4,24 @@ from enum import Enum
 import numpy as np
 import random
 
+class Cards(Enum):
+  CBlack = 0
+  CBlue = 1
+  CBrown = 2
+  CGreen = 3
+  COrange = 4
+  CPink = 5
+  CPurple = 6
+  CWhite = 7
+  CYellow = 8
+
 class GameStates(Enum):
   GSWaitingActionPawnsThrow = 0
   GSUsingActionPawns = 1
   GSAppealOfWitness = 2
   GSGameOver = 3
 
-from cards_recognition import*
+from cards_recognition import *
 
 class GameBoard():
   def __init__(self) -> None:
@@ -242,6 +253,7 @@ class GameBoard():
       randomAlibiCard = self.alibiCardsDict.pop(randomIndex)
       if randomAlibiCard:
         self.addJackHourglasses(randomAlibiCard[1])
+        self.addInnocentCards(randomAlibiCard[2])
         return True
 
     print("current cards :\n ", self.cards , "previous cards:\n ", self.previousCards)
@@ -318,6 +330,28 @@ class GameBoard():
     self.checkVictory(isJackSeen)
     self.turnCount += 1
 
-  def setInnocentCard(self, innocentCards):
-    self.innocentCards = innocentCards
+  def addInnocentCards(self, innocentCards):
+    if (len(innocentCards) > 1):
+      for i in range(len(innocentCards)):
+        if (innocentCards[i] != 0) and (innocentCards[i] not in self.innocentCards):
+          self.innocentCards.append(innocentCards[i])
 
+    else:
+      if (innocentCards != 0) and (innocentCards not in self.innocentCards):
+        self.innocentCards.append(innocentCards)
+
+  def getInnocentCards(self):
+    return self.innocentCards
+
+  def getInnocentCardsIndex(self):
+    indexes = []
+    if len(self.innocentCards) > 0:
+      if (len(self.innocentCards) > 1):
+        for i in range(len(self.innocentCards)):
+          indexes.append(Cards[self.innocentCards[i]])
+      else:
+        indexes.append(Cards[self.innocentCards])
+
+      indexes.sort()
+
+    return indexes

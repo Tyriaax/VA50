@@ -10,17 +10,6 @@ import numpy
 from GameBoard import *
 import random
 
-class Cards(Enum):
-  CBlack = 0
-  CBlue = 1
-  CBrown = 2
-  CGreen = 3
-  COrange = 4
-  CPink = 5
-  CPurple = 6
-  CWhite = 7
-  CYellow = 8
-
 class SamplesQuality(Enum):
   LQ = 1
   HQ = 2
@@ -92,15 +81,27 @@ class CardsRecognitionHelper:
 
       boundingBoxes = getCirclesBb(img,self.rectangles)
 
+      # Remove the samples of innocentCards
+      innocentCards = self.boardReference.getInnocentCardsIndex()
+      samplesSift = self.samplesSiftInfos.copy()
+      samplesZncc = self.samplesZncc.copy()
+      j = 0
+      for i in range(len(self.rectangles)):
+        if i in innocentCards:
+          samplesSift.pop(j)
+          samplesZncc.pop(j)
+        else:
+          j = j+1
+
       for i in range(len(self.rectangles)):
         # Only add the probabilities if the card is on the front side
         if(self.gameBoard[i][1] == "front"):
           # cardimg = img[self.cardRectangle[i][1]:self.cardRectangle[i][3], self.cardRectangle[i][0]:self.cardRectangle[i][2]] # TODO NOT USED ?
           circleimg = img[self.rectangles[i][1]:self.rectangles[i][3], self.rectangles[i][0]:self.rectangles[i][2]]
 
-          siftProbabilities.append(sift_detection(circleimg, self.samplesSiftInfos, self.selectedSamplesResolution)) # TODO STAY ?
+          siftProbabilities.append(sift_detection(circleimg, samplesSift, self.selectedSamplesResolution)) # TODO STAY ?
           histoProbabilities.append(histogramProbabilities(circleimg, self.samplesHistograms))
-          znccProbabilities.append(zncc_score(circleimg,self.samplesZncc, orientation=self.gameBoard[i][0]))
+          znccProbabilities.append(zncc_score(circleimg,samplesZncc, orientation=self.gameBoard[i][0]))
 
           """
           if self.selectedSamplesQuality == SamplesQuality.LAHQ:
@@ -113,12 +114,20 @@ class CardsRecognitionHelper:
         finalProbabilities = combineProbabilities([siftProbabilities,siftProbabilities2, histoProbabilities, histoProbabilities2, znccProbabilities], [0.0,0.0,0.0,0.0,1])
       else:
       """
+      # Remove the unwanted HistogramProbabilities
+      j = 0
+      for i in range(len(self.rectangles)):
+        if i in innocentCards:
+          histoProbabilities.pop(j)
+        else:
+          j = j+1
+
       # finalProbabilities = combineProbabilities([histoProbabilities, znccProbabilities], [0.3, 0.7]) #TODO STAY ?
       finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilities], [0.1,0.2,0.7]) # TODO PUT BACK
 
       assignedObjects = linearAssignment(finalProbabilities, Cards)
 
-      # Now we assign back the objects to only the front turned cards
+      # Now we assign back the objects to only the front turned cards TODO ADD SAFETY IN CASE A CARD INNOCENTED IS NOT DETECTED AS TURNED
       finalAssignedObjects = []
       j = 0 # Counts the cards returned
       for i in range(len(self.gameBoard)):
@@ -351,18 +360,18 @@ class CardsRecognitionHelper:
               if jackPosition == pos[1]:
                 jackInSight = True
 
-    cards =  self.boardReference.cards()
+    cards = self.boardReference.getCards()
     if jackInSight:
       print("JACK IN SIGHT")
       for pos in inSightPos: 
         inSightList.append(cards[pos[1]]) #Index des cartes en lignes de vues par les détectiives    
-      self.boardReference.setInnocentCard(inSightList)
+      self.boardReference.addInnocentCard(inSightList)
       return True
     else:
       print("Jack not in sight") 
       inSightList = [cards[index] for index in range(9)]
       for pos in inSightPos: 
         inSightList.pop(pos[i]) #Index des cartes en lignes de vues par les détectiives
-      self.boardReference.setInnocentCard(inSightList)
+      self.boardReference.addInnocentCard(inSightList)
       return False
 
