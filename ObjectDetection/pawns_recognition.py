@@ -24,21 +24,23 @@ class DetectivePawns(Enum):
   DPWatson = 2
 
 class PawnsRecognitionHelper:
-  selectedSamplesQuality = "HQ" #TODO Change back
+  selectedSamplesQuality = "LQ" #TODO Change back
 
-  selectedSamplesResolution = 400
+  selectedSamplesResolution = 200
 
   maxThrownActionPawnsNumber = 4
 
   def __init__(self, height, width, gameBoard):
 
     DPpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Pawns", "DetectivePawns"))
-    APpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Pawns", "ActionPawns3"))
+    APpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Pawns", "ActionPawns"))
+    self.applyCircleMask = True
+    self.applySharpenFilter = True
 
 
-    [self.DPsamplesSiftInfos, self.DPsamplesHistograms, self.DPsamplesZncc] = loadSamples(DPpath, self.selectedSamplesResolution)
+    [self.DPsamplesSiftInfos, self.DPsamplesHistograms, self.DPsamplesZncc] = loadSamples(DPpath, self.selectedSamplesResolution,  self.applyCircleMask, self.applySharpenFilter)
 
-    [self.APsamplesSiftInfos, self.APsamplesHistograms, self.APsamplesZncc] = loadSamples(APpath, self.selectedSamplesResolution)
+    [self.APsamplesSiftInfos, self.APsamplesHistograms, self.APsamplesZncc] = loadSamples(APpath, self.selectedSamplesResolution, self.applyCircleMask, self.applySharpenFilter)
 
     self.boardReference = gameBoard
     self.detectivePawnsLocations = list()
@@ -105,13 +107,19 @@ class PawnsRecognitionHelper:
     histoProbabilities = []
     znccProbabilities = []
     for i in range(min(len(boundingBoxes), len(DetectivePawns))):
-      currentimg = img[boundingBoxes[i][1]:boundingBoxes[i][3], boundingBoxes[i][0]:boundingBoxes[i][2]]
-      siftProbabilities.append(sift_detection(currentimg, self.DPsamplesSiftInfos,self.selectedSamplesResolution))
+      if self.applyCircleMask:
+        currentimg = self.CircleMask(img[boundingBoxes[i][1]:boundingBoxes[i][3], boundingBoxes[i][0]:boundingBoxes[i][2]],self.selectedSamplesResolution)
+      else:
+        currentimg = img[boundingBoxes[i][1]:boundingBoxes[i][3], boundingBoxes[i][0]:boundingBoxes[i][2]]
+
+      siftProbabilities.append(sift_detection(currentimg, self.DPsamplesSiftInfos,self.selectedSamplesResolution, self.applyCircleMask, self.applySharpenFilter))
       histoProbabilities.append(histogramProbabilities(currentimg, self.DPsamplesHistograms))
       znccProbabilities.append(zncc_pawn(currentimg,self.DPsamplesZncc))
 
     if (len(boundingBoxes) > 0):
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities,znccProbabilities], [0.5,0.5,0])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities,znccProbabilities], [0, 0.2, 0.8])
+
+      #print(finalProbabilities)
 
       assignedObjects = linearAssignment(finalProbabilities, DetectivePawns)
       DPpawnspositions = self.getDetectivePawnsPositions(assignedObjects,boundingBoxes)
@@ -128,17 +136,35 @@ class PawnsRecognitionHelper:
     histoProbabilities = []
     znccProbabilites = []
     for i in range(min(len(boundingBoxes), self.maxThrownActionPawnsNumber)):
-      currentimg = maskedimg[boundingBoxes[i][1]:boundingBoxes[i][3], boundingBoxes[i][0]:boundingBoxes[i][2]]
-      siftProbabilities.append(sift_detection(currentimg, self.APsamplesSiftInfos, self.selectedSamplesResolution))
+      if self.applyCircleMask:
+        currentimg = self.CircleMask( maskedimg[boundingBoxes[i][1]:boundingBoxes[i][3], boundingBoxes[i][0]:boundingBoxes[i][2]], self.selectedSamplesResolution)
+      else:
+        currentimg = maskedimg[boundingBoxes[i][1]:boundingBoxes[i][3], boundingBoxes[i][0]:boundingBoxes[i][2]]
+
+      siftProbabilities.append(sift_detection(currentimg, self.APsamplesSiftInfos, self.selectedSamplesResolution, self.applyCircleMask, self.applySharpenFilter))
       histoProbabilities.append(histogramProbabilities(currentimg, self.APsamplesHistograms))
       znccProbabilites.append(zncc_pawn(currentimg, self.APsamplesZncc))
 
     if (len(boundingBoxes) > 0):
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilites],  [0,0, 1])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilites],  [0, 0.2, 0.8])
+
+      #print(finalProbabilities)
 
       assignedObjects = linearAssignment(finalProbabilities, ActionPawns)
       self.boardReference.setActionPawns(assignedObjects)
       self.actionPawnsBb = boundingBoxes[0:self.maxThrownActionPawnsNumber]
+
+  def CircleMask(self, img, resolution):
+    dim = (resolution, resolution)
+    img = cv2.resize(img, dim, interpolation=cv2.INTER_LINEAR)
+
+    height, width = img.shape[:2]
+    mask = np.full((height, width), 0, dtype=np.uint8)
+    cv2.circle(mask, ( width // 2, height // 2), height // 2, 255, -1)
+
+    img = cv2.bitwise_and(img, img, mask=mask)
+
+    return img
 
   def ComputeFrame(self, img):
     self.ComputeActionPawns(img)

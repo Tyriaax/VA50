@@ -50,7 +50,12 @@ def linearAssignment(finalProbabilities, selectedEnum):
     if np.isnan(array).any():
       array = np.full(len(array),1000000)
     else:
-      array = 1./array
+      for j in range(len(array)):
+        if array[j] != 0:
+          array[j] = 1/array[j]
+        else:
+          array[j] = 1000000
+
     costmatrix[i] = array
 
   row_ind, col_ind = linear_sum_assignment(costmatrix)

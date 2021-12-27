@@ -3,7 +3,7 @@ from sift import *
 from HistogramComparison import*
 from zncc import *
 
-def loadSamples(path, resolution = None):
+def loadSamples(path, resolution = None, circleMask = False, applySharpen = False):
   dir = os.listdir(path)
 
   samplesSiftInfoList = []
@@ -13,7 +13,7 @@ def loadSamples(path, resolution = None):
   for image in dir:
     img = cv2.imread(os.path.join(path, image))
     if resolution:
-      samplesSiftInfoList.append(SiftInfo(img,resolution))
+      samplesSiftInfoList.append(SiftInfo(img,resolution, circleMask, applySharpen))
     else:
       samplesSiftInfoList.append(SiftInfo(img))
 

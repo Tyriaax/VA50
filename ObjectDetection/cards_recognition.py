@@ -29,11 +29,11 @@ class SamplesQuality(Enum):
 class CardsRecognitionHelper:
   selectedSamplesQuality = SamplesQuality.LQ
 
-  selectedSamplesResolution = 400
+  selectedSamplesResolution = 200
 
   def __init__(self, height, width, gameBoard):
     pathHQ = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", "HQ", "Cards"))
-    pathLQ = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", "LQ", "CardsWithContour3"))
+    pathLQ = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", "LQ", "CardsWithContour"))
 
     self.boardReference = gameBoard
     self.cardRectangle = list()
@@ -49,7 +49,7 @@ class CardsRecognitionHelper:
         [self.samplesSiftInfos2, self.samplesHistograms2, self.samplesZncc] = loadSamples(pathHQ, self.selectedSamplesResolution)
       """
 
-    self.selectedCirclesResolution = int(0.42*self.selectedSamplesResolution)
+    # self.selectedCirclesResolution = int(0.42*self.selectedSamplesResolution)
 
   def GetScreenPortions(self, img,coordinates):
     cardToCircleProportion = 0.26
@@ -95,10 +95,10 @@ class CardsRecognitionHelper:
       for i in range(len(self.rectangles)):
         # Only add the probabilities if the card is on the front side
         if(self.gameBoard[i][1] == "front"):
-          cardimg = img[self.cardRectangle[i][1]:self.cardRectangle[i][3], self.cardRectangle[i][0]:self.cardRectangle[i][2]]
+          # cardimg = img[self.cardRectangle[i][1]:self.cardRectangle[i][3], self.cardRectangle[i][0]:self.cardRectangle[i][2]] # TODO NOT USED ?
           circleimg = img[self.rectangles[i][1]:self.rectangles[i][3], self.rectangles[i][0]:self.rectangles[i][2]]
 
-          siftProbabilities.append(sift_detection(cardimg, self.samplesSiftInfos, self.selectedCirclesResolution))
+          siftProbabilities.append(sift_detection(circleimg, self.samplesSiftInfos, self.selectedSamplesResolution)) # TODO STAY ?
           histoProbabilities.append(histogramProbabilities(circleimg, self.samplesHistograms))
           znccProbabilities.append(zncc_score(circleimg,self.samplesZncc, orientation=self.gameBoard[i][0]))
 
@@ -113,7 +113,8 @@ class CardsRecognitionHelper:
         finalProbabilities = combineProbabilities([siftProbabilities,siftProbabilities2, histoProbabilities, histoProbabilities2, znccProbabilities], [0.0,0.0,0.0,0.0,1])
       else:
       """
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilities], [0.1,0.2,0.7])
+      # finalProbabilities = combineProbabilities([histoProbabilities, znccProbabilities], [0.3, 0.7]) #TODO STAY ?
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilities], [0.1,0.2,0.7]) # TODO PUT BACK
 
       assignedObjects = linearAssignment(finalProbabilities, Cards)
 
