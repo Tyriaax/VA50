@@ -215,7 +215,6 @@ class CardsRecognitionHelper:
     index = 0
     if(len(self.rectangles) > 0):
       for boundingBox in self.cardRectangle:
-
         horizontalHalfLeft = False
         horizontalHalfRight = False
         horizontalLine = True

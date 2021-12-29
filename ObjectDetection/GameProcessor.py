@@ -37,12 +37,12 @@ class GameProcessor:
                 # Compute coordinates required for pawns and cards recognition helper
                 self.cardsRecognitionHelper.GetScreenPortions(img, self.coordinates)
                 self.pawnsRecognitionHelper.GetScreenPortion(img, self.coordinates)
-
-                # Then directly compute the cards and their orientation
-                self.cardsRecognitionHelper.ComputeFrame(img)
                 
                 self.homographymatrixfound = True
                 img = cv2.warpPerspective(img, self.homographymatrix, (img.shape[1], img.shape[0]))
+
+                # Then directly compute the cards and their orientation
+                self.cardsRecognitionHelper.ComputeFrame(img)
         else:
             # We need to apply homography here so that the frames are correctly computed
             img = cv2.warpPerspective(img, self.homographymatrix, (img.shape[1], img.shape[0]))
@@ -64,7 +64,7 @@ class GameProcessor:
                     if (self.actionPawnClicked.value <= 4):
                         self.gameBoard.updatePreviousPawnsState()
                     else:
-                        self.gameBoard.updatePreviousCardsState()
+                        self.gameBoard.updatePreviousCards()
 
                     # We used the Action Pawns and now we remove it
                     print("Action Pawn Used")
@@ -98,7 +98,7 @@ class GameProcessor:
             modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Appuyez sur P pour detecter les pions", "Ou sur C pour redetecter les cartes"], TextPositions.TPTopL)
         elif self.gameBoard.getGameStatus() == GameStates.GSUsingActionPawns:
             # We ask for player input of show the action played by IA
-            if (self.gameBoard.getCurrentPlayer() == "Detectives"):
+            if (self.gameBoard.getCurrentPlayer() == "Detective"):
                 modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
                 modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
                 modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Realisez votre Action puis","Appuyez sur le jeton correspondant","Ou sur P pour redetecter les pions"], TextPositions.TPTopL)
@@ -142,12 +142,15 @@ class GameProcessor:
             elif (self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)):
                 self.cardsRecognitionHelper.ComputeCards(img)
                 self.cardsRecognitionHelper.ComputeFrame(img)
+                self.gameBoard.updatePreviousCards()
+
 
         # If we press P for detect Pawns
         if (key == ord('p')): # or self.capEveryFrame
 
             if (self.gameBoard.tryUpdateGameStatus(GameStates.GSUsingActionPawns)):
                 self.pawnsRecognitionHelper.ComputeFrame(img)
+                self.gameBoard.updatePreviousPawnsState()
                 self.gameBoard.printState()
 
 

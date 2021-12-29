@@ -169,7 +169,7 @@ class GameBoard():
 
     return detectivesPawnsIndexs
   
-  def updatePreviousCardsState(self):
+  def updatePreviousCards(self):
     self.previousCards = self.cards
     self.previousCardsState = self.cardsState
   
@@ -210,7 +210,7 @@ class GameBoard():
               (previousIndexToby == indexToby and previousIndexWatson == indexWatson and previousIndexSherlock == indexSherlock) :
               return True
 
-          elif self.currentPlayer == "Detectives":
+          elif self.currentPlayer == "Detective":
             if ((previousIndexSherlock + 1) % lengthDetectivePawnsList == indexSherlock and previousIndexToby == indexToby and previousIndexWatson == indexWatson) or \
               ((previousIndexToby + 1) % lengthDetectivePawnsList == indexToby and previousIndexSherlock == indexSherlock and previousIndexWatson == indexWatson) or \
               ((previousIndexWatson + 1) % lengthDetectivePawnsList == indexWatson and previousIndexSherlock == indexSherlock and previousIndexToby == indexToby):
@@ -293,7 +293,7 @@ class GameBoard():
   
   def switchPlayer(self):
     if self.currentPlayer == "Jack":
-      self.currentPlayer = "Detectives"
+      self.currentPlayer = "Detective"
     else:
       self.currentPlayer = "Jack"
   
@@ -316,7 +316,7 @@ class GameBoard():
       self.isJackFirst = True
       print("Flip back the tokens.")
     else:
-      self.currentPlayer = "Detectives"
+      self.currentPlayer = "Detective"
       self.isJackFirst = False
       print("Detective starts: you can throw the tokens")
   
@@ -379,9 +379,8 @@ class GameBoard():
       "jack" : self.jack 
     }   
 
-    action_taken = self.jack_ai.jack(game_board, self.actionPawnsPlayed, self.isJackFirst, self.getActionPawns())
-    self.iaAction = action_taken
-    print(action_taken)
+    self.iaAction  = self.jack_ai.jack(game_board, self.actionPawnsPlayed, self.isJackFirst, self.getActionPawns())
+    print(self.iaAction )
 
   def getIaAction(self):
     return self.iaAction
