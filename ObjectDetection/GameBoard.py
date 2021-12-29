@@ -64,6 +64,7 @@ class GameBoard():
       self.actionPawnsPlayed = 0
 
       self.innocentCards = list()
+      self.iaAction = None
   
   def getPreviousCards(self):
     return self.previousCards
@@ -365,6 +366,8 @@ class GameBoard():
     self.getNextPlayerToUseActionsPawns()
     if self.currentPlayer == "Jack":
       self.jackPlays()
+    else:
+      self.iaAction = None
 
   def jackPlays(self):
 
@@ -377,4 +380,8 @@ class GameBoard():
     }   
 
     action_taken = self.jack_ai.jack(game_board, self.actionPawnsPlayed, self.isJackFirst, self.getActionPawns())
+    self.iaAction = action_taken
     print(action_taken)
+
+  def getIaAction(self):
+    return self.iaAction

@@ -97,10 +97,19 @@ class GameProcessor:
             modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
             modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Appuyez sur P pour detecter les pions", "Ou sur C pour redetecter les cartes"], TextPositions.TPTopL)
         elif self.gameBoard.getGameStatus() == GameStates.GSUsingActionPawns:
-            modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
-            modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
-            modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Realisez votre Action puis","Appuyez sur le jeton correspondant","Ou sur P pour redetecter les pions"], TextPositions.TPTopL)
-            modifiedimg = drawPlayerAndTurn(modifiedimg, self.gameBoard.getCurrentPlayer(), self.gameBoard.getTurnCount())
+            # We ask for player input of show the action played by IA
+            if (self.gameBoard.getCurrentPlayer() == "Detectives"):
+                modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
+                modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
+                modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Realisez votre Action puis","Appuyez sur le jeton correspondant","Ou sur P pour redetecter les pions"], TextPositions.TPTopL)
+                modifiedimg = drawPlayerAndTurn(modifiedimg, self.gameBoard.getCurrentPlayer(), self.gameBoard.getTurnCount())
+            else:
+                modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
+                modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
+                IAAction = self.gameBoard.getIaAction()
+                if IAAction:
+                    modifiedimg = drawMultipleLinesOfText(modifiedimg, str(IAAction), TextPositions.TPTopL)
+                modifiedimg = drawPlayerAndTurn(modifiedimg, self.gameBoard.getCurrentPlayer(),self.gameBoard.getTurnCount())
         elif self.gameBoard.getGameStatus() == GameStates.GSAppealOfWitness:
             modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
             modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
@@ -125,7 +134,7 @@ class GameProcessor:
         if key == ord('q') or key == 27:
             continuebool = False
         # If we press C for detect Cards
-        if (key == ord('c') or self.capEveryFrame):
+        if (key == ord('c')): # or self.capEveryFrame
             # First this is here we check for victory, when we detect the cards after a ManHunt
             if (self.gameBoard.getDetectiveWins() or self.gameBoard.getJackWins()):
                 self.gameBoard.tryUpdateGameStatus(GameStates.GSGameOver)
@@ -135,11 +144,19 @@ class GameProcessor:
                 self.cardsRecognitionHelper.ComputeFrame(img)
 
         # If we press P for detect Pawns
-        if (key == ord('p') or self.capEveryFrame):
+        if (key == ord('p')): # or self.capEveryFrame
 
             if (self.gameBoard.tryUpdateGameStatus(GameStates.GSUsingActionPawns)):
                 self.pawnsRecognitionHelper.ComputeFrame(img)
                 self.gameBoard.printState()
+
+
+        # If we press space to validate IA Action
+        if (key == 32): # or self.capEveryFrame
+            if (self.gameBoard.currentPlayer == "Jack"):
+                self.pawnsRecognitionHelper.ComputeFrame(img)
+                self.cardsRecognitionHelper.ComputeCards(img)
+                self.gameBoard.nextTurn()
 
         return continuebool
 
