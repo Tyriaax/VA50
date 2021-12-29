@@ -370,13 +370,13 @@ class CardsRecognitionHelper:
       print("JACK IN SIGHT")
       for pos in inSightPos: 
         inSightList.append(cards[pos[1]]) #Index des cartes en lignes de vues par les détectiives    
-      self.boardReference.addInnocentCard(inSightList)
+      self.boardReference.addInnocentCards(inSightList)
       return True
     else:
       print("Jack not in sight") 
       inSightList = [cards[index] for index in range(9)]
       for pos in inSightPos: 
-        inSightList.pop(pos[i]) #Index des cartes en lignes de vues par les détectiives
-      self.boardReference.addInnocentCard(inSightList)
+        inSightList.pop(pos[1]) #Index des cartes en lignes de vues par les détectiives
+      self.boardReference.addInnocentCards(inSightList)
       return False
 

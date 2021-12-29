@@ -1,4 +1,4 @@
 
-CPink|CYellow|CWhite|
+CWhite|CYellow|CPink|
 CBlue|CBlack|CBrown|
-CPurple|COrange|CGreen|
+CPurple|CGreen|COrange|
