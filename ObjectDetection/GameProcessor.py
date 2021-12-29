@@ -57,6 +57,7 @@ class GameProcessor:
                           self.gameBoard.getDetectivePawns())
                 elif (self.actionPawnClicked.value <= 7):
                     self.cardsRecognitionHelper.ComputeFrame(img)
+                #else: TODO
 
                 # We then check if the action pawns has been respected
                 if (self.gameBoard.IsActionPawnRespected(self.actionPawnClicked.name)):
@@ -104,12 +105,11 @@ class GameProcessor:
                 modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Realisez votre Action puis","Appuyez sur le jeton correspondant","Ou sur P pour redetecter les pions"], TextPositions.TPTopL)
                 modifiedimg = drawPlayerAndTurn(modifiedimg, self.gameBoard.getCurrentPlayer(), self.gameBoard.getTurnCount())
             else:
-                modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
-                modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
+                modifiedimg = drawPlayerAndTurn(modifiedimg, self.gameBoard.getCurrentPlayer(), self.gameBoard.getTurnCount())
                 IAAction = self.gameBoard.getIaAction()
-                if IAAction:
-                    modifiedimg = drawMultipleLinesOfText(modifiedimg, str(IAAction), TextPositions.TPTopL)
-                modifiedimg = drawPlayerAndTurn(modifiedimg, self.gameBoard.getCurrentPlayer(),self.gameBoard.getTurnCount())
+                if IAAction is not None:
+                    modifiedimg = self.DrawIAAction(modifiedimg, IAAction)
+
         elif self.gameBoard.getGameStatus() == GameStates.GSAppealOfWitness:
             modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
             modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
@@ -124,6 +124,24 @@ class GameProcessor:
 
 
         return modifiedimg
+
+    def DrawIAAction(self, img, action):
+        drawText(img, str(action), TextPositions.TPTopL)
+        actionPawnPlayed = ActionPawns[action[0]]
+        # If the action pawn played is regarding detective pawns
+        if actionPawnPlayed.value <= 4:
+            img = self.pawnsRecognitionHelper.DrawActionPawnByName(img, actionPawnPlayed.name)
+            img = drawMultipleLinesOfText(img,["Deplacez le jeton entoure de " + str(action[1][1]) + " cases", "Puis appuyez sur espace pour valider"], TextPositions.TPTopL)
+        elif (actionPawnPlayed == ActionPawns.APReturn or actionPawnPlayed == ActionPawns.APReturn2):
+            img = self.cardsRecognitionHelper.DrawBoxesByIndex(img, action[1][0])
+            img = drawMultipleLinesOfText(img, ["Tournez le jeton entoure vers : " + action[1][1], "Puis appuyez sur espace pour valider"], TextPositions.TPTopL)
+        elif (actionPawnPlayed == ActionPawns.APChangeCard):
+            img = self.cardsRecognitionHelper.DrawBoxesByIndex(img, [action[1][0],action[1][1]])
+            img = drawMultipleLinesOfText(img, ["Echangez les 2 cartes entourees de place", "Puis appuyez sur espace pour valider"], TextPositions.TPTopL)
+        else:
+            img = drawMultipleLinesOfText(img, ["Jack a tire une carte Alibi", "Appuyez sur espace pour valider"], TextPositions.TPTopL)
+
+        return img
 
     def ComputeInputs(self, img):
         continuebool = True

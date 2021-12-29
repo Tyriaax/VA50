@@ -144,6 +144,12 @@ class CardsRecognitionHelper:
     img = drawRectanglesWithAssignment(img, cards, self.rectangles)
 
     return img
+
+  def DrawCardsByIndex(self, img, indexes):
+    for index in indexes:
+      cv2.rectangle(img, (self.rectangles[index][0], self.rectangles[index][1]), (self.rectangles[index][2], self.rectangles[index][3]), (0, 255, 0), 2)
+
+    return img
   
   def ComputeCardsOrientation(self, img):
     self.gameBoard = np.zeros((9,2), dtype= np.chararray)

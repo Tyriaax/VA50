@@ -16,6 +16,21 @@ class Cards(Enum):
   CWhite = 7
   CYellow = 8
 
+class ActionPawns(Enum):
+  APSherlock = 0
+  APAlibi = 1
+  APToby = 2
+  APWatson = 3
+  APJoker = 4
+  APReturn = 5
+  APChangeCard = 6
+  APReturn2 = 7
+
+class DetectivePawns(Enum):
+  DPSherlock = 0
+  DPToby = 1
+  DPWatson = 2
+
 class GameStates(Enum):
   GSWaitingActionPawnsThrow = 0
   GSUsingActionPawns = 1

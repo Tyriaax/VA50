@@ -7,22 +7,6 @@ from boundingBoxes import *
 from probabilities import *
 from GameBoard import *
 
-class ActionPawns(Enum):
-  APSherlock = 0
-  APAlibi = 1
-  APToby = 2
-  APWatson = 3
-  APJoker = 4
-  APReturn = 5
-  APChangeCard = 6
-  APReturn2 = 7
-
-
-class DetectivePawns(Enum):
-  DPSherlock = 0
-  DPToby = 1
-  DPWatson = 2
-
 class PawnsRecognitionHelper:
   selectedSamplesQuality = "LQ" #TODO Change back
 
@@ -191,6 +175,14 @@ class PawnsRecognitionHelper:
   def DrawActionPawns(self, img):
     actionPawns = self.boardReference.getActionPawns()
     img = drawRectanglesWithAssignment(img, actionPawns, self.actionPawnsBb)
+
+    return img
+
+  def DrawActionPawnByName(self, img, actionPawnName):
+    actionPawns = self.boardReference.getActionPawns()
+
+    actionPawnIndex = actionPawns.index(actionPawnName)
+    img = drawRectanglesWithAssignment(img, actionPawnName, self.actionPawnsBb[actionPawnIndex])
 
     return img
 
