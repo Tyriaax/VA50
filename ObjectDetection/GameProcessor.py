@@ -174,8 +174,28 @@ class GameProcessor:
         # If we press space to validate IA Action
         if (key == 32): # or self.capEveryFrame
             if (self.gameBoard.currentPlayer == "Jack"):
-                self.pawnsRecognitionHelper.ComputeFrame(img)
-                self.cardsRecognitionHelper.ComputeCards(img)
+                IAAction = ActionPawns[self.gameBoard.getIaAction()[0]]
+                if (IAAction.value < 4):
+                    self.pawnsRecognitionHelper.ComputeDetectivePawns(img)
+                elif (IAAction.value < 7):
+                    self.cardsRecognitionHelper.ComputeFrame(img)
+
+                # We then check if the action pawns has been respected
+                if (self.gameBoard.IsActionPawnRespected(IAAction.name)):
+                    if (self.actionPawnClicked.value <= 4):
+                        self.gameBoard.updatePreviousPawnsState()
+                    else:
+                        self.gameBoard.updatePreviousCards()
+
+                self.pawnsRecognitionHelper.actionPawnUsed(IAAction)
+
+                # If we used all the action pawns move to the next Game Event : Manhunt
+                if (len(self.gameBoard.getActionPawns()) == 0):
+                    print("Turn Finished")
+                    if (self.gameBoard.tryUpdateGameStatus(GameStates.GSAppealOfWitness)):
+                        self.gameBoard.appealOfWitnesses(self.cardsRecognitionHelper.IsInLineOfSight(self.lastimg))
+                        self.gameBoard.manhunt()
+
                 self.gameBoard.nextTurn()
 
         return continuebool
