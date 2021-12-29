@@ -201,7 +201,7 @@ class GameBoard():
     
     if action in ["APJoker", "APHolmes", "APToby", "APWatson"]:
       lengthDetectivePawnsList = len(self.detective_pawns)
-      indexWatson, previousIndexWatson, indexToby, previousIndexToby, indexSherlock, previousIndexSherlock = (str(),)*6
+      indexWatson, previousIndexWatson, indexToby, previousIndexToby, indexSherlock, previousIndexSherlock = (None,)*6
 
       if "DPSherlock" in self.previousDetectivePawns and "DPSherlock" in self.detective_pawns:
         previousIndexSherlock = self.previousDetectivePawns.index("DPSherlock")
