@@ -395,7 +395,7 @@ class GameBoard():
     }   
 
     self.iaAction  = self.jack_ai.jack(game_board, self.actionPawnsPlayed, self.isJackFirst, self.getActionPawns())
-    print(self.iaAction )
+    print(self.iaAction)
 
   def getIaAction(self):
     return self.iaAction

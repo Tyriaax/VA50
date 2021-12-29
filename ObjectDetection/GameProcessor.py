@@ -126,14 +126,13 @@ class GameProcessor:
         return modifiedimg
 
     def DrawIAAction(self, img, action):
-        drawText(img, str(action), TextPositions.TPTopL)
         actionPawnPlayed = ActionPawns[action[0]]
         # If the action pawn played is regarding detective pawns
         if actionPawnPlayed.value <= 4:
             img = self.pawnsRecognitionHelper.DrawActionPawnByName(img, actionPawnPlayed.name)
             img = drawMultipleLinesOfText(img,["Deplacez le jeton entoure de " + str(action[1][1]) + " cases", "Puis appuyez sur espace pour valider"], TextPositions.TPTopL)
         elif (actionPawnPlayed == ActionPawns.APReturn or actionPawnPlayed == ActionPawns.APReturn2):
-            img = self.cardsRecognitionHelper.DrawBoxesByIndex(img, action[1][0])
+            img = self.cardsRecognitionHelper.DrawBoxesByIndex(img, [action[1][0]])
             img = drawMultipleLinesOfText(img, ["Tournez le jeton entoure vers : " + action[1][1], "Puis appuyez sur espace pour valider"], TextPositions.TPTopL)
         elif (actionPawnPlayed == ActionPawns.APChangeCard):
             img = self.cardsRecognitionHelper.DrawBoxesByIndex(img, [action[1][0],action[1][1]])

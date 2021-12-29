@@ -145,7 +145,7 @@ class CardsRecognitionHelper:
 
     return img
 
-  def DrawCardsByIndex(self, img, indexes):
+  def DrawBoxesByIndex(self, img, indexes):
     for index in indexes:
       cv2.rectangle(img, (self.rectangles[index][0], self.rectangles[index][1]), (self.rectangles[index][2], self.rectangles[index][3]), (0, 255, 0), 2)
 
