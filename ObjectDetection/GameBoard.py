@@ -355,14 +355,9 @@ class GameBoard():
     self.turnCount += 1
 
   def addInnocentCards(self, innocentCards):
-    if (len(innocentCards) > 1):
-      for i in range(len(innocentCards)):
-        if (innocentCards[i] != 0) and (innocentCards[i] not in self.innocentCards):
-          self.innocentCards.append(innocentCards[i])
-
-    else:
-      if (innocentCards != 0) and (innocentCards not in self.innocentCards):
-        self.innocentCards.append(innocentCards)
+    for i in range(len(innocentCards)):
+      if (innocentCards[i] != 0) and (innocentCards[i] not in self.innocentCards):
+        self.innocentCards.append(innocentCards[i])
 
   def getInnocentCards(self):
     return self.innocentCards
