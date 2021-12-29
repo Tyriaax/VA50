@@ -182,7 +182,7 @@ class PawnsRecognitionHelper:
     actionPawns = self.boardReference.getActionPawns()
 
     actionPawnIndex = actionPawns.index(actionPawnName)
-    img = drawRectanglesWithAssignment(img, actionPawnName, self.actionPawnsBb[actionPawnIndex])
+    img = drawRectanglesWithAssignment(img, [actionPawnName], [self.actionPawnsBb[actionPawnIndex]])
 
     return img
 

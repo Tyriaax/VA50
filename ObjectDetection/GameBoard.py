@@ -193,6 +193,7 @@ class GameBoard():
 
   def selectRandomJack(self):
     randomIndex = random.randint(0, len(self.alibiCardsDict) - 1)
+    print("Jack is : ", self.alibiCardsDict[randomIndex])
     return self.alibiCardsDict.pop(randomIndex)[2]
 
   def IsActionPawnRespected(self, action: str):
@@ -213,8 +214,6 @@ class GameBoard():
       if "DPWatson" in self.previousDetectivePawns and "DPWatson" in self.detective_pawns:
         previousIndexWatson = self.previousDetectivePawns.index("DPWatson")
         indexWatson = self.detective_pawns.index("DPWatson")
-
-      print("indexs : ", (previousIndexSherlock + 1) % lengthDetectivePawnsList, indexSherlock, previousIndexToby, indexToby,  previousIndexWatson,indexWatson )
 
       if None not in [indexWatson, previousIndexWatson, indexToby, previousIndexToby, indexSherlock, previousIndexSherlock] and lengthDetectivePawnsList > 0:
         if action == "APJoker":
@@ -275,7 +274,7 @@ class GameBoard():
           self.addJackHourglasses(randomAlibiCard[1])
         else:
           print(randomAlibiCard)
-        self.addInnocentCards(randomAlibiCard[2])
+        self.addInnocentCards([randomAlibiCard[2]])
 
         return True
 

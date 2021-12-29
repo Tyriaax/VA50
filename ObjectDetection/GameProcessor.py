@@ -182,7 +182,7 @@ class GameProcessor:
 
                 # We then check if the action pawns has been respected
                 if (self.gameBoard.IsActionPawnRespected(IAAction.name)):
-                    if (self.actionPawnClicked.value <= 4):
+                    if (IAAction.value <= 4):
                         self.gameBoard.updatePreviousPawnsState()
                     else:
                         self.gameBoard.updatePreviousCards()

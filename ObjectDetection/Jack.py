@@ -178,27 +178,6 @@ class JackAi():
             value = min(value, self.minimax(child[0], depth-1, isJackFirst, valid_actions_remaining, turn + 1))
         return value
 
-def old_minimax(self, node, depth, maximizingPlayer, valid_actions):
-    is_terminal = self.is_terminal_node(node)
-    if depth == 0 or is_terminal:
-        return self.get_heuristic(node)
-    #If JackFirst and turn == 1 || 4 or not JackFirst and turn == 2 or 3:
-    if maximizingPlayer:
-        value = -np.Inf
-        for action in valid_actions:
-          childs, valid_actions_remaining = self.get_possible_actions(node, action, copy.deepcopy(valid_actions))
-          for child in childs:
-            value = max(value, self.minimax(child[0], depth-1, False, valid_actions_remaining))
-        return value
-    else:
-        value = np.Inf
-        for action in valid_actions:
-          childs, valid_actions_remaining = self.get_possible_actions(node, action, copy.deepcopy(valid_actions))
-          for child in childs:
-            value = min(value, self.minimax(child[0], depth-1, True, valid_actions_remaining))
-        return value
-
-
 game_board = {
   "cardsPosition" : ["red", "blue", "black", "purple", "pink", "yellow", "brown", "orange", "white"],
   "cardsOrientation" : [["Left", "back"], ["Right", "front"], ["Down", "front"], ["Up", "front"], ["Left", "front"], ["Left", "front"], ["Down", "front"], ["Up", "front"], ["Up", "front"]],
@@ -209,6 +188,7 @@ game_board = {
 
 #Ajout de plusieurs dp sur une case
 #Action alibi
+#Check la rotation de rotateCard, il doit pas pouvoir reste dans la meme orientation
 
 
 # valid_actions = ["APJoker", "APSherlock", "APReturn"] #"APChangeCard"]
