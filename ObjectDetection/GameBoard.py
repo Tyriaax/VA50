@@ -271,8 +271,12 @@ class GameBoard():
       randomIndex = random.randint(0, len(self.alibiCardsDict) - 1)
       randomAlibiCard = self.alibiCardsDict.pop(randomIndex)
       if randomAlibiCard:
-        self.addJackHourglasses(randomAlibiCard[1])
+        if self.currentPlayer == "Jack":
+          self.addJackHourglasses(randomAlibiCard[1])
+        else:
+          print(randomAlibiCard)
         self.addInnocentCards(randomAlibiCard[2])
+
         return True
 
     print("current cards :\n ", self.cards , "previous cards:\n ", self.previousCards)
