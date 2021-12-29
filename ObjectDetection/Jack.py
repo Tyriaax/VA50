@@ -4,12 +4,14 @@ import copy
 
 class JackAi():
   def jack(self, game_board, turn, is_jack_first, valid_actions): #isJackFirst = True, turn 1 else , turn = 2
-    steps = 5 - turn
-
+    steps = 4 - turn
+    best_action, best_score = None, - np.Inf
     for action in valid_actions:
-      print(action + ': ', self.score_move(game_board, action, steps, copy.deepcopy(valid_actions), turn, is_jack_first), sep = ' ', end='\n' * 2)
-    #scores = dict(zip(valid_actions, [self.score_move(game_board, action, steps) for action in #valid_actions]))
-    #return max(scores)
+      jack_step = self.score_move(game_board, action, steps, copy.deepcopy(valid_actions), turn, is_jack_first)
+      if jack_step[1] > best_score:
+        best_action = [action, jack_step[0][1]]
+
+    return best_action
 
   def score_move(self, game_board, action, steps, valid_actions, turn, is_jack_first): #Calcul score lorsque Jack fait une action
     scoreMax = - np.Inf
@@ -149,7 +151,6 @@ class JackAi():
         number_of_detectives_who_see_jack += 1
         jack_has_been_seen = True
 
-
     if jack_has_been_seen:
       return -1000 + number_of_people_in_sight * 50 - number_of_detectives_who_see_jack * 15
     else:
@@ -162,7 +163,7 @@ class JackAi():
     is_terminal = self.is_terminal_node(node)
     if depth == 0 or is_terminal:
         return self.get_heuristic(node)
-    if (isJackFirst and (turn == 1 or turn == 4)) or (not isJackFirst and (turn == 2 or turn == 3)):
+    if (isJackFirst and (turn == 0 or turn == 3)) or (not isJackFirst and (turn == 1 or turn == 2)):
         value = -np.Inf
         for action in valid_actions:
           childs, valid_actions_remaining = self.get_possible_actions(node, action, copy.deepcopy(valid_actions))
@@ -208,15 +209,12 @@ game_board = {
 
 #Ajout de plusieurs dp sur une case
 #Action alibi
-#Add switch like real game Min - Max - Max - Min
 
-#Enlever max min player pour mettre le nombre de tour à la place
-#If jack start the turn : 1 - 4
-# : 2 - 3 
 
-valid_actions = ["APJoker", "APSherlock","APReturn"] #"APChangeCard"]
+# valid_actions = ["APJoker", "APSherlock", "APReturn"] #"APChangeCard"]
 
-a = JackAi()
-a.jack(game_board, 2, False, valid_actions)
+# a = JackAi()
+# b = a.jack(game_board, 2, False, valid_actions)
+# print(b)
 
 

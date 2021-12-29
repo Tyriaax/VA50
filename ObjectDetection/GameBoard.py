@@ -3,6 +3,7 @@ import os
 from enum import Enum
 import numpy as np
 import random
+from Jack import*
 
 class Cards(Enum):
   CBlack = 0
@@ -58,6 +59,8 @@ class GameBoard():
       self.detectiveWins = False
       self.currentPlayer = "Detective"
       self.jack = self.selectRandomJack()
+      self.jack_ai = JackAi() 
+      self.isJackFirst = False
       self.actionPawnsPlayed = 0
 
       self.innocentCards = list()
@@ -309,9 +312,11 @@ class GameBoard():
 
     if self.turnCount % 2 == 0: 
       self.currentPlayer = "Jack"
+      self.isJackFirst = True
       print("Flip back the tokens.")
     else:
       self.currentPlayer = "Detectives"
+      self.isJackFirst = False
       print("Detective starts: you can throw the tokens")
   
   def addJackHourglasses(self, numberOfHourglasses):
@@ -355,3 +360,21 @@ class GameBoard():
       indexes.sort()
 
     return indexes
+
+  def nextTurn(self):
+    self.getNextPlayerToUseActionsPawns()
+    if self.currentPlayer == "Jack":
+      self.jackPlays()
+
+  def jackPlays(self):
+
+    game_board = {
+      "cardsPosition" : self.cards,
+      "cardsOrientation" : self.cardsState,
+      "dectectivePawns" : self.detective_pawns,
+      "hourglasses" : self.jackHourglasses,
+      "jack" : self.jack 
+    }   
+
+    action_taken = self.jack_ai.jack(game_board, self.actionPawnsPlayed, self.isJackFirst, self.getActionPawns())
+    print(action_taken)

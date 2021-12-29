@@ -69,8 +69,7 @@ class GameProcessor:
                     # We used the Action Pawns and now we remove it
                     print("Action Pawn Used")
                     self.pawnsRecognitionHelper.actionPawnUsed(self.actionPawnClicked)
-
-                    self.gameBoard.getNextPlayerToUseActionsPawns()
+                    self.gameBoard.nextTurn()
 
                     # If we used all the action pawns move to the next Game Event : Manhunt
                     if (len(self.gameBoard.getActionPawns()) == 0):
