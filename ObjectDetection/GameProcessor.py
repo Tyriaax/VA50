@@ -9,6 +9,7 @@ from drawing import *
 class GameProcessor:
     capEveryFrame = False
     homographymatrixfound = False
+    checkInitialPosition = True
 
     def __init__(self, img, window_name):
         self.window_name = window_name
@@ -45,6 +46,16 @@ class GameProcessor:
 
                 # Then directly compute the cards and their orientation
                 self.cardsRecognitionHelper.ComputeFrame(img)
+
+                if(self.checkInitialPosition):
+                    if (self.gameBoard.validateCardsInitialPosition()):
+                        self.gameBoard.updatePreviousCards()
+                        self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
+                    else:
+                        print("Le placement initial des cartes n'est pas bon")  # TODO ERROR DISPLAY
+                else:
+                    self.gameBoard.updatePreviousCards()
+                    self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
         else:
             # We need to apply homography here so that the frames are correctly computed
             img = cv2.warpPerspective(img, self.homographymatrix, (img.shape[1], img.shape[0]))
@@ -65,6 +76,9 @@ class GameProcessor:
             modifiedimg = drawText(modifiedimg, "Selectionnez les quatre coins des 9 cartes",TextPositions.TPCenter)
             for coord in self.list_board_coords:
                 cv2.circle(modifiedimg, coord, 10, (0, 255, 0), -1)
+        elif self.gameBoard.getGameStatus() == GameStates.GSWaitingCards:
+            modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg, drawOffset=True)
+            modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Appuyez sur C pour detecter les cartes"], TextPositions.TPTopL)
         elif self.gameBoard.getGameStatus() == GameStates.GSWaitingActionPawnsThrow:
             modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg, drawOffset=True)
             modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
@@ -143,7 +157,7 @@ class GameProcessor:
                 self.cardsRecognitionHelper.ComputeFrame(img)
 
                 # If we are doing the card recognition for the first turn we need to check if all the cards are placed correctly
-                if (self.gameBoard.getTurnCount() == 1):
+                if (self.gameBoard.getTurnCount() == 1 and self.checkInitialPosition):
                     if (self.gameBoard.validateCardsInitialPosition()):
                         self.gameBoard.updatePreviousCards()
                         self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
@@ -161,7 +175,7 @@ class GameProcessor:
                 self.pawnsRecognitionHelper.ComputeFrame(img)
 
                 # If we are doing the pawns recognition for the first turn we need to check if all the pawns are placed correctly
-                if (self.gameBoard.getTurnCount() == 1):
+                if (self.gameBoard.getTurnCount() == 1 and self.checkInitialPosition):
                     if (self.gameBoard.validatePawnsInitialPosition()):
                         self.gameBoard.updatePreviousPawnsState()
                         self.gameBoard.tryUpdateGameStatus(GameStates.GSUsingActionPawns)

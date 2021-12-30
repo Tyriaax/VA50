@@ -32,10 +32,11 @@ class DetectivePawns(Enum):
   DPWatson = 2
 
 class GameStates(Enum):
-  GSWaitingActionPawnsThrow = 0
-  GSUsingActionPawns = 1
-  GSAppealOfWitness = 2
-  GSGameOver = 3
+  GSWaitingCards = 0
+  GSWaitingActionPawnsThrow = 1
+  GSUsingActionPawns = 2
+  GSAppealOfWitness = 3
+  GSGameOver = 4
 
 class GameBoard():
   def __init__(self) -> None:
@@ -50,7 +51,7 @@ class GameBoard():
 
       self.action_pawns = [0,0,0,0]
       self.board_file = os.path.abspath(os.path.join(os.path.dirname( __file__ ),"Game_state","JackPocketBoard.txt"))
-      self.state = GameStates.GSWaitingActionPawnsThrow
+      self.state = GameStates.GSWaitingCards
       self.alibiCardsDict = [
         ("Joseph Lane", 1, "CBrown" ),
         ("Madame", 2, "CPink"),
