@@ -9,7 +9,7 @@ from drawing import *
 class GameProcessor:
     capEveryFrame = False
     homographymatrixfound = False
-    checkInitialPosition = True
+    checkInitialPosition = False #TODO
 
     def __init__(self, img, window_name):
         self.window_name = window_name

@@ -201,9 +201,8 @@ class GameBoard():
     return self.alibiCardsDict.pop(randomIndex)[2]
 
   def IsActionPawnRespected(self, action: str):
-
-    
-    if action in ["APJoker", "APHolmes", "APToby", "APWatson"]:
+ 
+    if action in ["APJoker", "APSherlock", "APToby", "APWatson"]:
       lengthDetectivePawnsList = len(self.detective_pawns)
       indexWatson, previousIndexWatson, indexToby, previousIndexToby, indexSherlock, previousIndexSherlock = (None,)*6
 
