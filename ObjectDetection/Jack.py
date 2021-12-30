@@ -77,9 +77,6 @@ class JackAi():
           break
     
     destination_index = (index_detective + move_of)%len(next_game_board["dectectivePawns"])
-
-    print(type(next_game_board["dectectivePawns"][index_detective]))
-    print(type(next_game_board["dectectivePawns"][destination_index]))
     
     if next_game_board["dectectivePawns"][destination_index] == 0 and type(next_game_board["dectectivePawns"][index_detective]) != type(list()):
       next_game_board["dectectivePawns"][index_detective] = 0
@@ -203,9 +200,9 @@ game_board = {
 
 # valid_actions = ["APJoker", "APSherlock", "APReturn"] #"APChangeCard"]
 
-a = JackAi()
-b = a.get_heuristic(game_board)
+#a = JackAi()
+#b = a.get_heuristic(game_board)
 #[print(element) for index, element in enumerate(game_board["dectectivePawns"]) if "DPWatson" in [element]]
-print(b)
+#print(b)
 # b = a.jack(game_board, 2, False, valid_actions)
 # print(b)

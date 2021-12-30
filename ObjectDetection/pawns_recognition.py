@@ -203,7 +203,7 @@ class PawnsRecognitionHelper:
 
   def getDetectivePawnsPositions(self, assignedObjects, boundingBoxes):
     positions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    for i in range(len(boundingBoxes)):
+    for i in range(min(len(boundingBoxes), len(DetectivePawns))):
       x = boundingBoxes[i][0]+ int((boundingBoxes[i][2]-boundingBoxes[i][0])/2)
       y = boundingBoxes[i][1]+ int((boundingBoxes[i][3]-boundingBoxes[i][1])/2)
 

@@ -112,7 +112,7 @@ class GameProcessor:
         actionPawnPlayed = ActionPawns[action[0]]
         # If the action pawn played is regarding detective pawns
         if actionPawnPlayed.value <= 4:
-            img = self.pawnsRecognitionHelper.DrawDetectivePawnByName(img, actionPawnPlayed.name)
+            img = self.pawnsRecognitionHelper.DrawDetectivePawnByName(img, action[1][0])
             img = drawMultipleLinesOfText(img,["Deplacez le jeton entoure de " + str(action[1][1]) + " cases", "Puis appuyez sur espace pour valider"], TextPositions.TPTopL)
         elif (actionPawnPlayed == ActionPawns.APReturn or actionPawnPlayed == ActionPawns.APReturn2):
             img = self.cardsRecognitionHelper.DrawBoxesByIndex(img, [action[1][0]])
