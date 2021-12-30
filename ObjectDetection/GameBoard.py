@@ -3,7 +3,8 @@ import os
 from enum import Enum
 import numpy as np
 import random
-from Jack import*
+from Jack import *
+from cards_recognition import *
 
 class Cards(Enum):
   CBlack = 0
@@ -36,8 +37,6 @@ class GameStates(Enum):
   GSUsingActionPawns = 1
   GSAppealOfWitness = 2
   GSGameOver = 3
-
-from cards_recognition import *
 
 class GameBoard():
   def __init__(self) -> None:
@@ -362,16 +361,15 @@ class GameBoard():
   def getInnocentCards(self):
     return self.innocentCards
 
+  def getInnocentedCard(self):
+    return self.innocentCards[len(self.innocentCards)-1]
+
   def getInnocentCardsIndex(self):
     indexes = []
-    if len(self.innocentCards) > 0:
-      if (len(self.innocentCards) > 1):
-        for i in range(len(self.innocentCards)):
-          indexes.append(Cards[self.innocentCards[i]])
-      else:
-        indexes.append(Cards[self.innocentCards])
+    for i in range(len(self.innocentCards)):
+      indexes.append(Cards[self.innocentCards[i]].value)
 
-      indexes.sort()
+    indexes.sort()
 
     return indexes
 

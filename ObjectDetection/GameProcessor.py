@@ -24,6 +24,8 @@ class GameProcessor:
 
         self.list_board_coords = []
         self.actionPawnClicked = None
+        self.showAlibi = False
+        self.isJackSeen = False
 
     def ComputeFrame(self, img):
 
@@ -49,39 +51,9 @@ class GameProcessor:
 
             # If we have a clicked Action Pawn to compute
             if self.actionPawnClicked is not None:
+                self.UseActionPawn(img, self.actionPawnClicked)
 
-                # Different actions depending on the AP clicked
-                if (self.actionPawnClicked.value <= 4):
-                    self.pawnsRecognitionHelper.ComputeDetectivePawns(img)
-                    print("Previous : \n", self.gameBoard.getPreviousDetectivePawns(), "\nCurrent: \n",
-                          self.gameBoard.getDetectivePawns())
-                elif (self.actionPawnClicked.value <= 7):
-                    self.cardsRecognitionHelper.ComputeFrame(img)
-                #else: TODO
-
-                # We then check if the action pawns has been respected
-                if (self.gameBoard.IsActionPawnRespected(self.actionPawnClicked.name)):
-                    # TODO Why here Aurel ?
-                    if (self.actionPawnClicked.value <= 4):
-                        self.gameBoard.updatePreviousPawnsState()
-                    else:
-                        self.gameBoard.updatePreviousCards()
-
-                    # We used the Action Pawns and now we remove it
-                    print("Action Pawn Used")
-                    self.pawnsRecognitionHelper.actionPawnUsed(self.actionPawnClicked)
-                    self.gameBoard.nextTurn()
-
-                    # If we used all the action pawns move to the next Game Event : Manhunt
-                    if (len(self.gameBoard.getActionPawns()) == 0):
-                        print("Turn Finished")
-                        if (self.gameBoard.tryUpdateGameStatus(GameStates.GSAppealOfWitness)):
-                            self.gameBoard.appealOfWitnesses(self.cardsRecognitionHelper.IsInLineOfSight(img))
-                            self.gameBoard.manhunt()
-                else:
-                    print("Action Pawn not Validated")
-
-                # Either we were able to use the action pawn or not, it is not clicked anymore
+                # Whether we were able to use the action pawn or not, it is not clicked anymore
                 self.actionPawnClicked = None
 
         return img
@@ -100,10 +72,18 @@ class GameProcessor:
         elif self.gameBoard.getGameStatus() == GameStates.GSUsingActionPawns:
             # We ask for player input of show the action played by IA
             if (self.gameBoard.getCurrentPlayer() == "Detective"):
-                modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
-                modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
-                modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Realisez votre Action puis","Appuyez sur le jeton correspondant","Ou sur P pour redetecter les pions"], TextPositions.TPTopL)
-                modifiedimg = drawPlayerAndTurn(modifiedimg, self.gameBoard.getCurrentPlayer(), self.gameBoard.getTurnCount())
+                # If not in the case where we need to show the special alibi msg, we show the basic use action pawn msg
+                if not self.showAlibi:
+                    modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
+                    modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
+                    modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Realisez votre Action puis","Appuyez sur le jeton correspondant","Ou sur P pour redetecter les pions"], TextPositions.TPTopL)
+                    modifiedimg = drawPlayerAndTurn(modifiedimg, self.gameBoard.getCurrentPlayer(), self.gameBoard.getTurnCount())
+                else :
+                    innocentedCard = self.gameBoard.getInnocentedCard()
+                    modifiedimg = drawMultipleLinesOfText(modifiedimg, ["La carte alibi tiree est : " + innocentedCard, "Retournez la carte innocente si elle est presente", "Puis appuyez sur espace"], TextPositions.TPTopL)
+                    modifiedimg = self.cardsRecognitionHelper.DrawBoxesByName(modifiedimg, [innocentedCard])
+                    #modifiedimg = drawPlayerAndTurn(modifiedimg, self.gameBoard.getCurrentPlayer(), self.gameBoard.getTurnCount())
+
             else:
                 modifiedimg = drawPlayerAndTurn(modifiedimg, self.gameBoard.getCurrentPlayer(), self.gameBoard.getTurnCount())
                 IAAction = self.gameBoard.getIaAction()
@@ -111,17 +91,20 @@ class GameProcessor:
                     modifiedimg = self.DrawIAAction(modifiedimg, IAAction)
 
         elif self.gameBoard.getGameStatus() == GameStates.GSAppealOfWitness:
-            modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
-            modifiedimg = self.pawnsRecognitionHelper.DrawFrame(modifiedimg)
-            modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Retournez les cartes innocentees","Puis appuyez sur C"], TextPositions.TPTopL)
-            modifiedimg = drawTurn(modifiedimg,self.gameBoard.getTurnCount())
+            if self.isJackSeen:
+                jackString = "Jack est en vue des detectives"
+            else:
+                jackString = "Jack n'est pas en vue des detectives"
+            modifiedimg = drawMultipleLinesOfText(modifiedimg, [jackString, "Retournez les cartes innocentees","Puis appuyez sur C"], TextPositions.TPTopL)
+            innocentCards = self.gameBoard.getInnocentCards()
+            modifiedimg = self.cardsRecognitionHelper.DrawBoxesByName(modifiedimg, innocentCards)
+
         elif self.gameBoard.getGameStatus() == GameStates.GSGameOver:
             if (self.gameBoard.getDetectiveWins()):
                 winnerstring = "Vous avez gagne"
             else:
                 winnerstring = "Jack a gagne"
             modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Partie terminee",winnerstring], TextPositions.TPCenter)
-
 
         return modifiedimg
 
@@ -136,7 +119,7 @@ class GameProcessor:
             img = drawMultipleLinesOfText(img, ["Tournez le jeton entoure vers : " + action[1][1], "Puis appuyez sur espace pour valider"], TextPositions.TPTopL)
         elif (actionPawnPlayed == ActionPawns.APChangeCard):
             img = self.cardsRecognitionHelper.DrawBoxesByIndex(img, [action[1][0],action[1][1]])
-            img = drawMultipleLinesOfText(img, ["Echangez les 2 cartes entourees de place", "Puis appuyez sur espace pour valider"], TextPositions.TPTopL)
+            img = drawMultipleLinesOfText(img, ["Echangez de place les 2 cartes entourees", "Puis appuyez sur espace pour valider"], TextPositions.TPTopL)
         else:
             img = drawMultipleLinesOfText(img, ["Jack a tire une carte Alibi", "Appuyez sur espace pour valider"], TextPositions.TPTopL)
 
@@ -170,35 +153,62 @@ class GameProcessor:
                 self.gameBoard.updatePreviousPawnsState()
                 self.gameBoard.printState()
 
-
-        # If we press space to validate IA Action
+        # If we press space to validate IA Action or Alibi Card show
         if (key == 32): # or self.capEveryFrame
-            if (self.gameBoard.currentPlayer == "Jack"):
-                IAAction = ActionPawns[self.gameBoard.getIaAction()[0]]
-                if (IAAction.value < 4):
-                    self.pawnsRecognitionHelper.ComputeDetectivePawns(img)
-                elif (IAAction.value < 7):
-                    self.cardsRecognitionHelper.ComputeFrame(img)
+            if (self.showAlibi):
+                # We end the processing of our action pawn
+                print("Action Pawn Used")
+                self.pawnsRecognitionHelper.actionPawnUsed(ActionPawns.APAlibi)
+                self.gameBoard.nextTurn()
 
-                # We then check if the action pawns has been respected
-                if (self.gameBoard.IsActionPawnRespected(IAAction.name)):
-                    if (IAAction.value <= 4):
-                        self.gameBoard.updatePreviousPawnsState()
-                    else:
-                        self.gameBoard.updatePreviousCards()
-
-                self.pawnsRecognitionHelper.actionPawnUsed(IAAction)
-
-                # If we used all the action pawns move to the next Game Event : Manhunt
                 if (len(self.gameBoard.getActionPawns()) == 0):
                     print("Turn Finished")
                     if (self.gameBoard.tryUpdateGameStatus(GameStates.GSAppealOfWitness)):
-                        self.gameBoard.appealOfWitnesses(self.cardsRecognitionHelper.IsInLineOfSight(self.lastimg))
+                        self.isJackSeen = self.cardsRecognitionHelper.IsInLineOfSight(img)
+                        self.gameBoard.appealOfWitnesses(self.isJackSeen)
                         self.gameBoard.manhunt()
 
-                self.gameBoard.nextTurn()
+                self.showAlibi = False
+
+            elif (self.gameBoard.currentPlayer == "Jack"):
+                IAAction = ActionPawns[self.gameBoard.getIaAction()[0]]
+                self.UseActionPawn(img, IAAction, IATurn=True)
 
         return continuebool
+
+    def UseActionPawn(self, img, actionPawn, IATurn = False):
+        # Different actions depending on the AP clicked
+        if (actionPawn.value < 4):
+            self.pawnsRecognitionHelper.ComputeDetectivePawns(img)
+
+            print("Previous : \n", self.gameBoard.getPreviousDetectivePawns(), "\nCurrent: \n", self.gameBoard.getDetectivePawns())
+        elif (actionPawn.value <= 6):
+            self.cardsRecognitionHelper.ComputeFrame(img)
+
+        # We then check if the action pawns has been respected
+        if (self.gameBoard.IsActionPawnRespected(actionPawn.name)):
+            if (actionPawn.value < 4):
+                self.gameBoard.updatePreviousPawnsState()
+            elif (actionPawn.value <= 6):
+                self.gameBoard.updatePreviousCards()
+            elif (actionPawn == ActionPawns.APAlibi and IATurn == False):
+                # In case the user picks an alibi card we need to show a special state before validating the turn
+                self.showAlibi = True
+                return
+
+            # We used the Action Pawns and now we remove it
+            print("Action Pawn Used")
+            self.pawnsRecognitionHelper.actionPawnUsed(actionPawn)
+            self.gameBoard.nextTurn()
+
+            # If we used all the action pawns move to the next Game Event : Manhunt
+            if (len(self.gameBoard.getActionPawns()) == 0):
+                print("Turn Finished")
+                if (self.gameBoard.tryUpdateGameStatus(GameStates.GSAppealOfWitness)):
+                    self.gameBoard.appealOfWitnesses(self.cardsRecognitionHelper.IsInLineOfSight(img))
+                    self.gameBoard.manhunt()
+        else:
+            print("Action Pawn not Validated")
 
     def ComputeMouseInput(self,event,x,y,flags,params):
         if event == cv2.EVENT_LBUTTONDOWN:

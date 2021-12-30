@@ -150,6 +150,15 @@ class CardsRecognitionHelper:
       cv2.rectangle(img, (self.rectangles[index][0], self.rectangles[index][1]), (self.rectangles[index][2], self.rectangles[index][3]), (0, 255, 0), 2)
 
     return img
+
+  def DrawBoxesByName(self, img, names):
+    cards = self.boardReference.getCards
+
+    for i in range(len(cards)):
+      if cards[i] in names:
+        cv2.rectangle(img, (self.rectangles[i][0], self.rectangles[i][1]), (self.rectangles[i][2], self.rectangles[i][3]), (0, 255, 0), 2)
+
+    return img
   
   def ComputeCardsOrientation(self, img):
     self.gameBoard = np.zeros((9,2), dtype= np.chararray)
