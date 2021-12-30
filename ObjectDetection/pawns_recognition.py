@@ -217,7 +217,10 @@ class PawnsRecognitionHelper:
           if positions[j] == 0:
             positions[j]=assignedObjects[i]
           else:
-            positions[j]=[positions[j], assignedObjects[i]]
+            if len(positions[j]) > 1:
+              positions[j].append(assignedObjects[i])
+            else:
+              positions[j] = [positions[j], assignedObjects[i]]
 
     return positions
 

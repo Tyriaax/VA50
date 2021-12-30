@@ -4,7 +4,6 @@ from enum import Enum
 import numpy as np
 import random
 from Jack import *
-from cards_recognition import *
 
 class Cards(Enum):
   CBlack = 0
@@ -156,10 +155,15 @@ class GameBoard():
     return self.detectiveWins
   
   def tryUpdateGameStatus(self, gameState):
-    if ((gameState.value < len(GameStates)) and
-            ((gameState == self.state) or (gameState.value == self.state.value+1))) or \
-            ((gameState == GameStates.GSWaitingActionPawnsThrow) and self.state == (GameStates.GSAppealOfWitness)):
+    canUpdate = self.canUpdateGameStatus(gameState)
+    if canUpdate:
       self.state = gameState
+
+    return canUpdate
+
+  def canUpdateGameStatus(self, gameState):
+    if (((gameState.value < len(GameStates)) and ((gameState == self.state) or (gameState.value == self.state.value + 1)))
+    or ((gameState == GameStates.GSWaitingActionPawnsThrow) and self.state == (GameStates.GSAppealOfWitness))):
       return True
     else:
       return False
@@ -395,3 +399,35 @@ class GameBoard():
 
   def getIaAction(self):
     return self.iaAction
+
+  def validateCardsInitialPosition(self):
+    validated = True
+
+    for cards in self.cardsState:
+      if cards[1] != "front":
+        validated = False
+
+    if self.cardsState[0][0] != "right":
+      validated = False
+
+    if self.cardsState[2][0] != "left":
+      validated = False
+
+    if self.cardsState[7][0] != "up":
+      validated = False
+
+    return validated
+
+  def validatePawnsInitialPosition(self):
+    validated = True
+
+    if self.detective_pawns[3] != "DPWatson":
+      validated = False
+
+    if self.detective_pawns[7] != "DPToby":
+      validated = False
+
+    if self.detective_pawns[11] != "DPSherlock":
+      validated = False
+
+    return validated

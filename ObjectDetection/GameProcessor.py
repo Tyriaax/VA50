@@ -139,18 +139,38 @@ class GameProcessor:
             if (self.gameBoard.getDetectiveWins() or self.gameBoard.getJackWins()):
                 self.gameBoard.tryUpdateGameStatus(GameStates.GSGameOver)
 
-            elif (self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)):
-                self.cardsRecognitionHelper.ComputeCards(img)
+            elif (self.gameBoard.canUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)):
                 self.cardsRecognitionHelper.ComputeFrame(img)
-                self.gameBoard.updatePreviousCards()
+
+                # If we are doing the card recognition for the first turn we need to check if all the cards are placed correctly
+                if (self.gameBoard.getTurnCount() == 1):
+                    if (self.gameBoard.validateCardsInitialPosition()):
+                        self.gameBoard.updatePreviousCards()
+                        self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
+                    else:
+                        print("Le placement initial des cartes n'est pas bon") #TODO ERROR DISPLAY
+                else:
+                    self.gameBoard.updatePreviousCards()
+                    self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
 
 
         # If we press P for detect Pawns
         if (key == ord('p')): # or self.capEveryFrame
 
-            if (self.gameBoard.tryUpdateGameStatus(GameStates.GSUsingActionPawns)):
+            if (self.gameBoard.canUpdateGameStatus(GameStates.GSUsingActionPawns)):
                 self.pawnsRecognitionHelper.ComputeFrame(img)
-                self.gameBoard.updatePreviousPawnsState()
+
+                # If we are doing the pawns recognition for the first turn we need to check if all the pawns are placed correctly
+                if (self.gameBoard.getTurnCount() == 1):
+                    if (self.gameBoard.validatePawnsInitialPosition()):
+                        self.gameBoard.updatePreviousPawnsState()
+                        self.gameBoard.tryUpdateGameStatus(GameStates.GSUsingActionPawns)
+                    else:
+                        print("Le placement initial des pions n'est pas bon")  # TODO ERROR DISPLAY
+                else:
+                    self.gameBoard.updatePreviousPawnsState()
+                    self.gameBoard.tryUpdateGameStatus(GameStates.GSUsingActionPawns)
+
                 self.gameBoard.printState()
 
         # If we press space to validate IA Action or Alibi Card show
