@@ -179,7 +179,7 @@ class PawnsRecognitionHelper:
     return img
 
   def DrawDetectivePawnByName(self, img, detectivePawnName):
-    detectivePawns = self.boardReference.getDetectivePawns()
+    detectivePawns = self.detectivePawnsBbOrder
 
     detectivePawnsIndex = detectivePawns.index(detectivePawnName)
     img = drawRectanglesWithAssignment(img, [detectivePawnName], [self.detectivePawnsBb[detectivePawnsIndex]])
