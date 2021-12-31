@@ -152,7 +152,7 @@ class CardsRecognitionHelper:
     return img
 
   def DrawBoxesByName(self, img, names):
-    cards = self.boardReference.getCards
+    cards = self.boardReference.getCards()
 
     for i in range(len(cards)):
       if cards[i] in names:
@@ -337,7 +337,7 @@ class CardsRecognitionHelper:
     jackPosition = self.boardReference.getJackPos()
     detectivesPosition = self.boardReference.getDetectivesPos()
 
-    if bool(jackPosition) and bool(detectivesPosition):
+    if None not in [jackPosition, detectivesPosition]:
       for detectivePosition in detectivesPosition:
         inSightPos = []
         cardList = []
