@@ -83,8 +83,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
             # Boucle sur les donnees
             for inputs, labels in dataloaders[phase]:
-                inputs = inputs.to(device) 
-
+                inputs = inputs.to(device)
                 labels = labels.to(device)
 
                 # Mise a zero necessaire pour la somme des gradients
@@ -135,14 +134,16 @@ if __name__ == '__main__':
     # Augmentation et normalisation des donnees pour le training, juste une normalisation pour la validation
     data_transforms = {
         'train': transforms.Compose([
-            transforms.RandomResizedCrop(456),
-            transforms.RandomHorizontalFlip(),
+            transforms.RandomRotation(180),
+            transforms.ColorJitter(0.5,0.1,0.1,0),
+            transforms.Resize((256,256)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
         'val': transforms.Compose([
-            transforms.Resize(456),
-            transforms.CenterCrop(224),
+            transforms.RandomRotation(180),
+            transforms.ColorJitter(0.5,0.1,0.1,0),
+            transforms.Resize((256,256)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
@@ -155,7 +156,7 @@ if __name__ == '__main__':
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
     class_names = image_datasets['train'].classes
 
-    device = torch.device("cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     # Affichage de quelques images
     inputs, classes = next(iter(dataloaders['train']))
@@ -169,7 +170,7 @@ if __name__ == '__main__':
         param.requires_grad = False
 
     num_ftrs = model_conv.fc.in_features
-    model_conv.fc = nn.Linear(num_ftrs, 2)
+    model_conv.fc = nn.Linear(num_ftrs, 8)
 
     model_conv = model_conv.to(device)
     criterion = nn.CrossEntropyLoss()
@@ -183,5 +184,5 @@ if __name__ == '__main__':
     plt.ioff()
     plt.show()
 
-    torch.save(model_conv, 'PAWN_RECOGNITION_CNN.pt')
+    torch.save(model_conv, 'AP_RECOGNITION_CNN.pt')
 
