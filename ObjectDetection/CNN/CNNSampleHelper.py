@@ -6,6 +6,8 @@ from pathlib import Path
 
 objectToSample = "AP"
 numberOfSamples = 7
+cropCircle = True
+resizeDim = 100 #px
 
 """
 class Cards(Enum):
@@ -193,6 +195,15 @@ def video_recognition():
                 if Bb_click_coordinates is not None:
                     print("Sample selectionne veuillez lui assigner un numero")
                     imgToSample = img[Bb_click_coordinates[1]:Bb_click_coordinates[3],Bb_click_coordinates[0]:Bb_click_coordinates[2]]
+                    if cropCircle:
+                        dim = (resizeDim,resizeDim)
+                        imgToSample = cv2.resize(img, dim, interpolation=cv2.INTER_LINEAR)
+                        height, width = imgToSample.shape[:2]
+                        mask = np.full((height, width), 0, dtype=np.uint8)
+                        cv2.circle(mask, (height // 2, width // 2), height // 2, 255, -1)
+
+                        imgToSample = cv2.bitwise_and(imgToSample, imgToSample, mask=mask)
+
                     Bb_click_coordinates = None
 
             cv2.imshow(window_name, modifiedimg)
