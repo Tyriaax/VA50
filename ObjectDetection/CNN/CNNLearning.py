@@ -131,6 +131,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 # Fonction main
 ##############################################################################
 if __name__ == '__main__':
+    objectToLearn = "AP"
+
     # Augmentation et normalisation des donnees pour le training, juste une normalisation pour la validation
     data_transforms = {
         'train': transforms.Compose([
@@ -150,7 +152,7 @@ if __name__ == '__main__':
     }
 
     # Chargement des donnees
-    data_dir = "./data"
+    data_dir = "./" + objectToLearn + "data"
     image_datasets = {x: datasets.ImageFolder(os.path.join(data_dir, x), data_transforms[x]) for x in ['train', 'val']}
     dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], batch_size=4, shuffle=True, num_workers=4) for x in ['train', 'val']}
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
@@ -184,5 +186,6 @@ if __name__ == '__main__':
     plt.ioff()
     plt.show()
 
-    torch.save(model_conv, 'AP_RECOGNITION_CNN.pt')
+    cnnName = objectToLearn + "_RECOGNITION_CNN.pt"
+    torch.save(model_conv, cnnName)
 
