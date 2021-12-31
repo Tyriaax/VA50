@@ -197,7 +197,7 @@ def video_recognition():
                     imgToSample = img[Bb_click_coordinates[1]:Bb_click_coordinates[3],Bb_click_coordinates[0]:Bb_click_coordinates[2]]
                     if cropCircle:
                         dim = (resizeDim,resizeDim)
-                        imgToSample = cv2.resize(img, dim, interpolation=cv2.INTER_LINEAR)
+                        imgToSample = cv2.resize(imgToSample, dim, interpolation=cv2.INTER_LINEAR)
                         height, width = imgToSample.shape[:2]
                         mask = np.full((height, width), 0, dtype=np.uint8)
                         cv2.circle(mask, (height // 2, width // 2), height // 2, 255, -1)
