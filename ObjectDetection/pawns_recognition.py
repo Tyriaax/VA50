@@ -6,6 +6,7 @@ from samples import *
 from boundingBoxes import *
 from probabilities import *
 from GameBoard import *
+from cnn import *
 
 class PawnsRecognitionHelper:
   selectedSamplesQuality = "LQ" #TODO Change back
@@ -21,7 +22,6 @@ class PawnsRecognitionHelper:
     self.applyCircleMask = True
     self.applySharpenFilter = True
 
-
     [self.DPsamplesSiftInfos, self.DPsamplesHistograms, self.DPsamplesZncc] = loadSamples(DPpath, self.selectedSamplesResolution,  self.applyCircleMask, self.applySharpenFilter)
 
     [self.APsamplesSiftInfos, self.APsamplesHistograms, self.APsamplesZncc] = loadSamples(APpath, self.selectedSamplesResolution, self.applyCircleMask, self.applySharpenFilter)
@@ -29,6 +29,7 @@ class PawnsRecognitionHelper:
     self.boardReference = gameBoard
     self.detectivePawnsLocations = list()
     self.actionPawnsBb = list()
+    self.actionPawnCNN = cnnHelper()
 
   def GetScreenPortion(self,img, coordinates):
     self.coordinates = coordinates
@@ -116,25 +117,33 @@ class PawnsRecognitionHelper:
     #cv2.imshow("ActionPawnsImg",maskedimg)
     boundingBoxes = getBoundingBoxes(maskedimg, self.bBmaxArea, self.bBminArea, inspectInsideCountours = True)
 
+    '''
     siftProbabilities = []
     histoProbabilities = []
     znccProbabilites = []
+    '''
+    cnnProbabilities = []
     for i in range(min(len(boundingBoxes), self.maxThrownActionPawnsNumber)):
       if self.applyCircleMask:
         currentimg = self.CircleMask( maskedimg[boundingBoxes[i][1]:boundingBoxes[i][3], boundingBoxes[i][0]:boundingBoxes[i][2]], self.selectedSamplesResolution)
       else:
         currentimg = maskedimg[boundingBoxes[i][1]:boundingBoxes[i][3], boundingBoxes[i][0]:boundingBoxes[i][2]]
 
+      '''
       siftProbabilities.append(sift_detection(currentimg, self.APsamplesSiftInfos, self.selectedSamplesResolution, self.applyCircleMask, self.applySharpenFilter))
       histoProbabilities.append(histogramProbabilities(currentimg, self.APsamplesHistograms))
       znccProbabilites.append(zncc_pawn(currentimg, self.APsamplesZncc))
+      '''
+
+      cnnProbabilities.append(self.actionPawnCNN.ComputeImage(currentimg))
 
     if (len(boundingBoxes) > 0):
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilites],  [0, 0, 1])
+      #finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilites],  [0, 0, 1])
 
       #print(finalProbabilities)
 
-      assignedObjects = linearAssignment(finalProbabilities, ActionPawns)
+      #assignedObjects = linearAssignment(finalProbabilities, ActionPawns)
+      assignedObjects = linearAssignment(cnnProbabilities, ActionPawns)
       self.boardReference.setActionPawns(assignedObjects)
       self.actionPawnsBb = boundingBoxes[0:self.maxThrownActionPawnsNumber]
 

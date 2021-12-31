@@ -6,7 +6,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import random, os
 
-net = torch.load('ANIMEMOVIE_CNN.pt')
+net = torch.load('AP_RECOGNITION_CNN.pt')
 net = net.cuda()
 
 label = ['Anime','Movie']
