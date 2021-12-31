@@ -225,7 +225,7 @@ class GameProcessor:
                 self.gameBoard.updatePreviousPawnsState()
             elif (actionPawn.value <= 6):
                 self.gameBoard.updatePreviousCards()
-            elif (actionPawn == ActionPawns.APAlibi and IATurn == False):
+            elif (actionPawn.value == 7 and IATurn == False):
                 # In case the user picks an alibi card we need to show a special state before validating the turn
                 self.showAlibi = True
                 return

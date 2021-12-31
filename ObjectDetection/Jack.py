@@ -188,21 +188,21 @@ class JackAi():
 
 game_board = {
   "cardsPosition" : ["red", "blue", "black", "purple", "pink", "yellow", "brown", "orange", "white"],
-  "cardsOrientation" : [["Left", "back"], ["Right", "front"], ["Down", "front"], ["Up", "front"], ["Left", "front"], ["Left", "front"], ["Down", "front"], ["Up", "front"], ["Up", "front"]],
+  "cardsOrientation" : [["Left", "back"], ["Right", "front"], ["Down", "front"], ["Up", "front"], ["Up", "front"], ["Down", "front"], ["Down", "front"], ["Up", "front"], ["Up", "front"]],
   "dectectivePawns" : [0, 0, 0, 0, ['DPToby', 'DPWatson'], 0, 0, 0, 0, 0, 'DPSherlock', 0],
   "hourglasses" : 4,
   "jack" : "purple" 
 } 
 
 #Action alibi
-#Check la rotation de rotateCard, il doit pas pouvoir reste dans la meme orientation
+#Check la rotation de rotateCard, il doit pas pouvoir reste dans la meme orientation et rotate la meme carte
 
 
 # valid_actions = ["APJoker", "APSherlock", "APReturn"] #"APChangeCard"]
 
-#a = JackAi()
-#b = a.get_heuristic(game_board)
+a = JackAi()
+b = a.get_heuristic(game_board)
 #[print(element) for index, element in enumerate(game_board["dectectivePawns"]) if "DPWatson" in [element]]
-#print(b)
+print(b)
 # b = a.jack(game_board, 2, False, valid_actions)
 # print(b)
