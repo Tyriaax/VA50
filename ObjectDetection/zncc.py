@@ -61,7 +61,6 @@ def zncc_score(circleimg, samples = [], orientation = 'up'):
 
 def zncc_pawn(img, samples = []):
     a,n = 40,5
-    print(a,n)
     pawnCCscore = []
     for sample in samples:
         resizedSample = cv2.resize(sample, (img.shape[1],img.shape[0]))

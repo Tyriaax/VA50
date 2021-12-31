@@ -7,22 +7,6 @@ from boundingBoxes import *
 from probabilities import *
 from GameBoard import *
 
-class ActionPawns(Enum):
-  APSherlock = 0
-  APAlibi = 1
-  APToby = 2
-  APWatson = 3
-  APJoker = 4
-  APReturn = 5
-  APChangeCard = 6
-  APReturn2 = 7
-
-
-class DetectivePawns(Enum):
-  DPSherlock = 0
-  DPToby = 1
-  DPWatson = 2
-
 class PawnsRecognitionHelper:
   selectedSamplesQuality = "LQ" #TODO Change back
 
@@ -117,7 +101,7 @@ class PawnsRecognitionHelper:
       znccProbabilities.append(zncc_pawn(currentimg,self.DPsamplesZncc))
 
     if (len(boundingBoxes) > 0):
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities,znccProbabilities], [0, 0.2, 0.8])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities,znccProbabilities], [0, 0, 1])
 
       #print(finalProbabilities)
 
@@ -146,7 +130,7 @@ class PawnsRecognitionHelper:
       znccProbabilites.append(zncc_pawn(currentimg, self.APsamplesZncc))
 
     if (len(boundingBoxes) > 0):
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilites],  [0, 0.2, 0.8])
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilites],  [0, 0, 1])
 
       #print(finalProbabilities)
 
@@ -194,6 +178,14 @@ class PawnsRecognitionHelper:
 
     return img
 
+  def DrawDetectivePawnByName(self, img, detectivePawnName):
+    detectivePawns = self.detectivePawnsBbOrder
+
+    detectivePawnsIndex = detectivePawns.index(detectivePawnName)
+    img = drawRectanglesWithAssignment(img, [detectivePawnName], [self.detectivePawnsBb[detectivePawnsIndex]])
+
+    return img
+
   def DrawZonesRectangles(self, img, drawOffset = False):
     offsetpx = 10
     cv2.rectangle(img, (self.coordinates[0] - self.dpOverlaySizePx, self.coordinates[1] - self.dpOverlaySizePx),
@@ -211,7 +203,7 @@ class PawnsRecognitionHelper:
 
   def getDetectivePawnsPositions(self, assignedObjects, boundingBoxes):
     positions = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    for i in range(len(boundingBoxes)):
+    for i in range(min(len(boundingBoxes), len(DetectivePawns))):
       x = boundingBoxes[i][0]+ int((boundingBoxes[i][2]-boundingBoxes[i][0])/2)
       y = boundingBoxes[i][1]+ int((boundingBoxes[i][3]-boundingBoxes[i][1])/2)
 
@@ -225,7 +217,10 @@ class PawnsRecognitionHelper:
           if positions[j] == 0:
             positions[j]=assignedObjects[i]
           else:
-            positions[j]=[positions[j], assignedObjects[i]]
+            if len(positions[j]) > 1:
+              positions[j].append(assignedObjects[i])
+            else:
+              positions[j] = [positions[j], assignedObjects[i]]
 
     return positions
 

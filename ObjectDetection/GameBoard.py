@@ -3,6 +3,7 @@ import os
 from enum import Enum
 import numpy as np
 import random
+from Jack import *
 
 class Cards(Enum):
   CBlack = 0
@@ -15,13 +16,27 @@ class Cards(Enum):
   CWhite = 7
   CYellow = 8
 
-class GameStates(Enum):
-  GSWaitingActionPawnsThrow = 0
-  GSUsingActionPawns = 1
-  GSAppealOfWitness = 2
-  GSGameOver = 3
+class ActionPawns(Enum):
+  APSherlock = 0
+  APAlibi = 1
+  APToby = 2
+  APWatson = 3
+  APJoker = 4
+  APReturn = 5
+  APChangeCard = 6
+  APReturn2 = 7
 
-from cards_recognition import *
+class DetectivePawns(Enum):
+  DPSherlock = 0
+  DPToby = 1
+  DPWatson = 2
+
+class GameStates(Enum):
+  GSWaitingCards = 0
+  GSWaitingActionPawnsThrow = 1
+  GSUsingActionPawns = 2
+  GSAppealOfWitness = 3
+  GSGameOver = 4
 
 class GameBoard():
   def __init__(self) -> None:
@@ -36,7 +51,7 @@ class GameBoard():
 
       self.action_pawns = [0,0,0,0]
       self.board_file = os.path.abspath(os.path.join(os.path.dirname( __file__ ),"Game_state","JackPocketBoard.txt"))
-      self.state = GameStates.GSWaitingActionPawnsThrow
+      self.state = GameStates.GSWaitingCards
       self.alibiCardsDict = [
         ("Joseph Lane", 1, "CBrown" ),
         ("Madame", 2, "CPink"),
@@ -58,9 +73,12 @@ class GameBoard():
       self.detectiveWins = False
       self.currentPlayer = "Detective"
       self.jack = self.selectRandomJack()
+      self.jack_ai = JackAi() 
+      self.isJackFirst = False
       self.actionPawnsPlayed = 0
 
       self.innocentCards = list()
+      self.iaAction = None
   
   def getPreviousCards(self):
     return self.previousCards
@@ -138,10 +156,15 @@ class GameBoard():
     return self.detectiveWins
   
   def tryUpdateGameStatus(self, gameState):
-    if ((gameState.value < len(GameStates)) and
-            ((gameState == self.state) or (gameState.value == self.state.value+1))) or \
-            ((gameState == GameStates.GSWaitingActionPawnsThrow) and self.state == (GameStates.GSAppealOfWitness)):
+    canUpdate = self.canUpdateGameStatus(gameState)
+    if canUpdate:
       self.state = gameState
+
+    return canUpdate
+
+  def canUpdateGameStatus(self, gameState):
+    if (((gameState.value < len(GameStates)) and ((gameState == self.state) or (gameState.value == self.state.value + 1)))
+    or ((gameState == GameStates.GSWaitingActionPawnsThrow) and self.state == (GameStates.GSAppealOfWitness))):
       return True
     else:
       return False
@@ -165,7 +188,7 @@ class GameBoard():
 
     return detectivesPawnsIndexs
   
-  def updatePreviousCardsState(self):
+  def updatePreviousCards(self):
     self.previousCards = self.cards
     self.previousCardsState = self.cardsState
   
@@ -174,14 +197,14 @@ class GameBoard():
 
   def selectRandomJack(self):
     randomIndex = random.randint(0, len(self.alibiCardsDict) - 1)
+    print("Jack is : ", self.alibiCardsDict[randomIndex])
     return self.alibiCardsDict.pop(randomIndex)[2]
 
   def IsActionPawnRespected(self, action: str):
-
-    
-    if action in ["APJoker", "APHolmes", "APToby", "APWatson"]:
+ 
+    if action in ["APJoker", "APSherlock", "APToby", "APWatson"]:
       lengthDetectivePawnsList = len(self.detective_pawns)
-      indexWatson, previousIndexWatson, indexToby, previousIndexToby, indexSherlock, previousIndexSherlock = (str(),)*6
+      indexWatson, previousIndexWatson, indexToby, previousIndexToby, indexSherlock, previousIndexSherlock = (None,)*6
 
       if "DPSherlock" in self.previousDetectivePawns and "DPSherlock" in self.detective_pawns:
         previousIndexSherlock = self.previousDetectivePawns.index("DPSherlock")
@@ -195,8 +218,6 @@ class GameBoard():
         previousIndexWatson = self.previousDetectivePawns.index("DPWatson")
         indexWatson = self.detective_pawns.index("DPWatson")
 
-      print("indexs : ", (previousIndexSherlock + 1) % lengthDetectivePawnsList, indexSherlock, previousIndexToby, indexToby,  previousIndexWatson,indexWatson )
-
       if None not in [indexWatson, previousIndexWatson, indexToby, previousIndexToby, indexSherlock, previousIndexSherlock] and lengthDetectivePawnsList > 0:
         if action == "APJoker":
           if self.currentPlayer == "Jack":
@@ -206,7 +227,7 @@ class GameBoard():
               (previousIndexToby == indexToby and previousIndexWatson == indexWatson and previousIndexSherlock == indexSherlock) :
               return True
 
-          elif self.currentPlayer == "Detectives":
+          elif self.currentPlayer == "Detective":
             if ((previousIndexSherlock + 1) % lengthDetectivePawnsList == indexSherlock and previousIndexToby == indexToby and previousIndexWatson == indexWatson) or \
               ((previousIndexToby + 1) % lengthDetectivePawnsList == indexToby and previousIndexSherlock == indexSherlock and previousIndexWatson == indexWatson) or \
               ((previousIndexWatson + 1) % lengthDetectivePawnsList == indexWatson and previousIndexSherlock == indexSherlock and previousIndexToby == indexToby):
@@ -252,8 +273,12 @@ class GameBoard():
       randomIndex = random.randint(0, len(self.alibiCardsDict) - 1)
       randomAlibiCard = self.alibiCardsDict.pop(randomIndex)
       if randomAlibiCard:
-        self.addJackHourglasses(randomAlibiCard[1])
-        self.addInnocentCards(randomAlibiCard[2])
+        if self.currentPlayer == "Jack":
+          self.addJackHourglasses(randomAlibiCard[1])
+        else:
+          print(randomAlibiCard)
+        self.addInnocentCards([randomAlibiCard[2]])
+
         return True
 
     print("current cards :\n ", self.cards , "previous cards:\n ", self.previousCards)
@@ -289,7 +314,7 @@ class GameBoard():
   
   def switchPlayer(self):
     if self.currentPlayer == "Jack":
-      self.currentPlayer = "Detectives"
+      self.currentPlayer = "Detective"
     else:
       self.currentPlayer = "Jack"
   
@@ -309,9 +334,11 @@ class GameBoard():
 
     if self.turnCount % 2 == 0: 
       self.currentPlayer = "Jack"
+      self.isJackFirst = True
       print("Flip back the tokens.")
     else:
-      self.currentPlayer = "Detectives"
+      self.currentPlayer = "Detective"
+      self.isJackFirst = False
       print("Detective starts: you can throw the tokens")
   
   def addJackHourglasses(self, numberOfHourglasses):
@@ -331,27 +358,76 @@ class GameBoard():
     self.turnCount += 1
 
   def addInnocentCards(self, innocentCards):
-    if (len(innocentCards) > 1):
-      for i in range(len(innocentCards)):
-        if (innocentCards[i] != 0) and (innocentCards[i] not in self.innocentCards):
-          self.innocentCards.append(innocentCards[i])
-
-    else:
-      if (innocentCards != 0) and (innocentCards not in self.innocentCards):
-        self.innocentCards.append(innocentCards)
+    for i in range(len(innocentCards)):
+      if (innocentCards[i] != 0) and (innocentCards[i] not in self.innocentCards):
+        self.innocentCards.append(innocentCards[i])
 
   def getInnocentCards(self):
     return self.innocentCards
 
+  def getInnocentedCard(self):
+    return self.innocentCards[len(self.innocentCards)-1]
+
   def getInnocentCardsIndex(self):
     indexes = []
-    if len(self.innocentCards) > 0:
-      if (len(self.innocentCards) > 1):
-        for i in range(len(self.innocentCards)):
-          indexes.append(Cards[self.innocentCards[i]])
-      else:
-        indexes.append(Cards[self.innocentCards])
+    for i in range(len(self.innocentCards)):
+      indexes.append(Cards[self.innocentCards[i]].value)
 
-      indexes.sort()
+    indexes.sort()
 
     return indexes
+
+  def nextTurn(self):
+    self.getNextPlayerToUseActionsPawns()
+    if self.currentPlayer == "Jack":
+      self.jackPlays()
+    else:
+      self.iaAction = None
+
+  def jackPlays(self):
+
+    game_board = {
+      "cardsPosition" : self.cards,
+      "cardsOrientation" : self.cardsState,
+      "dectectivePawns" : self.detective_pawns,
+      "hourglasses" : self.jackHourglasses,
+      "jack" : self.jack 
+    }   
+
+    self.iaAction  = self.jack_ai.jack(game_board, self.actionPawnsPlayed, self.isJackFirst, self.getActionPawns())
+    print(self.iaAction)
+
+  def getIaAction(self):
+    return self.iaAction
+
+  def validateCardsInitialPosition(self):
+    validated = True
+
+    for cards in self.cardsState:
+      if cards[1] != "front":
+        validated = False
+
+    if self.cardsState[0][0] != "right":
+      validated = False
+
+    if self.cardsState[2][0] != "left":
+      validated = False
+
+    if self.cardsState[7][0] != "up":
+      validated = False
+
+    return validated
+
+  def validatePawnsInitialPosition(self):
+    validated = True
+
+    if self.detective_pawns[3] != "DPWatson":
+      validated = False
+
+    if self.detective_pawns[7] != "DPToby":
+      validated = False
+
+    if self.detective_pawns[11] != "DPSherlock":
+      validated = False
+
+    return validated

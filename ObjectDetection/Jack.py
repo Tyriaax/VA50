@@ -4,12 +4,14 @@ import copy
 
 class JackAi():
   def jack(self, game_board, turn, is_jack_first, valid_actions): #isJackFirst = True, turn 1 else , turn = 2
-    steps = 5 - turn
-
+    steps = 4 - turn
+    best_action, best_score = None, - np.Inf
     for action in valid_actions:
-      print(action + ': ', self.score_move(game_board, action, steps, copy.deepcopy(valid_actions), turn, is_jack_first), sep = ' ', end='\n' * 2)
-    #scores = dict(zip(valid_actions, [self.score_move(game_board, action, steps) for action in #valid_actions]))
-    #return max(scores)
+      jack_step = self.score_move(game_board, action, steps, copy.deepcopy(valid_actions), turn, is_jack_first)
+      if jack_step[1] > best_score:
+        best_action = [action, jack_step[0][1]]
+
+    return best_action
 
   def score_move(self, game_board, action, steps, valid_actions, turn, is_jack_first): #Calcul score lorsque Jack fait une action
     scoreMax = - np.Inf
@@ -63,29 +65,34 @@ class JackAi():
     return next_game_board
   
   def do_action_on_detective_pawns(self, game_board, detective_pawn, move_of):
-    #Handle same char on same place
     next_game_board = game_board
-    # for element_detective_pawns in next_game_board["dectectivePawns"]:
-    #   print(element_detective_pawns)
-    #   if detective_pawn in element_detective_pawns:
-    
-    index_detective = next_game_board["dectectivePawns"].index(detective_pawn)
-    
-    # if type(next_game_board["dectectivePawns"][index_detective]) == list():
-    #   next_game_board["dectectivePawns"][index_detective].remove(detective_pawn)
-    # else:
-    #   next_game_board["dectectivePawns"][index_detective] = 0
-    # destination_index = (index_detective + move_of)%len(next_game_board["dectectivePawns"])
-    # if  next_game_board["dectectivePawns"][destination_index] == 0:
-    #   next_game_board["dectectivePawns"][destination_index] = detective_pawn
-    # else:
-    #   next_game_board["dectectivePawns"][destination_index] = [next_game_board["dectectivePawns"][destination_index], detective_pawn]
+    index_detective = None
 
+    try:
+      index_detective = next_game_board["dectectivePawns"].index(detective_pawn)
+    except:
+      for index, element in enumerate(game_board["dectectivePawns"]):
+        if type(element) == type(list()) and detective_pawn in element:
+          index_detective = index
+          break
+    
     destination_index = (index_detective + move_of)%len(next_game_board["dectectivePawns"])
-    if next_game_board["dectectivePawns"][destination_index] == 0:
+    
+    if next_game_board["dectectivePawns"][destination_index] == 0 and type(next_game_board["dectectivePawns"][index_detective]) != type(list()):
       next_game_board["dectectivePawns"][index_detective] = 0
       next_game_board["dectectivePawns"][destination_index] = detective_pawn
-
+    elif type(next_game_board["dectectivePawns"][destination_index]) == type(list()) and type(next_game_board["dectectivePawns"][index_detective]) != type(list()):
+      next_game_board["dectectivePawns"][index_detective] = 0
+      next_game_board["dectectivePawns"][destination_index].append(detective_pawn)
+    elif next_game_board["dectectivePawns"][destination_index] == 0 and type(next_game_board["dectectivePawns"][index_detective]) == type(list()):
+      next_game_board["dectectivePawns"][index_detective].pop(next_game_board["dectectivePawns"][index_detective].index(detective_pawn))
+      if len(next_game_board["dectectivePawns"][index_detective]) == 1:
+        next_game_board["dectectivePawns"][index_detective] = next_game_board["dectectivePawns"][index_detective][0]
+      next_game_board["dectectivePawns"][destination_index] = detective_pawn
+    elif type(next_game_board["dectectivePawns"][destination_index]) == type(str()) and type(next_game_board["dectectivePawns"][index_detective]) == type(str()):
+      next_game_board["dectectivePawns"][index_detective] = 0
+      next_game_board["dectectivePawns"][destination_index] = [ next_game_board["dectectivePawns"][destination_index], detective_pawn]
+    
     return next_game_board
   
   def do_change_card_action(self, game_board, index1 , index2):
@@ -126,8 +133,11 @@ class JackAi():
                                 (8, 5, 2), (7, 4, 1), (6, 3, 0),
                                 (6, 7, 8), (3, 4, 5),(0, 1, 2))
 
+    for index, element in enumerate(game_board["dectectivePawns"]):
+        if type(element) == type(list()) :
+          pass
     for index in range(len(game_board["dectectivePawns"])):
-      if game_board["dectectivePawns"][index] in ["DPWatson", "DPSherlock", "DPToby"]:
+      if type(game_board["dectectivePawns"][index]) == type(list()) or game_board["dectectivePawns"][index] in ["DPWatson", "DPSherlock", "DPToby"]:
         detectives_position.append(index)
 
     for detective_position in detectives_position:
@@ -149,7 +159,6 @@ class JackAi():
         number_of_detectives_who_see_jack += 1
         jack_has_been_seen = True
 
-
     if jack_has_been_seen:
       return -1000 + number_of_people_in_sight * 50 - number_of_detectives_who_see_jack * 15
     else:
@@ -162,7 +171,7 @@ class JackAi():
     is_terminal = self.is_terminal_node(node)
     if depth == 0 or is_terminal:
         return self.get_heuristic(node)
-    if (isJackFirst and (turn == 1 or turn == 4)) or (not isJackFirst and (turn == 2 or turn == 3)):
+    if (isJackFirst and (turn == 0 or turn == 3)) or (not isJackFirst and (turn == 1 or turn == 2)):
         value = -np.Inf
         for action in valid_actions:
           childs, valid_actions_remaining = self.get_possible_actions(node, action, copy.deepcopy(valid_actions))
@@ -177,46 +186,23 @@ class JackAi():
             value = min(value, self.minimax(child[0], depth-1, isJackFirst, valid_actions_remaining, turn + 1))
         return value
 
-def old_minimax(self, node, depth, maximizingPlayer, valid_actions):
-    is_terminal = self.is_terminal_node(node)
-    if depth == 0 or is_terminal:
-        return self.get_heuristic(node)
-    #If JackFirst and turn == 1 || 4 or not JackFirst and turn == 2 or 3:
-    if maximizingPlayer:
-        value = -np.Inf
-        for action in valid_actions:
-          childs, valid_actions_remaining = self.get_possible_actions(node, action, copy.deepcopy(valid_actions))
-          for child in childs:
-            value = max(value, self.minimax(child[0], depth-1, False, valid_actions_remaining))
-        return value
-    else:
-        value = np.Inf
-        for action in valid_actions:
-          childs, valid_actions_remaining = self.get_possible_actions(node, action, copy.deepcopy(valid_actions))
-          for child in childs:
-            value = min(value, self.minimax(child[0], depth-1, True, valid_actions_remaining))
-        return value
-
-
 game_board = {
   "cardsPosition" : ["red", "blue", "black", "purple", "pink", "yellow", "brown", "orange", "white"],
   "cardsOrientation" : [["Left", "back"], ["Right", "front"], ["Down", "front"], ["Up", "front"], ["Left", "front"], ["Left", "front"], ["Down", "front"], ["Up", "front"], ["Up", "front"]],
-  "dectectivePawns" : ["DPWatson", 0, 0, 0, "DPToby", 0,0,0, 0,0,"DPSherlock",0],
+  "dectectivePawns" : [0, 0, 0, 0, ['DPToby', 'DPWatson'], 0, 0, 0, 0, 0, 'DPSherlock', 0],
   "hourglasses" : 4,
   "jack" : "purple" 
 } 
 
-#Ajout de plusieurs dp sur une case
 #Action alibi
-#Add switch like real game Min - Max - Max - Min
-
-#Enlever max min player pour mettre le nombre de tour à la place
-#If jack start the turn : 1 - 4
-# : 2 - 3 
-
-valid_actions = ["APJoker", "APSherlock","APReturn"] #"APChangeCard"]
-
-a = JackAi()
-a.jack(game_board, 2, False, valid_actions)
+#Check la rotation de rotateCard, il doit pas pouvoir reste dans la meme orientation
 
 
+# valid_actions = ["APJoker", "APSherlock", "APReturn"] #"APChangeCard"]
+
+#a = JackAi()
+#b = a.get_heuristic(game_board)
+#[print(element) for index, element in enumerate(game_board["dectectivePawns"]) if "DPWatson" in [element]]
+#print(b)
+# b = a.jack(game_board, 2, False, valid_actions)
+# print(b)

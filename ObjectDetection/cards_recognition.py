@@ -144,6 +144,21 @@ class CardsRecognitionHelper:
     img = drawRectanglesWithAssignment(img, cards, self.rectangles)
 
     return img
+
+  def DrawBoxesByIndex(self, img, indexes):
+    for index in indexes:
+      cv2.rectangle(img, (self.rectangles[index][0], self.rectangles[index][1]), (self.rectangles[index][2], self.rectangles[index][3]), (0, 255, 0), 2)
+
+    return img
+
+  def DrawBoxesByName(self, img, names):
+    cards = self.boardReference.getCards()
+
+    for i in range(len(cards)):
+      if cards[i] in names:
+        cv2.rectangle(img, (self.rectangles[i][0], self.rectangles[i][1]), (self.rectangles[i][2], self.rectangles[i][3]), (0, 255, 0), 2)
+
+    return img
   
   def ComputeCardsOrientation(self, img):
     self.gameBoard = np.zeros((9,2), dtype= np.chararray)
@@ -215,7 +230,6 @@ class CardsRecognitionHelper:
     index = 0
     if(len(self.rectangles) > 0):
       for boundingBox in self.cardRectangle:
-
         horizontalHalfLeft = False
         horizontalHalfRight = False
         horizontalLine = True
@@ -323,7 +337,7 @@ class CardsRecognitionHelper:
     jackPosition = self.boardReference.getJackPos()
     detectivesPosition = self.boardReference.getDetectivesPos()
 
-    if bool(jackPosition) and bool(detectivesPosition):
+    if None not in [jackPosition, detectivesPosition]:
       for detectivePosition in detectivesPosition:
         inSightPos = []
         cardList = []
@@ -365,13 +379,13 @@ class CardsRecognitionHelper:
       print("JACK IN SIGHT")
       for pos in inSightPos: 
         inSightList.append(cards[pos[1]]) #Index des cartes en lignes de vues par les détectiives    
-      self.boardReference.addInnocentCard(inSightList)
+      self.boardReference.addInnocentCards(inSightList)
       return True
     else:
       print("Jack not in sight") 
       inSightList = [cards[index] for index in range(9)]
       for pos in inSightPos: 
-        inSightList.pop(pos[i]) #Index des cartes en lignes de vues par les détectiives
-      self.boardReference.addInnocentCard(inSightList)
+        inSightList.pop(pos[1]) #Index des cartes en lignes de vues par les détectiives
+      self.boardReference.addInnocentCards(inSightList)
       return False
 
