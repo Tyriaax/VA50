@@ -60,7 +60,8 @@ class JackAi():
 
   def do_return_action(self, game_board, index, orientation):
     next_game_board = game_board
-    next_game_board["cardsOrientation"][index][0] = orientation
+    if next_game_board["cardsOrientation"][index][0] != orientation:
+      next_game_board["cardsOrientation"][index][0] = orientation
 
     return next_game_board
   
@@ -160,9 +161,14 @@ class JackAi():
         jack_has_been_seen = True
 
     if jack_has_been_seen:
-      return -1000 + number_of_people_in_sight * 50 - number_of_detectives_who_see_jack * 15
+      pass
     else:
-      return 10000 - number_of_people_in_sight * 50 
+      pass
+    
+    if jack_has_been_seen:
+      return -1000 + number_of_people_in_sight * 100 - number_of_detectives_who_see_jack * 15
+    else:
+      return 1000 - number_of_people_in_sight * 100 #Not in sight
 
   def is_terminal_node(self, game_board):# check si la partie est terminé
     pass
@@ -191,7 +197,8 @@ game_board = {
   "cardsOrientation" : [["Left", "back"], ["Right", "front"], ["Down", "front"], ["Up", "front"], ["Up", "front"], ["Down", "front"], ["Down", "front"], ["Up", "front"], ["Up", "front"]],
   "dectectivePawns" : [0, 0, 0, 0, ['DPToby', 'DPWatson'], 0, 0, 0, 0, 0, 'DPSherlock', 0],
   "hourglasses" : 4,
-  "jack" : "purple" 
+  "jack" : "purple" ,
+  "remaining_suspect" : 9
 } 
 
 #Action alibi
