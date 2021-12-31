@@ -239,7 +239,8 @@ class GameProcessor:
             if (len(self.gameBoard.getActionPawns()) == 0):
                 print("Turn Finished")
                 if (self.gameBoard.tryUpdateGameStatus(GameStates.GSAppealOfWitness)):
-                    self.gameBoard.appealOfWitnesses(self.cardsRecognitionHelper.IsInLineOfSight(img))
+                    self.isJackSeen = self.cardsRecognitionHelper.IsInLineOfSight(img)
+                    self.gameBoard.appealOfWitnesses(self.isJackSeen)
                     self.gameBoard.manhunt()
         else:
             print("Action Pawn not Validated")
