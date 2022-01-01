@@ -131,7 +131,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
 # Fonction main
 ##############################################################################
 if __name__ == '__main__':
-    objectToLearn = "DP"
+    objectToLearn = "CARDS"
 
     # Augmentation et normalisation des donnees pour le training, juste une normalisation pour la validation
     data_transforms = {

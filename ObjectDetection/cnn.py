@@ -1,6 +1,7 @@
 import torch
 from torchvision import transforms
 import cv2
+import numpy as np
 
 class cnnHelper:
     def __init__(self, type):
@@ -13,7 +14,16 @@ class cnnHelper:
             transforms.Resize((256, 256)),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
 
-    def ComputeImage(self, img):
+    def ComputeImage(self, img, resizeDimInCircle = 0):
+        if resizeDimInCircle != 0:
+            dim = (resizeDimInCircle, resizeDimInCircle)
+            img = cv2.resize(img, dim, interpolation=cv2.INTER_LINEAR)
+            height, width = img.shape[:2]
+            mask = np.full((height, width), 0, dtype=np.uint8)
+            cv2.circle(mask, (height // 2, width // 2), height // 2, 255, -1)
+
+            img = cv2.bitwise_and(img, img, mask=mask)
+
         imgtensor = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         input = self.CNNPreprocess(imgtensor)
         input.unsqueeze_(0)
