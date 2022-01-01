@@ -268,14 +268,14 @@ class GameBoard():
             if np.array_equal(self.previousCardsState[indexs[0]], self.cardsState[indexs[1]]) and np.array_equal(self.previousCardsState[indexs[1]], self.cardsState[indexs[0]]):
               return True
 
-    elif action == "APAlibi": #Verif quelle soit dans le bon sens aussi
+    elif action == "APAlibi": #TODO Verif quelle soit dans le bon sens aussi
       for card in self.cards:
         if card in self.innocentCards:
-          card = self.innocentCards.pop()
+          self.innocentCards.pop() #Si la carte n'est pas validee alors on n'ajoute pas la carte alibi tirée aux cartes innocentées
           return False
-      
-      
-      randomAlibiCard = self.alibiCardsDict.pop(randomIndex)
+
+      indexAlibiCardValidated = ActionPawns[self.innocentCards.index(-1)].value
+      self.alibiCardsDict.pop(indexAlibiCardValidated) #If the alibi card is validated, we remove it from the deck
       return True
 
     print("current cards :\n ", self.cards , "previous cards:\n ", self.previousCards)
@@ -284,6 +284,7 @@ class GameBoard():
    
   def get_alibi_card(self):
     randomIndex = random.randint(0, len(self.alibiCardsDict) - 1)
+    randomAlibiCard = self.alibiCardsDict[randomIndex]
     
     if randomAlibiCard:
       if self.currentPlayer == "Jack":
