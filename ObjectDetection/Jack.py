@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+import random
 
 
 class JackAi():
@@ -55,6 +56,9 @@ class JackAi():
     elif action == "APAlibi":
       mean_value_alibi_card = sum([elem[1] for elem in game_board["remaining_card_suspect"]])/len(game_board["remaining_card_suspect"])
       game_board["hourglasses"] += mean_value_alibi_card
+
+      randomIndex = random.randint(0, len(game_board["remaining_card_suspect"]) - 1)
+      game_board["remaining_card_suspect"].pop(randomIndex)
     
     valid_actions.remove(action)
     return next_game_boards, valid_actions
@@ -168,7 +172,7 @@ class JackAi():
       remainSus -= remainSus - number_of_people_in_sight
     else:
       remainSus -= number_of_people_in_sight  #Not in sight
-      bonusHourglass =1
+      bonusHourglass = 1
     return maxScore * (sum(range(remainSus-1))/sum(range(8)))* (6 + game_board["hourglasses"]+bonusHourglass)/12
 
   def is_terminal_node(self, game_board):# check si la partie est terminé
@@ -213,14 +217,12 @@ game_board = {
       ]
 } 
 
-#Action alibi
-#Check la rotation de rotateCard, il doit pas pouvoir reste dans la meme orientation et rotate la meme carte
 
 
 # valid_actions = ["APJoker", "APSherlock", "APReturn"] #"APChangeCard"]
 
-a = JackAi()
-a.get_possible_actions(game_board, "APAlibi", ["APAlibi"])
+# a = JackAi()
+# a.get_possible_actions(game_board, "APAlibi", ["APAlibi"])
 #b = a.get_heuristic(game_board)
 #[print(element) for index, element in enumerate(game_board["dectectivePawns"]) if "DPWatson" in [element]]
 #print(b)
