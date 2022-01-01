@@ -389,7 +389,12 @@ class GameBoard():
 
     return indexes
   
-  def setActionPawnsForNextTurn(self, actionPawnList):
+  def setActionPawnsForNextTurn(self, actionPawnsList):
+    self.actionPawnsNextTurn = list()
+    for i in range(len(actionPawnsList)):
+      actionPawn = ActionPawns[actionPawnsList[i]]
+      if actionPawn.value % 2 == 1:
+        actionPawnInvert = actionPawn.value
 
 
   def nextTurn(self):
