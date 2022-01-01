@@ -274,7 +274,7 @@ class GameBoard():
           self.innocentCards.pop() #Si la carte n'est pas validee alors on n'ajoute pas la carte alibi tirée aux cartes innocentées
           return False
 
-      indexAlibiCardValidated = ActionPawns[self.innocentCards.index(-1)].value
+      indexAlibiCardValidated = ActionPawns[self.innocentCards[-1]].value
       self.alibiCardsDict.pop(indexAlibiCardValidated) #If the alibi card is validated, we remove it from the deck
       return True
 
