@@ -195,11 +195,13 @@ class GameBoard():
     self.previousDetectivePawns = self.detective_pawns
 
   def selectRandomJack(self):
-    randomIndex = random.randint(0, len(self.alibiCardsDict) - 1)
-    print("Jack is : ", self.alibiCardsDict[randomIndex])
-    return self.alibiCardsDict.pop(randomIndex)[2]
+    random.shuffle(self.alibiCardsDict)
+    jack = self.alibiCardsDict.pop()
+    print("Jack is : ", jack[2])
+    return jack[2]
 
   def get_detective_pawn_index(self, list_dp, detective_pawn):
+    index_detective = None
     try:
       index_detective = list_dp.index(detective_pawn)
     except:
@@ -209,23 +211,20 @@ class GameBoard():
           break
     return index_detective
 
+  def getIndexCardsChanged(self):
+    indexs = []
+    if self.cards:
+      for index in range(len(self.cards)):
+        if (not np.array_equal(self.previousCards[index], self.cards[index])) or (not(np.array(self.previousCardsState[index], self.cardsState[index]))):
+          indexs.append(index)
+    
+    return indexs
+
   def IsActionPawnRespected(self, action: str):
  
     if action in ["APJoker", "APSherlock", "APToby", "APWatson"]:
       lengthDetectivePawnsList = len(self.detective_pawns)
       indexWatson, previousIndexWatson, indexToby, previousIndexToby, indexSherlock, previousIndexSherlock = (None,)*6
-
-      # if "DPSherlock" in self.previousDetectivePawns and "DPSherlock" in self.detective_pawns:
-      #   previousIndexSherlock = self.previousDetectivePawns.index("DPSherlock")
-      #   indexSherlock = self.detective_pawns.index("DPSherlock")
-
-      # if "DPToby" in self.previousDetectivePawns and "DPToby" in self.detective_pawns:
-      #   previousIndexToby = self.previousDetectivePawns.index("DPToby")
-      #   indexToby = self.detective_pawns.index("DPToby")
-
-      # if "DPWatson" in self.previousDetectivePawns and "DPWatson" in self.detective_pawns:
-      #   previousIndexWatson = self.previousDetectivePawns.index("DPWatson")
-      #   indexWatson = self.detective_pawns.index("DPWatson")
       
       previousIndexSherlock = self.get_detective_pawn_index(self.previousDetectivePawns, "DPSherlock")
       indexSherlock = self.get_detective_pawn_index(self.detective_pawns, "DPSherlock")
@@ -267,43 +266,41 @@ class GameBoard():
             return True
 
     elif action in ["APReturn", "APReturn2"]:
-      difference = 0
-      if self.previousCards == self.cards and self.previousCards:
-        for index in range(len(self.cardsState)):
-          if self.previousCardsState[index][0] != self.cardsState[index][0] and self.previousCardsState[index][1] == self.cardsState[index][1]:
-            difference += 1
-        if difference <= 1:
+      indexs = self.getIndexCardsChanged()       
+      if len(indexs) == 1:
+        if self.previousCardsState[indexs[0]][1] == self.cardsState[indexs[0]][1]:
           return True
 
     elif action == "APChangeCard":
-      indexs = []
-      if self.cards:
-        for index in range(len(self.cards)):
-          if not np.array_equal(self.previousCards[index], self.cards[index]):
-            indexs.append(index)
 
-        if len(indexs) == 2:
-          if self.cards[indexs[0]] == self.previousCards[indexs[1]] and self.cards[indexs[1]] == self.previousCards[indexs[0]]:
-            if np.array_equal(self.previousCardsState[indexs[0]], self.cardsState[indexs[1]]) and np.array_equal(self.previousCardsState[indexs[1]], self.cardsState[indexs[0]]):
-              return True
+      indexs = self.getIndexCardsChanged()       
+      if len(indexs) == 2:
+        if self.cards[indexs[0]] == self.previousCards[indexs[1]] and self.cards[indexs[1]] == self.previousCards[indexs[0]]:
+          if np.array_equal(self.previousCardsState[indexs[0]], self.cardsState[indexs[1]]) and np.array_equal(self.previousCardsState[indexs[1]], self.cardsState[indexs[0]]):
+            return True
 
     elif action == "APAlibi": #TODO Verif quelle soit dans le bon sens aussi
-      for card in self.cards:
-        if card in self.innocentCards:
-          self.innocentCards.pop() #Si la carte n'est pas validee alors on n'ajoute pas la carte alibi tirée aux cartes innocentées
+      indexs = self.getIndexCardsChanged()
+      if len(indexs) == 1:
+        if self.previousCardsState[indexs[0]][0] == self.cardsState[indexs[0]][0] and self.previousCards[indexs[0]] == self.innocentCards[-1]:
+          self.alibiCardsDict.pop() #If the alibi card is validated, we remove it from the deck
+          return True
+        else:
+          self.innocentCards.pop()
           return False
+      elif len(indexs) == 0:
+        self.alibiCardsDict.pop() #If the alibi card is validated, we remove it from the deck
+        return True
 
-      indexAlibiCardValidated = Cards[self.innocentCards[-1]].value
-      self.alibiCardsDict.pop(indexAlibiCardValidated) #If the alibi card is validated, we remove it from the deck
-      return True
+      self.innocentCards.pop() #Si la carte n'est pas validee alors on n'ajoute pas la carte alibi tirée aux cartes innocentées
+      return False
 
     print("current cards :\n ", self.cards , "previous cards:\n ", self.previousCards)
     print("current state :\n ", self.cardsState , "previous state:\n ", self.previousCardsState)
     return False
    
   def get_alibi_card(self):
-    randomIndex = random.randint(0, len(self.alibiCardsDict) - 1)
-    randomAlibiCard = self.alibiCardsDict[randomIndex]
+    randomAlibiCard = self.alibiCardsDict[-1]
     
     if randomAlibiCard:
       if self.currentPlayer == "Jack":
@@ -341,6 +338,19 @@ class GameBoard():
       self.switchPlayer()
     elif self.actionPawnsPlayed >= 4:
       self.actionPawnsPlayed = 0
+  
+  def checkCardsPosition(self):
+    if self.turnCount == 1:
+      return self.validateCardsInitialPosition
+    else:
+      indexs = self.getIndexCardsChanged()
+      for index in indexs:
+        if self.previousCardsState[index[0]][0] == self.cardsState[index[0]][0] and self.previousCards[index[0]] in self.innocentCards:
+          return True
+        else:
+          return False
+
+      return True
 
   def manhunt(self):
     self.stage = "Manhunt"
@@ -348,7 +358,6 @@ class GameBoard():
     if self.turnCount % 2 == 0: 
       self.currentPlayer = "Jack"
       self.isJackFirst = True
-      self.jackPlays()
     else:
       self.currentPlayer = "Detective"
       self.isJackFirst = False

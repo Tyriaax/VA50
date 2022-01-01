@@ -259,7 +259,6 @@ class CardsRecognitionHelper:
         currentimg = img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
         heightCard,widthCard, _ = currentimg.shape
         currentimgbinar = self.BinarizeCard(currentimg, heightCard, widthCard)
-        cv2.imshow(str(index), currentimgbinar)
         pathPortion = 0.3
         for a, b in zip(range(int(pathPortion * widthCard),widthCard), range(int(widthCard - pathPortion * widthCard), int(pathPortion * widthCard), -1)):
           if currentimgbinar[int(heightCard/2) - 1][a] != 255:
