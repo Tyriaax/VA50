@@ -159,7 +159,7 @@ class GameProcessor:
             if (self.gameBoard.getDetectiveWins() or self.gameBoard.getJackWins()):
                 self.gameBoard.tryUpdateGameStatus(GameStates.GSGameOver)
 
-            elif (self.gameBoard.canUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)):
+            elif (self.gameBoard.canUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow) and self.gameBoard.actionPawnsPlayed == 0):
                 self.cardsRecognitionHelper.ComputeFrame(img)
 
                 # If we are doing the card recognition for the first turn we need to check if all the cards are placed correctly
@@ -176,8 +176,7 @@ class GameProcessor:
 
         # If we press P for detect Pawns
         if (key == ord('p')): # or self.capEveryFrame
-
-            if (self.gameBoard.canUpdateGameStatus(GameStates.GSUsingActionPawns)):
+            if (self.gameBoard.canUpdateGameStatus(GameStates.GSUsingActionPawns) and self.gameBoard.actionPawnsPlayed == 0):
                 self.pawnsRecognitionHelper.ComputeFrame(img)
 
                 # If we are doing the pawns recognition for the first turn we need to check if all the pawns are placed correctly
@@ -191,7 +190,7 @@ class GameProcessor:
                     self.gameBoard.updatePreviousPawnsState()
                     self.gameBoard.tryUpdateGameStatus(GameStates.GSUsingActionPawns)
                     self.returnPawnsMessage = False
-
+                    self.gameBoard.tryComputeIaAction()
 
         # If we press space to validate IA Action or Alibi Card show
         if (key == 32): # or self.capEveryFrame
@@ -238,6 +237,8 @@ class GameProcessor:
                 # In case the user picks an alibi card we need to show a special state before validating the turn
                 self.showAlibi = True
                 return
+
+            self.gameBoard.trySetActionPawnsForNextTurn()
 
             # We used the Action Pawns and now we remove it
             print("Action Pawn Used")

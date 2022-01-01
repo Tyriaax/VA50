@@ -388,14 +388,21 @@ class GameBoard():
     indexes.sort()
 
     return indexes
-  
-  def setActionPawnsForNextTurn(self, actionPawnsList):
-    self.actionPawnsNextTurn = list()
-    for i in range(len(actionPawnsList)):
-      actionPawn = ActionPawns[actionPawnsList[i]]
-      if actionPawn.value % 2 == 1:
-        actionPawnInvert = actionPawn.value
 
+  def trySetActionPawnsForNextTurn(self):
+    if self.turnCount % 2 == 1 and self.actionPawnsPlayed == 0:
+      self.setActionPawnsForNextTurn()
+  
+  def setActionPawnsForNextTurn(self):
+    self.actionPawnsNextTurn = list()
+    for i in range(len(self.action_pawns)):
+      actionPawn = ActionPawns[self.action_pawns[i]]
+      if actionPawn.value % 2 == 1:
+        actionPawnInvert = ActionPawns(actionPawn.value-1).name
+      else:
+        actionPawnInvert = ActionPawns(actionPawn.value +1).name
+
+      self.actionPawnsNextTurn.append(actionPawnInvert)
 
   def nextTurn(self):
     self.getNextPlayerToUseActionsPawns()
@@ -403,6 +410,11 @@ class GameBoard():
       self.jackPlays()
     else:
       self.iaAction = None
+
+
+  def tryComputeIaAction(self):
+    if self.isJackFirst:
+      self.jackPlays()
 
   def jackPlays(self):
 
