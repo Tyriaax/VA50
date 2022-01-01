@@ -124,6 +124,7 @@ class JackAi():
     return jack_in_sight, number_of_people_in_sight
 
   def get_heuristic(self, game_board):
+    maxScore = 100
     board_score = 0
     detectives_position = []
     number_of_people_in_sight = 0
@@ -160,15 +161,14 @@ class JackAi():
         number_of_detectives_who_see_jack += 1
         jack_has_been_seen = True
 
+
+    remainSus = game_board["remaining_suspect"]
+
     if jack_has_been_seen:
-      pass
+      remainSus -= remainSus - number_of_people_in_sight
     else:
-      pass
-    
-    if jack_has_been_seen:
-      return -1000 + number_of_people_in_sight * 100 - number_of_detectives_who_see_jack * 15
-    else:
-      return 1000 - number_of_people_in_sight * 100 #Not in sight
+      remainSus -= number_of_people_in_sight  #Not in sight
+    return maxScore * (sum(range(remainSus-1))/sum(range(8)))* (6 + game_board["hourglasses"])/12
 
   def is_terminal_node(self, game_board):# check si la partie est terminé
     pass
