@@ -269,21 +269,26 @@ class GameBoard():
               return True
 
     elif action == "APAlibi":
-      randomIndex = random.randint(0, len(self.alibiCardsDict) - 1)
-      randomAlibiCard = self.alibiCardsDict.pop(randomIndex)
-      if randomAlibiCard:
-        if self.currentPlayer == "Jack":
-          self.addJackHourglasses(randomAlibiCard[1])
-        else:
-          print(randomAlibiCard)
-        self.addInnocentCards([randomAlibiCard[2]])
-
-        return True
+      for card in self.cards:
+        if card in self.innocentCards:
+          return False
+      
+      return True
 
     print("current cards :\n ", self.cards , "previous cards:\n ", self.previousCards)
     print("current state :\n ", self.cardsState , "previous state:\n ", self.previousCardsState)
     return False
    
+  def get_alibi_card(self):
+    randomIndex = random.randint(0, len(self.alibiCardsDict) - 1)
+    randomAlibiCard = self.alibiCardsDict.pop(randomIndex)
+    if randomAlibiCard:
+      if self.currentPlayer == "Jack":
+        self.addJackHourglasses(randomAlibiCard[1])
+      else:
+        print(randomAlibiCard)
+      self.addInnocentCards([randomAlibiCard[2]])
+
   def checkVictory(self, isJackSeen):
     if self.stage == "Appeal for Witnesses":
       if self.numberOfSuspects == 1 and self.jackHourglasses == 6:

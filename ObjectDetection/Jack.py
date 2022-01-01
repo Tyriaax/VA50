@@ -53,7 +53,8 @@ class JackAi():
           next_game_boards.append((self.do_change_card_action(copy.deepcopy(game_board), index1, index2), (index1, index2)))
 
     elif action == "APAlibi":
-      pass
+      mean_value_alibi_card = sum([elem[1] for elem in game_board["remaining_card_suspect"]])/len(game_board["remaining_card_suspect"])
+      print(mean_value_alibi_card)
     
     valid_actions.remove(action)
     return next_game_boards, valid_actions
@@ -161,7 +162,6 @@ class JackAi():
         number_of_detectives_who_see_jack += 1
         jack_has_been_seen = True
 
-
     remainSus = game_board["remaining_suspect"]
     bonusHourglass = 0
     if jack_has_been_seen:
@@ -199,7 +199,18 @@ game_board = {
   "dectectivePawns" : [0, 0, 0, 0, ['DPToby', 'DPWatson'], 0, 0, 0, 0, 0, 'DPSherlock', 0],
   "hourglasses" : 4,
   "jack" : "purple" ,
-  "remaining_suspect" : 9
+  "remaining_suspect" : 9,
+  "remaining_card_suspect" : [
+        ("Joseph Lane", 1, "CBrown" ),
+        ("Madame", 2, "CPink"),
+        ("Insp. Lestrade", 0, "CBlue"),
+        ("William Gull", 1, "CPurple"),
+        ("Jeremy Bert", 1, "COrange"),
+        ("John Smith", 1, "CYellow"),
+        ("Sgt Goodley", 0, "CBlack"),
+        ("Miss Stealthy", 1, "CGreen"),
+        ("John Pizer", 1, "CWhite"),
+      ]
 } 
 
 #Action alibi
@@ -209,8 +220,9 @@ game_board = {
 # valid_actions = ["APJoker", "APSherlock", "APReturn"] #"APChangeCard"]
 
 a = JackAi()
-b = a.get_heuristic(game_board)
+a.get_possible_actions(game_board, "APAlibi", ["APAlibi"])
+#b = a.get_heuristic(game_board)
 #[print(element) for index, element in enumerate(game_board["dectectivePawns"]) if "DPWatson" in [element]]
-print(b)
+#print(b)
 # b = a.jack(game_board, 2, False, valid_actions)
 # print(b)
