@@ -163,12 +163,13 @@ class GameProcessor:
                 self.cardsRecognitionHelper.ComputeFrame(img)
 
                 # If we are doing the card recognition for the first turn we need to check if all the cards are placed correctly
-                if (self.gameBoard.getTurnCount() == 1 and self.checkInitialPosition):
-                    if (self.gameBoard.validateCardsInitialPosition()):
+                if (self.gameBoard.getTurnCount() != 1 or self.checkInitialPosition):
+                    if (self.gameBoard.checkCardsPosition()):
                         self.gameBoard.updatePreviousCards()
                         self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
                     else:
-                        print("Le placement initial des cartes n'est pas bon") #TODO ERROR DISPLAY
+                        print("Le placement des cartes n'est pas bon")
+
                 else:
                     self.gameBoard.updatePreviousCards()
                     self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
