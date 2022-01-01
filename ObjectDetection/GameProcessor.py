@@ -189,17 +189,8 @@ class GameProcessor:
         # If we press space to validate IA Action or Alibi Card show
         if (key == 32): # or self.capEveryFrame
             if (self.showAlibi):
-                # We end the processing of our action pawn
-                print("Action Pawn Used")
-                self.pawnsRecognitionHelper.actionPawnUsed(ActionPawns.APAlibi)
-                self.gameBoard.nextTurn()
-
-                if (len(self.gameBoard.getActionPawns()) == 0):
-                    print("Turn Finished")
-                    if (self.gameBoard.tryUpdateGameStatus(GameStates.GSAppealOfWitness)):
-                        self.isJackSeen = self.cardsRecognitionHelper.IsInLineOfSight(img)
-                        self.gameBoard.appealOfWitnesses(self.isJackSeen)
-                        self.gameBoard.manhunt()
+                # We finish the processing of our alibi card here
+                self.UseActionPawn(img, ActionPawns.APAlibi, IATurn = False, EndAlibiProcessing = True)
 
                 self.showAlibi = False
 
@@ -209,20 +200,32 @@ class GameProcessor:
 
         return continuebool
 
-    def UseActionPawn(self, img, actionPawn, IATurn = False):
-        # Different actions depending on the AP clicked
-        if (actionPawn.value in [0,2,3,4]):
-            self.pawnsRecognitionHelper.ComputeDetectivePawns(img)
+    def UseActionPawn(self, img, actionPawn, IATurn = False, EndAlibiProcessing = False):
+        # We skip the first part in case it is an alibi card that we need to validate
+        if EndAlibiProcessing == False:
+            # Different actions depending on the AP clicked
+            if (actionPawn.value in [0,2,3,4]):
+                self.pawnsRecognitionHelper.ComputeDetectivePawns(img)
 
-            print("Previous : \n", self.gameBoard.getPreviousDetectivePawns(), "\nCurrent: \n", self.gameBoard.getDetectivePawns())
-        elif (actionPawn.value in [5, 6, 7]):
+                print("Previous : \n", self.gameBoard.getPreviousDetectivePawns(), "\nCurrent: \n", self.gameBoard.getDetectivePawns())
+            elif (actionPawn.value in [ 5, 6, 7]):
+                self.cardsRecognitionHelper.ComputeFrame(img)
+            elif (actionPawn == ActionPawns.APAlibi):
+                if IATurn == False:
+                    self.gameBoard.get_alibi_card()
+                    self.showAlibi = True
+                    return
+                else:
+                    self.cardsRecognitionHelper.ComputeFrame(img)
+        else:
+            # In the other case, we check the cards to verify if alibi has been correctly removed
             self.cardsRecognitionHelper.ComputeFrame(img)
 
         # We then check if the action pawns has been respected
         if (self.gameBoard.IsActionPawnRespected(actionPawn.name)):
             if (actionPawn.value in [0,2,3,4]):
                 self.gameBoard.updatePreviousPawnsState()
-            elif (actionPawn.value in [5, 6, 7]):
+            elif (actionPawn.value in [1, 5, 6, 7]):
                 self.gameBoard.updatePreviousCards()
             elif (actionPawn == ActionPawns.APAlibi and IATurn == False):
                 # In case the user picks an alibi card we need to show a special state before validating the turn
