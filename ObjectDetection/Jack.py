@@ -54,7 +54,7 @@ class JackAi():
 
     elif action == "APAlibi":
       mean_value_alibi_card = sum([elem[1] for elem in game_board["remaining_card_suspect"]])/len(game_board["remaining_card_suspect"])
-      print(mean_value_alibi_card)
+      game_board["hourglasses"] += mean_value_alibi_card
     
     valid_actions.remove(action)
     return next_game_boards, valid_actions
