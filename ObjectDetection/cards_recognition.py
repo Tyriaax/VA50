@@ -107,7 +107,7 @@ class CardsRecognitionHelper:
           """
 
           znccProbabilities.append(zncc_score(circleimg,samplesZncc, orientation=self.gameBoard[i][0]))
-          cnnProbabilities.append(self.CardsCNN.ComputeImage(cardimg))
+          cnnProbabilities.append(self.cardsCNN.ComputeImage(cardimg))
 
           """
           if self.selectedSamplesQuality == SamplesQuality.LAHQ:
@@ -130,7 +130,7 @@ class CardsRecognitionHelper:
           j = j+1
 
       #finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilities], [0,0,1]) # TODO PUT BACK
-      finalProbabilities = combineProbabilities([znccProbabilities, cnnProbabilities, znccProbabilities], [0.4, 0.6])
+      finalProbabilities = combineProbabilities([znccProbabilities, cnnProbabilities], [0.4, 0.6])
 
       assignedObjects = linearAssignment(finalProbabilities, Cards)
 
