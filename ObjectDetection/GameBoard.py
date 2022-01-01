@@ -52,15 +52,15 @@ class GameBoard():
       self.action_pawns = [0,0,0,0]
       self.state = GameStates.GSWaitingCards
       self.alibiCardsDict = [
-        ("Joseph Lane", 1, "CBrown" ),
-        ("Madame", 2, "CPink"),
-        ("Insp. Lestrade", 0, "CBlue"),
-        ("William Gull", 1, "CPurple"),
-        ("Jeremy Bert", 1, "COrange"),
-        ("John Smith", 1, "CYellow"),
         ("Sgt Goodley", 0, "CBlack"),
+        ("Insp. Lestrade", 0, "CBlue"),
+        ("Joseph Lane", 1, "CBrown" ),
         ("Miss Stealthy", 1, "CGreen"),
+        ("Jeremy Bert", 1, "COrange"),
+        ("Madame", 2, "CPink"),        
+        ("William Gull", 1, "CPurple"),
         ("John Pizer", 1, "CWhite"),
+        ("John Smith", 1, "CYellow"),       
       ]
 
       self.turnCount = 1
@@ -268,11 +268,14 @@ class GameBoard():
             if np.array_equal(self.previousCardsState[indexs[0]], self.cardsState[indexs[1]]) and np.array_equal(self.previousCardsState[indexs[1]], self.cardsState[indexs[0]]):
               return True
 
-    elif action == "APAlibi":
+    elif action == "APAlibi": #Verif quelle soit dans le bon sens aussi
       for card in self.cards:
         if card in self.innocentCards:
+          card = self.innocentCards.pop()
           return False
       
+      
+      randomAlibiCard = self.alibiCardsDict.pop(randomIndex)
       return True
 
     print("current cards :\n ", self.cards , "previous cards:\n ", self.previousCards)
@@ -281,7 +284,7 @@ class GameBoard():
    
   def get_alibi_card(self):
     randomIndex = random.randint(0, len(self.alibiCardsDict) - 1)
-    randomAlibiCard = self.alibiCardsDict.pop(randomIndex)
+    
     if randomAlibiCard:
       if self.currentPlayer == "Jack":
         self.addJackHourglasses(randomAlibiCard[1])
