@@ -125,7 +125,7 @@ class GameProcessor:
     def DrawIAAction(self, img, action):
         actionPawnPlayed = ActionPawns[action[0]]
         # If the action pawn played is regarding detective pawns
-        if actionPawnPlayed.value <= 4:
+        if actionPawnPlayed.value in [0,2,3,4]:
             img = self.pawnsRecognitionHelper.DrawDetectivePawnByName(img, action[1][0])
             img = drawMultipleLinesOfText(img,["Deplacez le jeton entoure de " + str(action[1][1]) + " cases", "Puis appuyez sur espace pour valider"], TextPositions.TPTopL)
         elif (actionPawnPlayed == ActionPawns.APReturn or actionPawnPlayed == ActionPawns.APReturn2):
@@ -211,20 +211,20 @@ class GameProcessor:
 
     def UseActionPawn(self, img, actionPawn, IATurn = False):
         # Different actions depending on the AP clicked
-        if (actionPawn.value < 4):
+        if (actionPawn.value in [0,2,3,4]):
             self.pawnsRecognitionHelper.ComputeDetectivePawns(img)
 
             print("Previous : \n", self.gameBoard.getPreviousDetectivePawns(), "\nCurrent: \n", self.gameBoard.getDetectivePawns())
-        elif (actionPawn.value <= 6):
+        elif (actionPawn.value in [5, 6, 7]):
             self.cardsRecognitionHelper.ComputeFrame(img)
 
         # We then check if the action pawns has been respected
         if (self.gameBoard.IsActionPawnRespected(actionPawn.name)):
-            if (actionPawn.value < 4):
+            if (actionPawn.value in [0,2,3,4]):
                 self.gameBoard.updatePreviousPawnsState()
-            elif (actionPawn.value <= 6):
+            elif (actionPawn.value in [5, 6, 7]):
                 self.gameBoard.updatePreviousCards()
-            elif (actionPawn.value == 7 and IATurn == False):
+            elif (actionPawn == ActionPawns.APAlibi and IATurn == False):
                 # In case the user picks an alibi card we need to show a special state before validating the turn
                 self.showAlibi = True
                 return
