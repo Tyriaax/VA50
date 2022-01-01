@@ -340,6 +340,7 @@ class CardsRecognitionHelper:
 
     inSightList = list()
     jackInSight = False
+    inSightPos = list()
 
     cards = self.boardReference.getCards()
     cards = np.array(cards)
@@ -350,7 +351,6 @@ class CardsRecognitionHelper:
 
     if None not in [jackPosition, detectivesPosition]:
       for detectivePosition in detectivesPosition:
-        inSightPos = []
         cardList = []
         sight = ""
         
@@ -376,27 +376,25 @@ class CardsRecognitionHelper:
             cardList.append([self.BinarizeCard(portionImg, heightCard, widthCard), index])
 
           self.InSight(detectivePosition, sight, cardList, heightCard, widthCard, inSightPos)
-
-          if len(inSightPos) > 0 :
-            for pos in inSightPos:            
-              #x, y = pos[1]//3 + 1, pos[1]%3 + 1
-              #inSightList.append((x,y))
-              #if jackPosition[0] == x and jackPosition[1] == y: 
-              if jackPosition == pos[1]:
-                jackInSight = True
+     
+    if len(inSightPos) > 0 :
+      for pos in inSightPos:            
+        if jackPosition == pos[1]:
+          jackInSight = True
 
     cards = self.boardReference.getCards()
     if jackInSight:
       print("JACK IN SIGHT")
+      inSightList = [cards[index] for index in range(9)]
       for pos in inSightPos: 
-        inSightList.append(cards[pos[1]]) #Index des cartes en lignes de vues par les détectiives    
+        inSightList.pop(pos[1]) #Index des cartes en lignes de vues par les détectiives
+  
       self.boardReference.addInnocentCards(inSightList)
       return True
     else:
       print("Jack not in sight") 
-      inSightList = [cards[index] for index in range(9)]
       for pos in inSightPos: 
-        inSightList.pop(pos[1]) #Index des cartes en lignes de vues par les détectiives
+        inSightList.append(cards[pos[1]]) #Index des cartes en lignes de vues par les détectiives  
       self.boardReference.addInnocentCards(inSightList)
       return False
 
