@@ -4,8 +4,8 @@ import random
 import enum as Enum
 from pathlib import Path
 
-objectToSample = "AP"
-numberOfSamples = 7
+objectToSample = "DP"
+numberOfSamples = 3
 cropCircle = True
 resizeDim = 100 #px
 
