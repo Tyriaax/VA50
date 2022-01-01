@@ -107,7 +107,7 @@ class PawnsRecognitionHelper:
       znccProbabilities.append(zncc_pawn(currentimg,self.DPsamplesZncc))
       """
 
-      cnnProbabilities.append(self.detectivePawnCNN.ComputeImage(currentimg))
+      cnnProbabilities.append(self.detectivePawnCNN.ComputeImage(currentimg,self.selectedSamplesResolution))
 
     if (len(boundingBoxes) > 0):
       #finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities,znccProbabilities], [0, 0, 1])
@@ -144,7 +144,7 @@ class PawnsRecognitionHelper:
       znccProbabilites.append(zncc_pawn(currentimg, self.APsamplesZncc))
       '''
 
-      cnnProbabilities.append(self.actionPawnCNN.ComputeImage(currentimg))
+      cnnProbabilities.append(self.actionPawnCNN.ComputeImage(currentimg,self.selectedSamplesResolution))
 
     if (len(boundingBoxes) > 0):
       #finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilites],  [0, 0, 1])
