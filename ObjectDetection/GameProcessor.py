@@ -185,7 +185,6 @@ class GameProcessor:
                     self.gameBoard.updatePreviousPawnsState()
                     self.gameBoard.tryUpdateGameStatus(GameStates.GSUsingActionPawns)
 
-                self.gameBoard.printState()
 
         # If we press space to validate IA Action or Alibi Card show
         if (key == 32): # or self.capEveryFrame

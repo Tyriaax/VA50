@@ -50,7 +50,6 @@ class GameBoard():
       self.detective_pawns = list()
 
       self.action_pawns = [0,0,0,0]
-      self.board_file = os.path.abspath(os.path.join(os.path.dirname( __file__ ),"Game_state","JackPocketBoard.txt"))
       self.state = GameStates.GSWaitingCards
       self.alibiCardsDict = [
         ("Joseph Lane", 1, "CBrown" ),
@@ -284,20 +283,6 @@ class GameBoard():
     print("current cards :\n ", self.cards , "previous cards:\n ", self.previousCards)
     print("current state :\n ", self.cardsState , "previous state:\n ", self.previousCardsState)
     return False
-  
-  def printState(self):
-    cards_state = ""
-
-    for i in range(9):
-      if i%3 == 0:
-        cards_state += '\n'
-      cards_state += str(self.cards[i]) + "|"
-    print(cards_state)
-    with open(self.board_file, 'w') as file:
-      file.write(cards_state)
-
-    print(self.detective_pawns)
-    print(self.action_pawns)
    
   def checkVictory(self, isJackSeen):
     if self.stage == "Appeal for Witnesses":
