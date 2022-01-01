@@ -199,23 +199,42 @@ class GameBoard():
     print("Jack is : ", self.alibiCardsDict[randomIndex])
     return self.alibiCardsDict.pop(randomIndex)[2]
 
+  def get_detective_pawn_index(self, list_dp, detective_pawn):
+    try:
+      index_detective = list_dp.index(detective_pawn)
+    except:
+      for index, element in enumerate(list_dp):
+        if type(element) == type(list()) and detective_pawn in element:
+          index_detective = index
+          break
+    return index_detective
+
   def IsActionPawnRespected(self, action: str):
  
     if action in ["APJoker", "APSherlock", "APToby", "APWatson"]:
       lengthDetectivePawnsList = len(self.detective_pawns)
       indexWatson, previousIndexWatson, indexToby, previousIndexToby, indexSherlock, previousIndexSherlock = (None,)*6
 
-      if "DPSherlock" in self.previousDetectivePawns and "DPSherlock" in self.detective_pawns:
-        previousIndexSherlock = self.previousDetectivePawns.index("DPSherlock")
-        indexSherlock = self.detective_pawns.index("DPSherlock")
+      # if "DPSherlock" in self.previousDetectivePawns and "DPSherlock" in self.detective_pawns:
+      #   previousIndexSherlock = self.previousDetectivePawns.index("DPSherlock")
+      #   indexSherlock = self.detective_pawns.index("DPSherlock")
 
-      if "DPToby" in self.previousDetectivePawns and "DPToby" in self.detective_pawns:
-        previousIndexToby = self.previousDetectivePawns.index("DPToby")
-        indexToby = self.detective_pawns.index("DPToby")
+      # if "DPToby" in self.previousDetectivePawns and "DPToby" in self.detective_pawns:
+      #   previousIndexToby = self.previousDetectivePawns.index("DPToby")
+      #   indexToby = self.detective_pawns.index("DPToby")
 
-      if "DPWatson" in self.previousDetectivePawns and "DPWatson" in self.detective_pawns:
-        previousIndexWatson = self.previousDetectivePawns.index("DPWatson")
-        indexWatson = self.detective_pawns.index("DPWatson")
+      # if "DPWatson" in self.previousDetectivePawns and "DPWatson" in self.detective_pawns:
+      #   previousIndexWatson = self.previousDetectivePawns.index("DPWatson")
+      #   indexWatson = self.detective_pawns.index("DPWatson")
+      
+      previousIndexSherlock = self.get_detective_pawn_index(self.previousDetectivePawns, "DPSherlock")
+      indexSherlock = self.get_detective_pawn_index(self.detective_pawns, "DPSherlock")
+
+      previousIndexToby = self.get_detective_pawn_index(self.previousDetectivePawns, "DPToby")
+      indexToby = self.get_detective_pawn_index(self.detective_pawns, "DPToby")
+
+      previousIndexWatson = self.get_detective_pawn_index(self.previousDetectivePawns, "DPWatson")
+      indexWatson = self.get_detective_pawn_index(self.detective_pawns, "DPWatson")
 
       if None not in [indexWatson, previousIndexWatson, indexToby, previousIndexToby, indexSherlock, previousIndexSherlock] and lengthDetectivePawnsList > 0:
         if action == "APJoker":
@@ -274,7 +293,7 @@ class GameBoard():
           self.innocentCards.pop() #Si la carte n'est pas validee alors on n'ajoute pas la carte alibi tirée aux cartes innocentées
           return False
 
-      indexAlibiCardValidated = ActionPawns[self.innocentCards[-1]].value
+      indexAlibiCardValidated = Cards[self.innocentCards[-1]].value
       self.alibiCardsDict.pop(indexAlibiCardValidated) #If the alibi card is validated, we remove it from the deck
       return True
 

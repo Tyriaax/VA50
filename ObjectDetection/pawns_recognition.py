@@ -199,9 +199,9 @@ class PawnsRecognitionHelper:
 
   def DrawDetectivePawnByName(self, img, detectivePawnName):
     detectivePawns = self.detectivePawnsBbOrder
-
-    detectivePawnsIndex = detectivePawns.index(detectivePawnName)
-    img = drawRectanglesWithAssignment(img, [detectivePawnName], [self.detectivePawnsBb[detectivePawnsIndex]])
+    if detectivePawnName in detectivePawns:
+      detectivePawnsIndex = detectivePawns.index(detectivePawnName)
+      img = drawRectanglesWithAssignment(img, [detectivePawnName], [self.detectivePawnsBb[detectivePawnsIndex]])
 
     return img
 
@@ -236,10 +236,10 @@ class PawnsRecognitionHelper:
           if positions[j] == 0:
             positions[j]=assignedObjects[i]
           else:
-            if len(positions[j]) > 1:
-              positions[j].append(assignedObjects[i])
-            else:
+            if type(positions[j]) == type(str()):
               positions[j] = [positions[j], assignedObjects[i]]
+            else:
+              positions[j].append(assignedObjects[i])
 
     return positions
 
