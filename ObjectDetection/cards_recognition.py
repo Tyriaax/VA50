@@ -137,12 +137,12 @@ class CardsRecognitionHelper:
       finalProbabilities = combineProbabilities([znccProbabilities, cnnProbabilities], [0.4, 0.6])
 
       # We also need to change the list of cards we give to the assignment algorithm
-      CurrentCards = []
+      CurrentCardsStrings = []
       for card in Cards:
         if card.value not in innocentCards:
-          CurrentCards.append({'name': card.name, 'value': card.value})
+          CurrentCardsStrings.append(card.name)
 
-      assignedObjects = linearAssignment(finalProbabilities, CurrentCards)
+      assignedObjects = linearAssignmentWithStrings(finalProbabilities, CurrentCardsStrings)
 
       # Now we assign back the objects to only the front turned cards TODO ADD SAFETY IN CASE A CARD INNOCENTED IS NOT DETECTED AS TURNED
       finalAssignedObjects = []

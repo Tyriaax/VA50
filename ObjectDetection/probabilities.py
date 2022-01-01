@@ -66,6 +66,29 @@ def linearAssignment(finalProbabilities, selectedEnum):
 
   return result
 
+def linearAssignmentWithStrings(finalProbabilities, selectedStrings):
+  costmatrix = np.zeros((len(finalProbabilities),len(finalProbabilities[0])))
+  for i in range(len(finalProbabilities)):
+    array = np.array(finalProbabilities[i])
+    if np.isnan(array).any():
+      array = np.full(len(array),1000000)
+    else:
+      for j in range(len(array)):
+        if array[j] != 0:
+          array[j] = 1/array[j]
+        else:
+          array[j] = 1000000
+
+    costmatrix[i] = array
+
+  row_ind, col_ind = linear_sum_assignment(costmatrix)
+
+  result = []
+  for i in range(len(col_ind)):
+    result.append(selectedStrings[col_ind[i]])
+
+  return result
+
 def FormatActionPawnProbabilitiesMissingSample(probabilities):
   for probability in probabilities:
     probability.append(probability[5])
