@@ -29,7 +29,8 @@ class PawnsRecognitionHelper:
     self.boardReference = gameBoard
     self.detectivePawnsLocations = list()
     self.actionPawnsBb = list()
-    self.actionPawnCNN = cnnHelper()
+    self.actionPawnCNN = cnnHelper("AP")
+    self.detectivePawnCNN = cnnHelper("DP")
 
   def GetScreenPortion(self,img, coordinates):
     self.coordinates = coordinates
@@ -88,25 +89,33 @@ class PawnsRecognitionHelper:
     boundingBoxes = getBoundingBoxes(selectedimg, self.bBmaxArea, self.bBminArea)
     boundingBoxes = addOffsetToBb(boundingBoxes,self.detectivePawnsRectangle[0],self.detectivePawnsRectangle[1])
 
+    """
     siftProbabilities = []
     histoProbabilities = []
     znccProbabilities = []
+    """
+    cnnProbabilities = []
     for i in range(min(len(boundingBoxes), len(DetectivePawns))):
       if self.applyCircleMask:
         currentimg = self.CircleMask(img[boundingBoxes[i][1]:boundingBoxes[i][3], boundingBoxes[i][0]:boundingBoxes[i][2]],self.selectedSamplesResolution)
       else:
         currentimg = img[boundingBoxes[i][1]:boundingBoxes[i][3], boundingBoxes[i][0]:boundingBoxes[i][2]]
 
+      """
       siftProbabilities.append(sift_detection(currentimg, self.DPsamplesSiftInfos,self.selectedSamplesResolution, self.applyCircleMask, self.applySharpenFilter))
       histoProbabilities.append(histogramProbabilities(currentimg, self.DPsamplesHistograms))
       znccProbabilities.append(zncc_pawn(currentimg,self.DPsamplesZncc))
+      """
+
+      cnnProbabilities.append(self.detectivePawnCNN.ComputeImage(currentimg))
 
     if (len(boundingBoxes) > 0):
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities,znccProbabilities], [0, 0, 1])
+      #finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities,znccProbabilities], [0, 0, 1])
 
       #print(finalProbabilities)
 
-      assignedObjects = linearAssignment(finalProbabilities, DetectivePawns)
+      assignedObjects = linearAssignment(cnnProbabilities, DetectivePawns)
+      #assignedObjects = linearAssignment(finalProbabilities, DetectivePawns)
       DPpawnspositions = self.getDetectivePawnsPositions(assignedObjects,boundingBoxes)
       self.boardReference.setDetectivePawns(DPpawnspositions)
       self.detectivePawnsBb = boundingBoxes[0:len(DetectivePawns)]
@@ -143,6 +152,7 @@ class PawnsRecognitionHelper:
       #print(finalProbabilities)
 
       #assignedObjects = linearAssignment(finalProbabilities, ActionPawns)
+      cnnProbabilities = FormatActionPawnProbabilitiesMissingSample(cnnProbabilities)
       assignedObjects = linearAssignment(cnnProbabilities, ActionPawns)
       self.boardReference.setActionPawns(assignedObjects)
       self.actionPawnsBb = boundingBoxes[0:self.maxThrownActionPawnsNumber]

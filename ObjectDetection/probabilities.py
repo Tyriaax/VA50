@@ -65,3 +65,11 @@ def linearAssignment(finalProbabilities, selectedEnum):
     result.append(selectedEnum(col_ind[i]).name)
 
   return result
+
+def FormatActionPawnProbabilitiesMissingSample(probabilities):
+  for probability in probabilities:
+    probability.append(probability[5])
+    probabilitiessum = sum(probability)
+    probability[:] = [prob / probabilitiessum for prob in probability]
+
+  return probabilities

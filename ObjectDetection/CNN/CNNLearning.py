@@ -60,7 +60,7 @@ def visualize_model(model, num_images=6):
 ######################################################################
 # Fonction de Training et de Validation
 ######################################################################
-def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
+def train_model(model, criterion, optimizer, scheduler, num_epochs=30):
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -131,7 +131,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 # Fonction main
 ##############################################################################
 if __name__ == '__main__':
-    objectToLearn = "AP"
+    objectToLearn = "DP"
 
     # Augmentation et normalisation des donnees pour le training, juste une normalisation pour la validation
     data_transforms = {
@@ -180,7 +180,7 @@ if __name__ == '__main__':
     criterion = nn.CrossEntropyLoss()
     optimizer_conv = optim.SGD(model_conv.fc.parameters(), lr=0.001, momentum=0.9)
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer_conv, step_size=7, gamma=0.1)
-    model_conv = train_model(model_conv, criterion, optimizer_conv,exp_lr_scheduler, num_epochs=25)
+    model_conv = train_model(model_conv, criterion, optimizer_conv,exp_lr_scheduler, num_epochs=30)
 
 
     # Test du modele sur quelques images et visualisation des predictions

@@ -3,9 +3,9 @@ from torchvision import transforms
 import cv2
 
 class cnnHelper:
-    def __init__(self):
+    def __init__(self, type):
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        CNN = torch.load('CNN/CNN/AP_RECOGNITION_CNN.pt')
+        CNN = torch.load('CNN/CNN/' + type + '_RECOGNITION_CNN.pt')
         self.CNN = CNN.to(self.device)
 
         self.CNNPreprocess = transforms.Compose([
