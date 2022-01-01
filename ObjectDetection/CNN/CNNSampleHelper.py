@@ -4,10 +4,10 @@ import random
 import enum as Enum
 from pathlib import Path
 
-objectToSample = "DP"
-numberOfSamples = 3
-cropCircle = True
-resizeDim = 100 #px
+objectToSample = "CARDS"
+numberOfSamples = 9
+cropCircle = False
+resizeDim = 300 #px
 
 """
 class Cards(Enum):
@@ -181,8 +181,10 @@ def video_recognition():
 
                     cardSize = (int((coordinates[2]-coordinates[0])/3), int((coordinates[3]-coordinates[1])/3))
 
-                    bBmaxArea = (cardSize[0] * cardSize[1]) / 2
-                    bBminArea = (cardSize[0] * cardSize[1]) / 12
+                    #bBmaxArea = (cardSize[0] * cardSize[1]) / 2
+                    #bBminArea = (cardSize[0] * cardSize[1]) / 12
+                    bBmaxArea = (cardSize[0] * cardSize[1]) * 1.2
+                    bBminArea = (cardSize[0] * cardSize[1]) / 2
             else:
                 # We need to apply homography here so that the frames are correctly computed
                 img = cv2.warpPerspective(img, homographymatrix, (img.shape[1], img.shape[0]))

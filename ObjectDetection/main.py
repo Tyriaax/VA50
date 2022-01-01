@@ -10,7 +10,7 @@ def main():
     #image_recognition(imagepath)
     #video_recognition()
 
-    video_recognition(path)
+    video_recognition()
 
 if __name__ == '__main__':
     main()

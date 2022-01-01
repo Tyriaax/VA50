@@ -123,7 +123,7 @@ class CardsRecognitionHelper:
           j = j+1
 
       # finalProbabilities = combineProbabilities([histoProbabilities, znccProbabilities], [0.3, 0.7]) #TODO STAY ?
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilities], [0.1,0.2,0.7]) # TODO PUT BACK
+      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilities], [0,0,1]) # TODO PUT BACK
 
       assignedObjects = linearAssignment(finalProbabilities, Cards)
 
