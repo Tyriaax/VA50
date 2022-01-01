@@ -385,6 +385,8 @@ class GameBoard():
     }   
 
     self.iaAction  = self.jack_ai.jack(game_board, self.actionPawnsPlayed, self.isJackFirst, self.getActionPawns())
+    if self.iaAction[0] == "APAlibi": #if the ia picks alibi
+      self.get_alibi_card()
     print(self.iaAction)
 
   def getIaAction(self):
