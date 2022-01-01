@@ -1,14 +1,11 @@
 from enum import Enum
 from os import path
-
-#from cv2 import FAST_FEATURE_DETECTOR_FAST_N
-
 from samples import *
 from boundingBoxes import *
 from probabilities import *
 import numpy
 from GameBoard import *
-import random
+from cnn import *
 
 class SamplesQuality(Enum):
   LQ = 1
@@ -40,6 +37,8 @@ class CardsRecognitionHelper:
 
     # self.selectedCirclesResolution = int(0.42*self.selectedSamplesResolution)
 
+    self.cardsCNN = cnnHelper("CARDS")
+
   def GetScreenPortions(self, img,coordinates):
     cardToCircleProportion = 0.26
     img = img[coordinates[1]:coordinates[3], coordinates[0]:coordinates[2]]
@@ -70,9 +69,12 @@ class CardsRecognitionHelper:
 
   def ComputeCards(self, img, dontCheckReturnedAndInnocentedCards = False):
     if(len(self.rectangles) > 0):
+      """
       siftProbabilities = []
       histoProbabilities = []
+      """
       znccProbabilities = []
+      cnnProbabilities = []
 
       """Try with more than 1 sample
       siftProbabilities2 = []
@@ -83,12 +85,12 @@ class CardsRecognitionHelper:
 
       # Remove the samples of innocentCards
       innocentCards = self.boardReference.getInnocentCardsIndex()
-      samplesSift = self.samplesSiftInfos.copy()
+      #samplesSift = self.samplesSiftInfos.copy()
       samplesZncc = self.samplesZncc.copy()
       j = 0
       for i in range(len(self.rectangles)):
         if i in innocentCards:
-          samplesSift.pop(j)
+          #samplesSift.pop(j)
           samplesZncc.pop(j)
         else:
           j = j+1
@@ -96,12 +98,16 @@ class CardsRecognitionHelper:
       for i in range(len(self.rectangles)):
         # Only add the probabilities if the card is on the front side
         if(self.gameBoard[i][1] == "front"):
-          # cardimg = img[self.cardRectangle[i][1]:self.cardRectangle[i][3], self.cardRectangle[i][0]:self.cardRectangle[i][2]] # TODO NOT USED ?
+          cardimg = img[self.cardRectangle[i][1]:self.cardRectangle[i][3], self.cardRectangle[i][0]:self.cardRectangle[i][2]]
           circleimg = img[self.rectangles[i][1]:self.rectangles[i][3], self.rectangles[i][0]:self.rectangles[i][2]]
 
-          siftProbabilities.append(sift_detection(circleimg, samplesSift, self.selectedSamplesResolution)) # TODO STAY ?
+          """
+          siftProbabilities.append(sift_detection(circleimg, samplesSift, self.selectedSamplesResolution))
           histoProbabilities.append(histogramProbabilities(circleimg, self.samplesHistograms))
+          """
+
           znccProbabilities.append(zncc_score(circleimg,samplesZncc, orientation=self.gameBoard[i][0]))
+          cnnProbabilities.append(self.CardsCNN.ComputeImage(cardimg))
 
           """
           if self.selectedSamplesQuality == SamplesQuality.LAHQ:
@@ -114,16 +120,17 @@ class CardsRecognitionHelper:
         finalProbabilities = combineProbabilities([siftProbabilities,siftProbabilities2, histoProbabilities, histoProbabilities2, znccProbabilities], [0.0,0.0,0.0,0.0,1])
       else:
       """
-      # Remove the unwanted HistogramProbabilities
+      # Remove the unwanted HistogramProbabilities and CNNProbabilities
       j = 0
       for i in range(len(self.rectangles)):
         if i in innocentCards:
-          histoProbabilities.pop(j)
+          #histoProbabilities.pop(j)
+          cnnProbabilities.pop(j)
         else:
           j = j+1
 
-      # finalProbabilities = combineProbabilities([histoProbabilities, znccProbabilities], [0.3, 0.7]) #TODO STAY ?
-      finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilities], [0,0,1]) # TODO PUT BACK
+      #finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilities], [0,0,1]) # TODO PUT BACK
+      finalProbabilities = combineProbabilities([znccProbabilities, cnnProbabilities, znccProbabilities], [0.4, 0.6])
 
       assignedObjects = linearAssignment(finalProbabilities, Cards)
 
