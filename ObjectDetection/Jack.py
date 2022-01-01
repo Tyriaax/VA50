@@ -163,12 +163,13 @@ class JackAi():
 
 
     remainSus = game_board["remaining_suspect"]
-
+    bonusHourglass = 0
     if jack_has_been_seen:
       remainSus -= remainSus - number_of_people_in_sight
     else:
       remainSus -= number_of_people_in_sight  #Not in sight
-    return maxScore * (sum(range(remainSus-1))/sum(range(8)))* (6 + game_board["hourglasses"])/12
+      bonusHourglass =1
+    return maxScore * (sum(range(remainSus-1))/sum(range(8)))* (6 + game_board["hourglasses"]+bonusHourglass)/12
 
   def is_terminal_node(self, game_board):# check si la partie est terminé
     pass
