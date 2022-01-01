@@ -27,6 +27,7 @@ class GameProcessor:
         self.actionPawnClicked = None
         self.showAlibi = False
         self.isJackSeen = False
+        self.returnPawnsMessage = False
 
     def ComputeFrame(self, img):
 
@@ -80,9 +81,14 @@ class GameProcessor:
             modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg, drawOffset=True)
             modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Appuyez sur C pour detecter les cartes"], TextPositions.TPTopL)
         elif self.gameBoard.getGameStatus() == GameStates.GSWaitingActionPawnsThrow:
-            modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg, drawOffset=True)
-            modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
-            modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Appuyez sur P pour detecter les pions", "Ou sur C pour redetecter les cartes"], TextPositions.TPTopL)
+            if not self.returnPawnsMessage:
+                modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg, drawOffset=True)
+                modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
+                modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Appuyez sur P pour detecter les pions", "Ou sur C pour redetecter les cartes"], TextPositions.TPTopL)
+            else:
+                modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg, drawOffset=True)
+                modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
+                modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Retournez les pions puis appuyez sur P", "Ou sur C pour redetecter les cartes"], TextPositions.TPTopL)
         elif self.gameBoard.getGameStatus() == GameStates.GSUsingActionPawns:
             # We ask for player input of show the action played by IA
             if (self.gameBoard.getCurrentPlayer() == "Detective"):
@@ -184,6 +190,7 @@ class GameProcessor:
                 else:
                     self.gameBoard.updatePreviousPawnsState()
                     self.gameBoard.tryUpdateGameStatus(GameStates.GSUsingActionPawns)
+                    self.returnPawnsMessage = False
 
 
         # If we press space to validate IA Action or Alibi Card show
@@ -244,6 +251,10 @@ class GameProcessor:
                     self.isJackSeen = self.cardsRecognitionHelper.IsInLineOfSight(img)
                     self.gameBoard.appealOfWitnesses(self.isJackSeen)
                     self.gameBoard.manhunt()
+
+                    # If we need to return the pawns show corresponding message
+                    if self.gameBoard.turnCount % 2 == 0:
+                        self.returnPawnsMessage = True
         else:
             print("Action Pawn not Validated")
 
