@@ -103,11 +103,23 @@ class CardsRecognitionHelper:
 
           """
           siftProbabilities.append(sift_detection(circleimg, samplesSift, self.selectedSamplesResolution))
-          histoProbabilities.append(histogramProbabilities(circleimg, self.samplesHistograms))
+          histoProbability = histogramProbabilities(circleimg, self.samplesHistograms)
           """
 
           znccProbabilities.append(zncc_score(circleimg,samplesZncc, orientation=self.gameBoard[i][0]))
-          cnnProbabilities.append(self.cardsCNN.ComputeImage(cardimg))
+          cnnProbability = self.cardsCNN.ComputeImage(cardimg)
+
+          # Remove the unwanted HistogramProbabilities and CNNProbabilities
+          j = 0
+          for i in range(len(self.rectangles)):
+            if i in innocentCards:
+              # histoProbability.pop(j)
+              cnnProbability.pop(j)
+            else:
+              j = j + 1
+
+          #histoProbabilities.append(histoProbability)
+          cnnProbabilities.append(cnnProbability)
 
           """
           if self.selectedSamplesQuality == SamplesQuality.LAHQ:
@@ -120,14 +132,6 @@ class CardsRecognitionHelper:
         finalProbabilities = combineProbabilities([siftProbabilities,siftProbabilities2, histoProbabilities, histoProbabilities2, znccProbabilities], [0.0,0.0,0.0,0.0,1])
       else:
       """
-      # Remove the unwanted HistogramProbabilities and CNNProbabilities
-      j = 0
-      for i in range(len(self.rectangles)):
-        if i in innocentCards:
-          #histoProbabilities.pop(j)
-          cnnProbabilities.pop(j)
-        else:
-          j = j+1
 
       #finalProbabilities = combineProbabilities([siftProbabilities, histoProbabilities, znccProbabilities], [0,0,1]) # TODO PUT BACK
       finalProbabilities = combineProbabilities([znccProbabilities, cnnProbabilities], [0.4, 0.6])
