@@ -198,6 +198,7 @@ class CardsRecognitionHelper:
   def BinarizeCard(self, img, heightCard, widthCard):
     meanValues = list()
     portionImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
     pathValues = self.getMeanPathValuesCards(img, heightCard, widthCard)
 
     for pathValue in pathValues:

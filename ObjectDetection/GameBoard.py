@@ -348,11 +348,10 @@ class GameBoard():
     if self.turnCount % 2 == 0: 
       self.currentPlayer = "Jack"
       self.isJackFirst = True
-      print("Flip back the tokens.")
+      self.jackPlays()
     else:
       self.currentPlayer = "Detective"
       self.isJackFirst = False
-      print("Detective starts: you can throw the tokens")
   
   def addJackHourglasses(self, numberOfHourglasses):
     self.jackHourglasses += numberOfHourglasses
