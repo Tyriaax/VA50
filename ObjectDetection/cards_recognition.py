@@ -152,7 +152,7 @@ class CardsRecognitionHelper:
           finalAssignedObjects.append(assignedObjects[j])
           j = j + 1
         else:
-          finalAssignedObjects.append(None)
+          finalAssignedObjects.append(0)
 
       self.boardReference.setCards(finalAssignedObjects)
 
@@ -284,16 +284,16 @@ class CardsRecognitionHelper:
 
         if verticalLine and not horizontalLine:
           if horizontalHalfLeft and not horizontalHalfRight:
-            self.gameBoard[index] = ["Left", "returned"]
+            self.gameBoard[index] = ["left", "returned"]
           elif not horizontalHalfLeft and horizontalHalfRight:
-            self.gameBoard[index] = ["Right", "returned"]
+            self.gameBoard[index] = ["right", "returned"]
         elif horizontalLine and not verticalLine:
           if verticalHalfUp and not verticalHalfDown:
-            self.gameBoard[index] = ["Up", "returned"]
+            self.gameBoard[index] = ["up", "returned"]
           elif not verticalHalfUp and verticalHalfDown:
-            self.gameBoard[index] = ["Down", "returned"]
+            self.gameBoard[index] = ["down", "returned"]
         elif horizontalLine and verticalLine:
-          self.gameBoard[index] = ["Cross", "returned"]
+          self.gameBoard[index] = ["cross", "returned"]
 
         index += 1
   
@@ -393,14 +393,16 @@ class CardsRecognitionHelper:
       print("JACK IN SIGHT")
       inSightList = [cards[index] for index in range(9)]
       for pos in inSightPos: 
-        inSightList.pop(pos[1]) #Index des cartes en lignes de vues par les détectiives
+        if self.boardReference.cardsState[pos[1]][1] == "front":
+          inSightList.remove(cards[pos[1]]) #Index des cartes en lignes de vues par les détectiives
   
       self.boardReference.addInnocentCards(inSightList)
       return True
     else:
       print("Jack not in sight") 
       for pos in inSightPos: 
-        inSightList.append(cards[pos[1]]) #Index des cartes en lignes de vues par les détectiives  
+        if self.boardReference.cardsState[pos[1]][1] == "front":
+          inSightList.append(cards[pos[1]]) #Index des cartes en lignes de vues par les détectiives  
       self.boardReference.addInnocentCards(inSightList)
       return False
 

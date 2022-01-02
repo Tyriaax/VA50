@@ -15,7 +15,7 @@ def drawRectangle(img,boundingBox,name):
 
 def drawRectanglesWithAssignment(img, foundObjects, boundingBoxes):
   for i in range(len(boundingBoxes)):
-    if (foundObjects[i] is not None):
+    if (foundObjects[i] != 0):
       img = drawRectangle(img, boundingBoxes[i], foundObjects[i])
 
   return img

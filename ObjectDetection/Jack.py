@@ -43,7 +43,7 @@ class JackAi():
           next_game_boards.append((self.do_action_on_detective_pawns(copy.deepcopy(game_board), detective_pawn, move), (detective_pawn, move)))
     
     elif action in ["APReturn", "APReturn2"]: #[index, "orientation"]
-      orientations = ["Up", "Down", "Left", "Right"]
+      orientations = ["up", "down", "left", "right"]
       for index in range(9):
         for orientation in orientations:
           next_game_boards.append((self.do_return_action(copy.deepcopy(game_board), index, orientation), (index, orientation)))

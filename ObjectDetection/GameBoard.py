@@ -215,7 +215,7 @@ class GameBoard():
     indexs = []
     if self.cards:
       for index in range(len(self.cards)):
-        if (not np.array_equal(self.previousCards[index], self.cards[index])) or (not(np.array(self.previousCardsState[index], self.cardsState[index]))):
+        if ((self.previousCards[index] != self.cards[index]) or (not(np.array_equal(self.previousCardsState[index], self.cardsState[index])))):
           indexs.append(index)
     
     return indexs
@@ -285,6 +285,9 @@ class GameBoard():
         if self.previousCardsState[indexs[0]][0] == self.cardsState[indexs[0]][0] and self.previousCards[indexs[0]] == self.innocentCards[-1]:
           self.alibiCardsDict.pop() #If the alibi card is validated, we remove it from the deck
           return True
+        elif self.cardsState[indexs[0]][0] == "cross" and self.previousCards[indexs[0]] == "CBrown"  and self.previousCards[indexs[0]] in self.innocentCards:
+          self.alibiCardsDict.pop()
+          return True
         else:
           self.innocentCards.pop()
           return False
@@ -337,7 +340,7 @@ class GameBoard():
     elif self.actionPawnsPlayed == 3:
       self.switchPlayer()
     elif self.actionPawnsPlayed >= 4:
-      self.actionPawnsPlayed = 0
+      self.switchPlayer()
   
   def checkCardsPosition(self):
     if self.turnCount == 1:
@@ -345,7 +348,9 @@ class GameBoard():
     else:
       indexs = self.getIndexCardsChanged()
       for index in indexs:
-        if self.previousCardsState[index[0]][0] == self.cardsState[index[0]][0] and self.previousCards[index[0]] in self.innocentCards:
+        if self.previousCardsState[index][0] == self.cardsState[index][0] and self.previousCards[index] in self.innocentCards:
+          return True
+        elif self.cardsState[index][0] == "cross" and self.previousCards[index] == "CBrown"  and self.previousCards[index] in self.innocentCards:
           return True
         else:
           return False
@@ -354,7 +359,8 @@ class GameBoard():
 
   def manhunt(self):
     self.stage = "Manhunt"
-
+    self.actionPawnsPlayed = 0
+    
     if self.turnCount % 2 == 0: 
       self.currentPlayer = "Jack"
       self.isJackFirst = True
@@ -415,7 +421,7 @@ class GameBoard():
 
   def nextTurn(self):
     self.getNextPlayerToUseActionsPawns()
-    if self.currentPlayer == "Jack":
+    if self.currentPlayer == "Jack" and self.actionPawnsPlayed < 4:
       self.jackPlays()
     else:
       self.iaAction = None

@@ -201,7 +201,7 @@ class GameProcessor:
 
                 self.showAlibi = False
 
-            elif (self.gameBoard.currentPlayer == "Jack"):
+            elif (self.gameBoard.currentPlayer == "Jack" and self.gameBoard.getIaAction() is not None):
                 IAAction = ActionPawns[self.gameBoard.getIaAction()[0]]
                 self.UseActionPawn(img, IAAction, IATurn=True)
 
