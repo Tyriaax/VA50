@@ -199,25 +199,25 @@ class JackAi():
             value = min(value, self.minimax(child[0], depth-1, isJackFirst, valid_actions_remaining, turn + 1))
         return value
 
-game_board = {
-  "cardsPosition" : ["red", "blue", "black", "purple", "pink", "yellow", "brown", "orange", "white"],
-  "cardsOrientation" : [["Left", "back"], ["Right", "front"], ["Down", "front"], ["Up", "front"], ["Up", "front"], ["Down", "front"], ["Down", "front"], ["Up", "front"], ["Up", "front"]],
-  "dectectivePawns" : [0, 0, 0, 0, ['DPToby', 'DPWatson'], 0, 0, 0, 0, 0, 'DPSherlock', 0],
-  "hourglasses" : 4,
-  "jack" : "purple" ,
-  "remaining_suspect" : 9,
-  "remaining_card_suspect" : [
-        ("Joseph Lane", 1, "CBrown" ),
-        ("Madame", 2, "CPink"),
-        ("Insp. Lestrade", 0, "CBlue"),
-        ("William Gull", 1, "CPurple"),
-        ("Jeremy Bert", 1, "COrange"),
-        ("John Smith", 1, "CYellow"),
-        ("Sgt Goodley", 0, "CBlack"),
-        ("Miss Stealthy", 1, "CGreen"),
-        ("John Pizer", 1, "CWhite"),
-      ]
-} 
+# game_board = {
+#   "cardsPosition" : ["red", "blue", "black", "purple", "pink", "yellow", "brown", "orange", "white"],
+#   "cardsOrientation" : [["Left", "back"], ["Right", "front"], ["Down", "front"], ["Up", "front"], ["Up", "front"], ["Down", "front"], ["Down", "front"], ["Up", "front"], ["Up", "front"]],
+#   "dectectivePawns" : [0, 0, 0, 0, ['DPToby', 'DPWatson'], 0, 0, 0, 0, 0, 'DPSherlock', 0],
+#   "hourglasses" : 4,
+#   "jack" : "purple" ,
+#   "remaining_suspect" : 9,
+#   "remaining_card_suspect" : [
+#         ("Joseph Lane", 1, "CBrown" ),
+#         ("Madame", 2, "CPink"),
+#         ("Insp. Lestrade", 0, "CBlue"),
+#         ("William Gull", 1, "CPurple"),
+#         ("Jeremy Bert", 1, "COrange"),
+#         ("John Smith", 1, "CYellow"),
+#         ("Sgt Goodley", 0, "CBlack"),
+#         ("Miss Stealthy", 1, "CGreen"),
+#         ("John Pizer", 1, "CWhite"),
+#       ]
+# } 
 
 
 

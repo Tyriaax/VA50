@@ -80,11 +80,11 @@ class GameProcessor:
             modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg, drawOffset=True)
             modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Appuyez sur C pour detecter les cartes"], TextPositions.TPTopL)
         elif self.gameBoard.getGameStatus() == GameStates.GSWaitingActionPawnsThrow:
-            if self.gameBoard.getTurnCount() == 0:
+            if self.gameBoard.getTurnCount() == 1:
                 modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg, drawOffset=True)
                 modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
                 modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Appuyez sur P pour detecter les pions", "Ou sur C pour redetecter les cartes"], TextPositions.TPTopL)
-            elif self.gameBoard.getTurnCount() % 2 == 1:
+            elif self.gameBoard.getTurnCount() % 2 == 0:
                 modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg, drawOffset=True)
                 modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
                 modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Retournez les pions puis appuyez sur P", "Ou sur C pour redetecter les cartes"], TextPositions.TPTopL)

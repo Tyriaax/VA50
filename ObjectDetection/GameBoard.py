@@ -70,10 +70,11 @@ class GameBoard():
       self.jackWins = False
       self.detectiveWins = False
       self.currentPlayer = "Detective"
-      self.jack = self.selectRandomJack()
+      self.jack = "CBlue"#self.selectRandomJack()
       self.jack_ai = JackAi() 
       self.isJackFirst = False
       self.actionPawnsPlayed = 0
+      self.isJackSeen = False
 
       self.innocentCards = list()
       self.iaAction = None
@@ -311,19 +312,19 @@ class GameBoard():
         print(randomAlibiCard)
       self.addInnocentCards([randomAlibiCard[2]])
 
-  def checkVictory(self, isJackSeen):
-    if self.stage == "Appeal for Witnesses":
-      numberOfSuspects = 9 - len(self.innocentCards)
-      if self.turnCount == 8 and numberOfSuspects == 1 and self.jackHourglasses > 5:
-        if isJackSeen:
-          self.detectiveWins = True
-        else:
-          self.jackWins = True
-
-      elif self.numberOfSuspects == 1:
+  def checkVictory(self):
+    
+    numberOfSuspects = 9 - len(self.innocentCards)
+    if self.turnCount == 8 and numberOfSuspects == 1 and self.jackHourglasses > 5:
+      if self.isJackSeen:
         self.detectiveWins = True
-      elif self.jackHourglasses >= 6:
+      else:
         self.jackWins = True
+
+    elif numberOfSuspects== 1:
+      self.detectiveWins = True
+    elif self.jackHourglasses >= 6:
+      self.jackWins = True
   
   def switchPlayer(self):
     if self.currentPlayer == "Jack":
@@ -367,12 +368,15 @@ class GameBoard():
     else:
       self.currentPlayer = "Detective"
       self.isJackFirst = False
+    
+    self.checkVictory()
   
   def addJackHourglasses(self, numberOfHourglasses):
     self.jackHourglasses += numberOfHourglasses
 
   def appealOfWitnesses(self, isJackSeen):
     self.stage = "Appeal Of Witnesses"
+    self.isJackSeen = isJackSeen
     if isJackSeen:
       print("Turn all the cards that are not in sight to their empty side")
       print("Detective wins this turn and get the round token !")
@@ -380,8 +384,7 @@ class GameBoard():
       self.jackHourglasses += 1
       print("Turn all the cards in sight to their empty side")
       print("Jack wins this turn and get the round token !")
-    
-    self.checkVictory(isJackSeen)
+
     self.turnCount += 1
 
   def addInnocentCards(self, innocentCards):

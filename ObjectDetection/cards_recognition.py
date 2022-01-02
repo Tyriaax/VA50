@@ -403,7 +403,8 @@ class CardsRecognitionHelper:
       print("Jack not in sight") 
       for pos in inSightPos: 
         if self.boardReference.cardsState[pos[1]][1] == "front":
-          inSightList.append(cards[pos[1]]) #Index des cartes en lignes de vues par les détectiives  
+          if cards[pos[1]] not in inSightList:
+            inSightList.append(cards[pos[1]]) #Index des cartes en lignes de vues par les détectiives  
       self.boardReference.addInnocentCards(inSightList)
       return False
 

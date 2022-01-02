@@ -55,7 +55,10 @@ def zncc_score(circleimg, samples = [], orientation = 'up'):
     cardProba = []
 
     for i in range(len(cardCCscore)):
-        cardProba.append(cardCCscore[i]/total)
+        if total > 0:
+            cardProba.append(cardCCscore[i]/total)
+        else:
+            cardProba.append(cardCCscore[i])
 
     return cardProba
 
