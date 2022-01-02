@@ -9,7 +9,7 @@ from drawing import *
 class GameProcessor:
     capEveryFrame = False
     homographymatrixfound = False
-    checkInitialPosition = False #TODO
+    checkInitialPosition = True #TODO
 
     def __init__(self, img, window_name):
         self.window_name = window_name
@@ -27,6 +27,7 @@ class GameProcessor:
         self.actionPawnClicked = None
         self.showAlibi = False
         self.isJackSeen = False
+        self.showError = False
 
     def ComputeFrame(self, img):
 
@@ -48,11 +49,12 @@ class GameProcessor:
                 self.cardsRecognitionHelper.ComputeFrame(img)
 
                 if(self.checkInitialPosition):
-                    if (self.gameBoard.validateCardsInitialPosition()):
+                    if (self.gameBoard.checkCardsPosition()):
                         self.gameBoard.updatePreviousCards()
                         self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
                     else:
-                        print("Le placement initial des cartes n'est pas bon")  # TODO ERROR DISPLAY
+                        print("Le placement initial des cartes n'est pas bon")
+                        self.showError = True
                 else:
                     self.gameBoard.updatePreviousCards()
                     self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
@@ -76,7 +78,15 @@ class GameProcessor:
             modifiedimg = drawText(modifiedimg, "Selectionnez les quatre coins des 9 cartes",TextPositions.TPCenter)
             for coord in self.list_board_coords:
                 cv2.circle(modifiedimg, coord, 10, (0, 255, 0), -1)
-        elif self.gameBoard.getGameStatus() == GameStates.GSWaitingCards:
+        elif self.showError == False:
+            modifiedimg = self.DrawStates(modifiedimg)
+        else:
+            modifiedimg = self.DrawError(modifiedimg)
+
+        return modifiedimg
+
+    def DrawStates(self, modifiedimg):
+        if self.gameBoard.getGameStatus() == GameStates.GSWaitingCards:
             modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg, drawOffset=True)
             modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Appuyez sur C pour detecter les cartes"], TextPositions.TPTopL)
         elif self.gameBoard.getGameStatus() == GameStates.GSWaitingActionPawnsThrow:
@@ -102,7 +112,7 @@ class GameProcessor:
                     modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Realisez votre Action puis","Appuyez sur le jeton correspondant","Ou sur P pour redetecter les pions"], TextPositions.TPTopL)
                     modifiedimg = drawPlayerAndTurn(modifiedimg, self.gameBoard.getCurrentPlayer(), self.gameBoard.getTurnCount())
                 else :
-                    innocentedCard = self.gameBoard.getInnocentedCard()
+                    innocentedCard = translate(self.gameBoard.getInnocentedCard())
                     modifiedimg = drawMultipleLinesOfText(modifiedimg, ["La carte alibi tiree est : " + innocentedCard, "Retournez la carte innocente si elle est presente", "Puis appuyez sur espace"], TextPositions.TPTopL)
                     modifiedimg = self.cardsRecognitionHelper.DrawBoxesByName(modifiedimg, [innocentedCard])
                     #modifiedimg = drawPlayerAndTurn(modifiedimg, self.gameBoard.getCurrentPlayer(), self.gameBoard.getTurnCount())
@@ -131,6 +141,21 @@ class GameProcessor:
 
         return modifiedimg
 
+    def DrawErrors(self, modifiedimg):
+        if self.gameBoard.getGameStatus() == GameStates.GSWaitingCards:
+            modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Le placement initial des cartes n'est pas respecte","Appuyez sur E pour fermer ce message d'erreur"], TextPositions.TPCenter)
+        elif self.gameBoard.getGameStatus() == GameStates.GSWaitingActionPawnsThrow:
+            if self.gameBoard.getTurnCount() == 1:
+                modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Le placement initial des pions n'est pas respecte","Appuyez sur E pour fermer ce message d'erreur"], TextPositions.TPCenter)
+            else:
+                modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Le placement des pions n'a pas ete respecte","Appuyez sur E pour fermer ce message d'erreur"], TextPositions.TPCenter)
+        elif self.gameBoard.getGameStatus() == GameStates.GSUsingActionPawns:
+            modifiedimg = drawMultipleLinesOfText(modifiedimg, ["L'action que vous venez de realiser n'a pas ete respectee","Tentez de la valider a nouveau ou revenez a l'etat precedent et choisissez en une autre","Appuyez sur E pour fermer ce message d'erreur"], TextPositions.TPCenter)
+        elif self.gameBoard.getGameStatus() == GameStates.GSAppealOfWitness:
+            modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Le placement des cartes n'a pas ete respecte","Appuyez sur E pour fermer ce message d'erreur"],TextPositions.TPCenter)
+
+        return modifiedimg
+
     def DrawIAAction(self, img, action):
         actionPawnPlayed = ActionPawns[action[0]]
         # If the action pawn played is regarding detective pawns
@@ -139,7 +164,7 @@ class GameProcessor:
             img = drawMultipleLinesOfText(img,["Deplacez le jeton entoure de " + str(action[1][1]) + " cases", "Puis appuyez sur espace pour valider"], TextPositions.TPTopL)
         elif (actionPawnPlayed == ActionPawns.APReturn or actionPawnPlayed == ActionPawns.APReturn2):
             img = self.cardsRecognitionHelper.DrawBoxesByIndex(img, [action[1][0]])
-            img = drawMultipleLinesOfText(img, ["Tournez le jeton entoure vers : " + action[1][1], "Puis appuyez sur espace pour valider"], TextPositions.TPTopL)
+            img = drawMultipleLinesOfText(img, ["Tournez le jeton entoure vers : " + translate(action[1][1]), "Puis appuyez sur espace pour valider"], TextPositions.TPTopL)
         elif (actionPawnPlayed == ActionPawns.APChangeCard):
             img = self.cardsRecognitionHelper.DrawBoxesByIndex(img, [action[1][0],action[1][1]])
             img = drawMultipleLinesOfText(img, ["Echangez de place les 2 cartes entourees", "Puis appuyez sur espace pour valider"], TextPositions.TPTopL)
@@ -171,6 +196,7 @@ class GameProcessor:
                         self.gameBoard.updatePreviousCards()
                         self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
                     else:
+                        self.showError = True
                         print("Le placement des cartes n'est pas bon")
 
                 else:
@@ -180,20 +206,25 @@ class GameProcessor:
 
         # If we press P for detect Pawns
         if (key == ord('p')): # or self.capEveryFrame
-            if (self.gameBoard.canUpdateGameStatus(GameStates.GSUsingActionPawns) and self.gameBoard.actionPawnsPlayed == 0):
+            if (self.gameBoard.canUpdateGameStatus(GameStates.GSUsingActionPawns) and self.gameBoard.actionPawnsPlayed == 0 and self.gameBoard.getIaAction() is not None): #TODO See what to do when IA is playing
                 self.pawnsRecognitionHelper.ComputeFrame(img)
 
                 # If we are doing the pawns recognition for the first turn we need to check if all the pawns are placed correctly
-                if (self.gameBoard.getTurnCount() == 1 and self.checkInitialPosition):
-                    if (self.gameBoard.validatePawnsInitialPosition()):
+                if (self.gameBoard.getTurnCount() != 1 or self.checkInitialPosition):
+                    if (self.gameBoard.checkPawnsPosition()):
                         self.gameBoard.updatePreviousPawnsState()
                         self.gameBoard.tryUpdateGameStatus(GameStates.GSUsingActionPawns)
                     else:
+                        self.showError = True
                         print("Le placement initial des pions n'est pas bon")  # TODO ERROR DISPLAY
                 else:
                     self.gameBoard.updatePreviousPawnsState()
                     self.gameBoard.tryUpdateGameStatus(GameStates.GSUsingActionPawns)
                     self.gameBoard.tryComputeIaAction()
+
+        # If we press E to acknowledge error message
+        if (key == ord('E') and self.showError):
+            self.showError = False
 
         # If we press space to validate IA Action or Alibi Card show
         if (key == 32): # or self.capEveryFrame
@@ -257,6 +288,7 @@ class GameProcessor:
                     self.gameBoard.manhunt()
         else:
             print("Action Pawn not Validated")
+            self.showError = True
 
     def ComputeMouseInput(self,event,x,y,flags,params):
         if event == cv2.EVENT_LBUTTONDOWN:

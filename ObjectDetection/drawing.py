@@ -1,5 +1,6 @@
 import cv2
 from enum import Enum
+from translate import *
 
 class TextPositions(Enum):
   TPTopL = 1
@@ -9,8 +10,9 @@ class TextPositions(Enum):
 font = cv2.FONT_HERSHEY_SIMPLEX
 
 def drawRectangle(img,boundingBox,name):
+  translatedname = translate(name)
   cv2.rectangle(img, (boundingBox[0], boundingBox[1]), (boundingBox[2], boundingBox[3]), (0, 255, 0), 2)
-  cv2.putText(img, name, (boundingBox[0], boundingBox[1] - 10), font, 0.9,(0, 255, 0), 2)
+  cv2.putText(img, translatedname, (boundingBox[0], boundingBox[1] - 10), font, 0.9,(0, 255, 0), 2)
   return img
 
 def drawRectanglesWithAssignment(img, foundObjects, boundingBoxes):
