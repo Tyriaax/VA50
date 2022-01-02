@@ -8,9 +8,9 @@ class JackAi():
     steps = 4 - turn
     best_action, best_score = None, - np.Inf
     for action in valid_actions:
-      jack_step = self.score_move(game_board, action, steps, copy.deepcopy(valid_actions), turn, is_jack_first)
-      if jack_step[1] > best_score:
-        best_action = [action, jack_step[0]]
+      move, score = self.score_move(game_board, action, steps, copy.deepcopy(valid_actions), turn, is_jack_first)
+      if score > best_score:
+        best_action = (action, move)
 
     return best_action
 
@@ -224,9 +224,11 @@ class JackAi():
 # valid_actions = ["APJoker", "APSherlock", "APReturn"] #"APChangeCard"]
 
 # a = JackAi()
-# a.get_possible_actions(game_board, "APAlibi", ["APAlibi"])
-#b = a.get_heuristic(game_board)
-#[print(element) for index, element in enumerate(game_board["dectectivePawns"]) if "DPWatson" in [element]]
-#print(b)
-# b = a.jack(game_board, 2, False, valid_actions)
-# print(b)
+# b = a.get_possible_actions(game_board, "APReturn", valid_actions)
+# #b = a.get_heuristic(game_board)
+# #[print(element) for index, element in enumerate(game_board["dectectivePawns"]) if "DPWatson" in [element]]
+# for ele in b:
+#   print(ele)
+#   print('\n')
+# # b = a.jack(game_board, 2, False, valid_actions)
+# # print(b)
