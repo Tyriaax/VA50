@@ -10,7 +10,7 @@ class JackAi():
     for action in valid_actions:
       jack_step = self.score_move(game_board, action, steps, copy.deepcopy(valid_actions), turn, is_jack_first)
       if jack_step[1] > best_score:
-        best_action = [action, jack_step[0][1]]
+        best_action = [action, jack_step[0]]
 
     return best_action
 
@@ -23,7 +23,7 @@ class JackAi():
       score = self.minimax(next_game_board[0], steps - 1, is_jack_first, valid_actions_remaining, turn)
       if score > scoreMax:
         scoreMax = score
-        best_move = next_game_boards[1]
+        best_move = next_game_board[1]
 
     return best_move, scoreMax
 
@@ -59,6 +59,8 @@ class JackAi():
 
       randomIndex = random.randint(0, len(game_board["remaining_card_suspect"]) - 1)
       game_board["remaining_card_suspect"].pop(randomIndex)
+      next_game_boards.append(((copy.deepcopy(game_board)), ("APAlibi")))
+
     
     valid_actions.remove(action)
     return next_game_boards, valid_actions
@@ -180,7 +182,7 @@ class JackAi():
 
   def minimax(self, node, depth, isJackFirst, valid_actions, turn):
     is_terminal = self.is_terminal_node(node)
-    if depth == 0 or is_terminal:
+    if depth == 0 or len(valid_actions) == 0:
         return self.get_heuristic(node)
     if (isJackFirst and (turn == 0 or turn == 3)) or (not isJackFirst and (turn == 1 or turn == 2)):
         value = -np.Inf

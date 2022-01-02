@@ -227,7 +227,7 @@ class GameProcessor:
         else:
             # In the other case, we check the cards to verify if alibi has been correctly removed
             self.cardsRecognitionHelper.ComputeFrame(img)
-
+        print("Action Pawn played : ", self.gameBoard.actionPawnsPlayed)
         # We then check if the action pawns has been respected
         if (self.gameBoard.IsActionPawnRespected(actionPawn.name)):
             if (actionPawn.value in [0,2,3,4]):

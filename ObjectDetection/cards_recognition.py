@@ -394,7 +394,8 @@ class CardsRecognitionHelper:
       inSightList = [cards[index] for index in range(9)]
       for pos in inSightPos: 
         if self.boardReference.cardsState[pos[1]][1] == "front":
-          inSightList.remove(cards[pos[1]]) #Index des cartes en lignes de vues par les détectiives
+          if cards[pos[1]] in inSightList:
+            inSightList.remove(cards[pos[1]]) #Index des cartes en lignes de vues par les détectiives
   
       self.boardReference.addInnocentCards(inSightList)
       return True
