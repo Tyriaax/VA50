@@ -78,6 +78,7 @@ class GameBoard():
 
       self.innocentCards = list()
       self.iaAction = None
+      self.actionPawnsNextTurn = None
   
   def getPreviousCards(self):
     return self.previousCards
@@ -358,6 +359,37 @@ class GameBoard():
 
       return True
 
+  def checkPawnsPosition(self):
+    if self.turnCount == 1:
+      return self.validatePawnsInitialPosition()
+    else:
+      previousIndexSherlock = self.get_detective_pawn_index(self.previousDetectivePawns, "DPSherlock")
+      indexSherlock = self.get_detective_pawn_index(self.detective_pawns, "DPSherlock")
+
+      previousIndexToby = self.get_detective_pawn_index(self.previousDetectivePawns, "DPToby")
+      indexToby = self.get_detective_pawn_index(self.detective_pawns, "DPToby")
+
+      previousIndexWatson = self.get_detective_pawn_index(self.previousDetectivePawns, "DPWatson")
+      indexWatson = self.get_detective_pawn_index(self.detective_pawns, "DPWatson")
+
+      if previousIndexWatson != indexWatson or previousIndexToby != indexToby or previousIndexSherlock != indexSherlock:
+        return False
+      elif self.turnCount % 2 == 0:
+        return self.checkActionPawnsInverted()
+      else:
+        return True
+
+  def checkActionPawnsInverted(self):
+    for actionPawn in self.action_pawns:
+      if actionPawn not in ["APReturn","APReturn2"]:
+        if actionPawn not in self.actionPawnsNextTurn:
+          return False
+
+    if self.getNumberOfReturnActionPawns(self.action_pawns) == self.getNumberOfReturnActionPawns(self.actionPawnsNextTurn):
+      return True
+    else:
+      return False
+
   def manhunt(self):
     self.stage = "Manhunt"
     self.actionPawnsPlayed = 0
@@ -409,18 +441,44 @@ class GameBoard():
 
   def trySetActionPawnsForNextTurn(self):
     if self.turnCount % 2 == 1 and self.actionPawnsPlayed == 0:
-      self.setActionPawnsForNextTurn()
+      self.actionPawnsNextTurn = self.getInvertActionPawns(self.action_pawns)
   
-  def setActionPawnsForNextTurn(self):
-    self.actionPawnsNextTurn = list()
-    for i in range(len(self.action_pawns)):
-      actionPawn = ActionPawns[self.action_pawns[i]]
-      if actionPawn.value % 2 == 1:
-        actionPawnInvert = ActionPawns(actionPawn.value-1).name
+  def getInvertActionPawns(self, actionPawnsList):
+    actionPawnsNextTurn = list()
+    for i in range(len(actionPawnsList)):
+      actionPawn = ActionPawns[actionPawnsList[i]]
+      if actionPawn.value <= 3:
+        if actionPawn.value % 2 == 1:
+          actionPawnInvert = ActionPawns(actionPawn.value-1).name
+        else:
+          actionPawnInvert = ActionPawns(actionPawn.value +1).name
       else:
-        actionPawnInvert = ActionPawns(actionPawn.value +1).name
+        if actionPawn == ActionPawns.APJoker:
+          actionPawnInvert = ActionPawns.APReturn2.name
+        elif actionPawn == ActionPawns.APChangeCard:
+          actionPawnInvert = ActionPawns.APReturn.name
 
-      self.actionPawnsNextTurn.append(actionPawnInvert)
+      actionPawnsNextTurn.append(actionPawnInvert)
+
+    numberOfReturn = self.getNumberOfReturnActionPawns(self.action_pawns)
+    if numberOfReturn == 2:
+      actionPawnsNextTurn.append(ActionPawns.APJoker.name)
+      actionPawnsNextTurn.append(ActionPawns.APChangeCard.name)
+    elif numberOfReturn == 1:
+      if ActionPawns.APJoker.name in self.action_pawns:
+        actionPawnsNextTurn.append(ActionPawns.APChangeCard.name)
+      else:
+        actionPawnsNextTurn.append(ActionPawns.APJoker.name)
+
+    return actionPawnsNextTurn
+
+  def getNumberOfReturnActionPawns(self, actionPawnsList):
+    numberOfReturn = 0
+    for i in range(len(actionPawnsList)):
+      if (actionPawnsList[i] in ["APReturn", "APReturn2"]):
+        numberOfReturn += 1
+
+    return numberOfReturn
 
   def nextTurn(self):
     self.getNextPlayerToUseActionsPawns()

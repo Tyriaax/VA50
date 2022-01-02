@@ -6,7 +6,7 @@ import numpy as np
 class cnnHelper:
     def __init__(self, type):
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        CNN = torch.load('CNN/' + type + '_RECOGNITION_CNN.pt')
+        CNN = torch.load('CNN/' + type + '_RECOGNITION_CNN.pt') # TODO Change CNN name ?
         self.CNN = CNN.to(self.device)
 
         self.CNNPreprocess = transforms.Compose([
