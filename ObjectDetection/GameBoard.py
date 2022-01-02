@@ -65,7 +65,6 @@ class GameBoard():
 
       self.turnCount = 1
       self.maxTurnCount = 8
-      self.numberOfSuspects = 9
       self.jackHourglasses = 0
       self.stage = "Manhunt"
       self.jackWins = False
@@ -314,15 +313,16 @@ class GameBoard():
 
   def checkVictory(self, isJackSeen):
     if self.stage == "Appeal for Witnesses":
-      if self.numberOfSuspects == 1 and self.jackHourglasses == 6:
+      numberOfSuspects = 9 - len(self.innocentCards)
+      if self.turnCount == 8 and numberOfSuspects == 1 and self.jackHourglasses > 5:
         if isJackSeen:
           self.detectiveWins = True
         else:
           self.jackWins = True
 
-      elif self.numberOfSuspects == 1 and self.jackHourglasses < 6:
+      elif self.numberOfSuspects == 1:
         self.detectiveWins = True
-      elif self.numberOfSuspects > 1 and self.jackHourglasses == 6:
+      elif self.jackHourglasses >= 6:
         self.jackWins = True
   
   def switchPlayer(self):
@@ -360,7 +360,7 @@ class GameBoard():
   def manhunt(self):
     self.stage = "Manhunt"
     self.actionPawnsPlayed = 0
-    
+
     if self.turnCount % 2 == 0: 
       self.currentPlayer = "Jack"
       self.isJackFirst = True
