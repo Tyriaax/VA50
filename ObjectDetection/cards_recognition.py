@@ -144,13 +144,16 @@ class CardsRecognitionHelper:
 
       assignedObjects = linearAssignmentWithStrings(finalProbabilities, CurrentCardsStrings)
 
-      # Now we assign back the objects to only the front turned cards TODO ADD SAFETY IN CASE A CARD INNOCENTED IS NOT DETECTED AS TURNED
+      # Now we assign back the objects to only the front turned cards
       finalAssignedObjects = []
       j = 0 # Counts the cards returned
       for i in range(len(self.gameBoard)):
         if (self.gameBoard[i][1] == "front"):
-          finalAssignedObjects.append(assignedObjects[j])
-          j = j + 1
+          if j < len(assignedObjects):
+            finalAssignedObjects.append(assignedObjects[j])
+            j = j + 1
+          else:
+            finalAssignedObjects.append(0)
         else:
           finalAssignedObjects.append(0)
 
