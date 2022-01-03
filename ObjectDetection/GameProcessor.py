@@ -112,8 +112,8 @@ class GameProcessor:
                     modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Realisez votre Action puis","Appuyez sur le jeton correspondant","Ou sur P pour redetecter les pions"], TextPositions.TPTopL)
                     modifiedimg = drawPlayerAndTurn(modifiedimg, self.gameBoard.getCurrentPlayer(), self.gameBoard.getTurnCount())
                 else :
-                    innocentedCard = translate(self.gameBoard.getInnocentedCard())
-                    modifiedimg = drawMultipleLinesOfText(modifiedimg, ["La carte alibi tiree est : " + innocentedCard, "Retournez la carte innocente si elle est presente", "Puis appuyez sur espace"], TextPositions.TPTopL)
+                    innocentedCard = self.gameBoard.getInnocentedCard()
+                    modifiedimg = drawMultipleLinesOfText(modifiedimg, ["La carte alibi tiree est : " + translate(innocentedCard), "Retournez la carte innocente si elle est presente", "Puis appuyez sur espace"], TextPositions.TPTopL)
                     modifiedimg = self.cardsRecognitionHelper.DrawBoxesByName(modifiedimg, [innocentedCard])
                     #modifiedimg = drawPlayerAndTurn(modifiedimg, self.gameBoard.getCurrentPlayer(), self.gameBoard.getTurnCount())
 
