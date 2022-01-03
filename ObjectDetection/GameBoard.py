@@ -270,43 +270,47 @@ class GameBoard():
 
         elif action == "APToby":
           if self.currentPlayer == "Jack":
-            move_number_watson, move_number_toby, move_number_sherlock = 0, 0, 0
-            if self.iaAction[1][0] == "DPWatson":
-              move_number_watson = self.iaAction[1][1]
-            elif self.iaAction[1][0] == "DPSherlock":
-              move_number_sherlock = self.iaAction[1][1]
-            elif self.iaAction[1][0] == "DPToby":
-              move_number_toby = self.iaAction[1][1]
-          if (previousIndexToby + 1) % lengthDetectivePawnsList == indexToby or (
+            move_number_toby = self.iaAction[1][1]
+            if (previousIndexToby + move_number_toby) % lengthDetectivePawnsList == indexToby and (
+                    previousIndexSherlock == indexSherlock and previousIndexWatson == indexWatson):
+              return True
+          else:
+            if (previousIndexToby + 1) % lengthDetectivePawnsList == indexToby or (
                   previousIndexToby + 2) % lengthDetectivePawnsList == indexToby and (previousIndexSherlock == indexSherlock and previousIndexWatson == indexWatson):
-            return True
+              return True
 
         elif action == "APWatson":
           if self.currentPlayer == "Jack":
-            move_number_watson, move_number_toby, move_number_sherlock = 0, 0, 0
-            if self.iaAction[1][0] == "DPWatson":
-              move_number_watson = self.iaAction[1][1]
-            elif self.iaAction[1][0] == "DPSherlock":
-              move_number_sherlock = self.iaAction[1][1]
-            elif self.iaAction[1][0] == "DPToby":
-              move_number_toby = self.iaAction[1][1]
-          if (previousIndexWatson + 1) % lengthDetectivePawnsList == indexWatson or (
-                  previousIndexWatson + 2) % lengthDetectivePawnsList == indexWatson and (previousIndexSherlock == indexSherlock and previousIndexToby == indexToby):
-            return True
+            move_number_watson = self.iaAction[1][1]
+            if (previousIndexWatson + move_number_watson) % lengthDetectivePawnsList == indexWatson and (
+                    previousIndexSherlock == indexSherlock and previousIndexToby == indexToby):
+              return True
+          else:
+            if (previousIndexWatson + 1) % lengthDetectivePawnsList == indexWatson or (
+                    previousIndexWatson + 2) % lengthDetectivePawnsList == indexWatson and (previousIndexSherlock == indexSherlock and previousIndexToby == indexToby):
+              return True
 
     elif action in ["APReturn", "APReturn2"]:
-      indexs = self.getIndexCardsChanged()       
+      indexs = self.getIndexCardsChanged()
       if len(indexs) == 1:
-        if self.previousCardsState[indexs[0]][1] == self.cardsState[indexs[0]][1]:
-          return True
+        if self.currentPlayer == "Jack":
+          if indexs[0] == self.iaAction[1][0] and self.cardsState[indexs[0]][0] == self.iaAction[1][1] and self.previousCardsState[indexs[0]][1] == self.cardsState[indexs[0]][1]:
+            return True
+        else:
+          if self.previousCardsState[indexs[0]][1] == self.cardsState[indexs[0]][1]:
+            return True
 
     elif action == "APChangeCard":
 
       indexs = self.getIndexCardsChanged()       
       if len(indexs) == 2:
-        if self.cards[indexs[0]] == self.previousCards[indexs[1]] and self.cards[indexs[1]] == self.previousCards[indexs[0]]:
-          if np.array_equal(self.previousCardsState[indexs[0]], self.cardsState[indexs[1]]) and np.array_equal(self.previousCardsState[indexs[1]], self.cardsState[indexs[0]]):
+        if self.currentPlayer == "Jack":
+          if indexs[0] in self.iaAction[1] and indexs[1] in self.iaAction[1] and np.array_equal(self.previousCardsState[indexs[0]], self.cardsState[indexs[1]]) and np.array_equal(self.previousCardsState[indexs[1]], self.cardsState[indexs[0]]):
             return True
+        else:
+          if self.cards[indexs[0]] == self.previousCards[indexs[1]] and self.cards[indexs[1]] == self.previousCards[indexs[0]]:
+            if np.array_equal(self.previousCardsState[indexs[0]], self.cardsState[indexs[1]]) and np.array_equal(self.previousCardsState[indexs[1]], self.cardsState[indexs[0]]):
+              return True
 
     elif action == "APAlibi": #TODO Verif quelle soit dans le bon sens aussi
       indexs = self.getIndexCardsChanged()
