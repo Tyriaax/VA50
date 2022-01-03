@@ -5,7 +5,11 @@ import random
 
 class JackAi():
   def jack(self, game_board, turn, is_jack_first, valid_actions): #isJackFirst = True, turn 1 else , turn = 2
-    steps = 4 - turn
+    if "APReturn" in valid_actions and "APChangeCard" in valid_actions:
+      steps = 3 - turn
+    else:
+      steps = 4 - turn
+
     best_action, best_score = None, - np.Inf
     for action in valid_actions:
       move, score = self.score_move(game_board, action, steps, copy.deepcopy(valid_actions), turn, is_jack_first)

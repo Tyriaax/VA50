@@ -70,7 +70,7 @@ class GameBoard():
       self.jackWins = False
       self.detectiveWins = False
       self.currentPlayer = "Detective"
-      self.jack = "CBlue"#self.selectRandomJack()
+      self.jack = self.selectRandomJack()
       self.jack_ai = JackAi() 
       self.isJackFirst = False
       self.actionPawnsPlayed = 0
@@ -368,7 +368,7 @@ class GameBoard():
       else:
         self.jackWins = True
 
-    elif numberOfSuspects== 1:
+    elif numberOfSuspects == 1:
       self.detectiveWins = True
     elif self.jackHourglasses >= 6:
       self.jackWins = True
@@ -394,16 +394,13 @@ class GameBoard():
     if self.turnCount == 1:
       return self.validateCardsInitialPosition()
     else:
+      validated = True
       indexs = self.getIndexCardsChanged()
       for index in indexs:
-        if self.previousCardsState[index][0] == self.cardsState[index][0] and self.previousCards[index] in self.innocentCards:
-          return True
-        elif self.cardsState[index][0] == "cross" and self.previousCards[index] == "CBrown"  and self.previousCards[index] in self.innocentCards:
-          return True
-        else:
-          return False
+        if not(self.previousCardsState[index][0] == self.cardsState[index][0] and self.previousCards[index] in self.innocentCards) and not(self.cardsState[index][0] == "cross" and self.previousCards[index] == "CBrown"  and self.previousCards[index] in self.innocentCards):
+          validated = False
 
-      return True
+      return validated
 
   def checkPawnsPosition(self):
     if self.turnCount == 1:
@@ -504,7 +501,8 @@ class GameBoard():
         elif actionPawn == ActionPawns.APChangeCard:
           actionPawnInvert = ActionPawns.APReturn.name
 
-      actionPawnsNextTurn.append(actionPawnInvert)
+      if actionPawnInvert not in actionPawnsNextTurn:
+        actionPawnsNextTurn.append(actionPawnInvert)
 
     numberOfReturn = self.getNumberOfReturnActionPawns(self.action_pawns)
     if numberOfReturn == 2:
