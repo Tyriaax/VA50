@@ -317,9 +317,11 @@ class GameBoard():
       if self.currentPlayer == "Detective":
         
         if len(indexs) == 1:
+          # We check if the card was not turned and if it is indeed the innocented card
           if self.previousCardsState[indexs[0]][0] == self.cardsState[indexs[0]][0] and self.previousCards[indexs[0]] == self.innocentCards[-1]:
-            self.alibiCardsDict.pop() #If the alibi card is validated, we remove it from the deck
+            self.alibiCardsDict.pop()
             return True
+          # Special case for brown card
           elif self.cardsState[indexs[0]][0] == "cross" and self.previousCards[indexs[0]] == "CBrown"  and self.previousCards[indexs[0]] in self.innocentCards:
             self.alibiCardsDict.pop()
             return True
@@ -327,11 +329,18 @@ class GameBoard():
             self.innocentCards.pop()
             return False
         elif len(indexs) == 0:
-          self.alibiCardsDict.pop() #If the alibi card is validated, we remove it from the deck
-          return True
+          # If no card has changed, we ensure the innocented cards is not in the cards detected
+          if self.innocentCards[-1] not in self.cards:
+            self.alibiCardsDict.pop()
+            return True
+          else:
+            self.innocentCards.pop()
+            return False
+        else:
+          # If more than one card has changed it is automatically not validated
+          self.innocentCards.pop()
+          return False
 
-        self.innocentCards.pop() #Si la carte n'est pas validee alors on n'ajoute pas la carte alibi tirée aux cartes innocentées
-        return False
       else:
         if len(indexs) == 0:
           return True
