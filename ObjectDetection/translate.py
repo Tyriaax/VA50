@@ -12,7 +12,7 @@ TranslateDict = {Cards.CBlack.name : "Noir",
 
     ActionPawns.APSherlock.name : "Sherlock",
     ActionPawns.APAlibi.name : "Alibi",
-    ActionPawns.APToby.name : "Toby",
+    ActionPawns.APToby.name : "Chien Toby",
     ActionPawns.APWatson.name : "Watson",
     ActionPawns.APJoker.name : "Joker",
     ActionPawns.APReturn.name : "Tourner",
@@ -20,7 +20,7 @@ TranslateDict = {Cards.CBlack.name : "Noir",
     ActionPawns.APReturn2.name : "Tourner",
 
     DetectivePawns.DPSherlock.name : "Sherlock",
-    DetectivePawns.DPToby.name : "Toby",
+    DetectivePawns.DPToby.name : "Chien Toby",
     DetectivePawns.DPWatson.name : "Watson",
 
     "up" : "Haut",
