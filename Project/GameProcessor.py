@@ -5,6 +5,12 @@ from drawing import *
 from homography import *
 from pawns_recognition import *
 
+class GameStates(Enum):
+  GSWaitingCards = 0
+  GSWaitingActionPawnsThrow = 1
+  GSUsingActionPawns = 2
+  GSAppealOfWitness = 3
+  GSGameOver = 4
 
 class GameProcessor:
     capEveryFrame = False
@@ -12,6 +18,7 @@ class GameProcessor:
     checkInitialPosition = True
 
     def __init__(self, img, window_name):
+        self.state = GameStates.GSWaitingCards
         self.window_name = window_name
 
         self.height = img.shape[0]
@@ -51,12 +58,12 @@ class GameProcessor:
                 if(self.checkInitialPosition):
                     if (self.gameBoard.checkCardsPosition()):
                         self.gameBoard.updatePreviousCards()
-                        self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
+                        self.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
                     else:
                         self.showError = True
                 else:
                     self.gameBoard.updatePreviousCards()
-                    self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
+                    self.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
         else:
             # We need to apply homography here so that the frames are correctly computed
             img = cv2.warpPerspective(img, self.homographymatrix, (img.shape[1], img.shape[0]))
@@ -85,10 +92,10 @@ class GameProcessor:
         return modifiedimg
 
     def DrawStates(self, modifiedimg):
-        if self.gameBoard.getGameStatus() == GameStates.GSWaitingCards:
+        if self.state == GameStates.GSWaitingCards:
             modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg, drawOffset=True)
             modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Appuyez sur C pour detecter les cartes"], TextPositions.TPTopL)
-        elif self.gameBoard.getGameStatus() == GameStates.GSWaitingActionPawnsThrow:
+        elif self.state == GameStates.GSWaitingActionPawnsThrow:
             if self.gameBoard.getTurnCount() == 1:
                 modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg, drawOffset=True)
                 modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
@@ -101,7 +108,7 @@ class GameProcessor:
                 modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg, drawOffset=True)
                 modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
                 modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Relancez les pions puis appuyez sur P","Ou sur C pour redetecter les cartes"],TextPositions.TPTopL)
-        elif self.gameBoard.getGameStatus() == GameStates.GSUsingActionPawns:
+        elif self.state == GameStates.GSUsingActionPawns:
             # We ask for player input of show the action played by IA
             if (self.gameBoard.getCurrentPlayer() == "Detective"):
                 # If not in the case where we need to show the special alibi msg, we show the basic use action pawn msg
@@ -122,7 +129,7 @@ class GameProcessor:
                 if IAAction is not None:
                     modifiedimg = self.DrawIAAction(modifiedimg, IAAction)
 
-        elif self.gameBoard.getGameStatus() == GameStates.GSAppealOfWitness:
+        elif self.state == GameStates.GSAppealOfWitness:
             if self.isJackSeen:
                 jackString = "Jack est en vue des detectives"
             else:
@@ -131,7 +138,7 @@ class GameProcessor:
             innocentCards = self.gameBoard.getInnocentCards()
             modifiedimg = self.cardsRecognitionHelper.DrawBoxesByName(modifiedimg, innocentCards)
 
-        elif self.gameBoard.getGameStatus() == GameStates.GSGameOver:
+        elif self.state == GameStates.GSGameOver:
             if (self.gameBoard.getDetectiveWins()):
                 winnerstring = "Vous avez gagne"
             else:
@@ -141,16 +148,16 @@ class GameProcessor:
         return modifiedimg
 
     def DrawErrors(self, modifiedimg):
-        if self.gameBoard.getGameStatus() == GameStates.GSWaitingCards:
+        if self.state == GameStates.GSWaitingCards:
             modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Le placement initial des cartes n'est pas respecte","Appuyez sur E pour fermer ce message d'erreur"], TextPositions.TPCenter)
-        elif self.gameBoard.getGameStatus() == GameStates.GSWaitingActionPawnsThrow:
+        elif self.state == GameStates.GSWaitingActionPawnsThrow:
             if self.gameBoard.getTurnCount() == 1:
                 modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Le placement initial des pions n'est pas respecte","Appuyez sur E pour fermer ce message d'erreur"], TextPositions.TPCenter)
             else:
                 modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Le placement des pions n'a pas ete respecte","Appuyez sur E pour fermer ce message d'erreur"], TextPositions.TPCenter)
-        elif self.gameBoard.getGameStatus() == GameStates.GSUsingActionPawns:
+        elif self.state == GameStates.GSUsingActionPawns:
             modifiedimg = drawMultipleLinesOfText(modifiedimg, ["L'action que vous venez de realiser n'a pas ete respectee","Tentez de la valider a nouveau ou", "Revenez a l'etat precedent et choisissez en une autre","Appuyez sur E pour fermer ce message d'erreur"], TextPositions.TPCenter)
-        elif self.gameBoard.getGameStatus() == GameStates.GSAppealOfWitness:
+        elif self.state == GameStates.GSAppealOfWitness:
             modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Le placement des cartes n'a pas ete respecte","Appuyez sur E pour fermer ce message d'erreur"],TextPositions.TPCenter)
 
         return modifiedimg
@@ -184,40 +191,40 @@ class GameProcessor:
         if (key == ord('c')): # or self.capEveryFrame
             # First this is here we check for victory, when we detect the cards after a ManHunt
             if (self.gameBoard.getDetectiveWins() or self.gameBoard.getJackWins()):
-                self.gameBoard.tryUpdateGameStatus(GameStates.GSGameOver)
+                self.tryUpdateGameStatus(GameStates.GSGameOver)
 
-            elif (self.gameBoard.canUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow) and self.gameBoard.actionPawnsPlayed == 0):
+            elif (self.canUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow) and self.gameBoard.actionPawnsPlayed == 0):
                 self.cardsRecognitionHelper.ComputeFrame(img)
 
                 # If we are doing the card recognition for the first turn we need to check if all the cards are placed correctly
                 if (self.gameBoard.getTurnCount() != 1 or self.checkInitialPosition):
                     if (self.gameBoard.checkCardsPosition()):
                         self.gameBoard.updatePreviousCards()
-                        self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
+                        self.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
                     else:
                         self.showError = True
 
                 else:
                     self.gameBoard.updatePreviousCards()
-                    self.gameBoard.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
+                    self.tryUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow)
 
 
         # If we press P for detect Pawns
         if (key == ord('p')): # or self.capEveryFrame
-            if (self.gameBoard.canUpdateGameStatus(GameStates.GSUsingActionPawns) and self.gameBoard.actionPawnsPlayed == 0 and self.gameBoard.getIaAction() is None):
+            if (self.canUpdateGameStatus(GameStates.GSUsingActionPawns) and self.gameBoard.actionPawnsPlayed == 0 and self.gameBoard.getIaAction() is None):
                 self.pawnsRecognitionHelper.ComputeFrame(img)
 
                 # If we are doing the pawns recognition for the first turn we need to check if all the pawns are placed correctly
                 if (self.gameBoard.getTurnCount() != 1 or self.checkInitialPosition):
                     if (self.gameBoard.checkPawnsPosition()):
                         self.gameBoard.updatePreviousPawnsState()
-                        self.gameBoard.tryUpdateGameStatus(GameStates.GSUsingActionPawns)
+                        self.tryUpdateGameStatus(GameStates.GSUsingActionPawns)
                         self.gameBoard.tryComputeIaAction()
                     else:
                         self.showError = True
                 else:
                     self.gameBoard.updatePreviousPawnsState()
-                    self.gameBoard.tryUpdateGameStatus(GameStates.GSUsingActionPawns)
+                    self.tryUpdateGameStatus(GameStates.GSUsingActionPawns)
                     self.gameBoard.tryComputeIaAction()
 
         # If we press E to acknowledge error message
@@ -277,7 +284,7 @@ class GameProcessor:
 
             # If we used all the action pawns move to the next Game Event : Manhunt
             if (len(self.gameBoard.getActionPawns()) == 0):
-                if (self.gameBoard.tryUpdateGameStatus(GameStates.GSAppealOfWitness)):
+                if (self.tryUpdateGameStatus(GameStates.GSAppealOfWitness)):
                     self.isJackSeen = self.cardsRecognitionHelper.IsInLineOfSight(img)
                     self.gameBoard.appealOfWitnesses(self.isJackSeen)
                     self.gameBoard.manhunt()
@@ -297,3 +304,19 @@ class GameProcessor:
                     actionPawnClicked = self.gameBoard.getActionPawns()[actionPawnIndex]
 
                     self.actionPawnClicked = ActionPawns[actionPawnClicked]
+
+    def tryUpdateGameStatus(self, gameState):
+        canUpdate = self.canUpdateGameStatus(gameState)
+        if canUpdate:
+            self.state = gameState
+
+        return canUpdate
+
+    def canUpdateGameStatus(self, gameState):
+        if (((gameState.value < len(GameStates)) and (
+                (gameState == self.state) or (gameState.value == self.state.value + 1)))
+                or ((gameState == GameStates.GSWaitingActionPawnsThrow) and self.state == (
+                GameStates.GSAppealOfWitness))):
+            return True
+        else:
+            return False

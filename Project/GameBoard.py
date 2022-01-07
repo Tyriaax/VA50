@@ -31,13 +31,6 @@ class DetectivePawns(Enum):
   DPToby = 1
   DPWatson = 2
 
-class GameStates(Enum):
-  GSWaitingCards = 0
-  GSWaitingActionPawnsThrow = 1
-  GSUsingActionPawns = 2
-  GSAppealOfWitness = 3
-  GSGameOver = 4
-
 class GameBoard():
   def __init__(self) -> None:
       self.previousCards = list()
@@ -50,7 +43,7 @@ class GameBoard():
       self.detective_pawns = list()
 
       self.action_pawns = [0,0,0,0]
-      self.state = GameStates.GSWaitingCards
+
       self.alibiCardsDict = [
         ("Sgt Goodley", 0, "CBlack"),
         ("Insp. Lestrade", 0, "CBlue"),
@@ -127,9 +120,6 @@ class GameBoard():
   
   def setAlibiCardsDict(self, alibiCardDict):
     self.alibiCardsDict = alibiCardDict
-
-  def getGameStatus(self):
-    return self.state
   
   def getTurnCount(self):
     return self.turnCount
@@ -142,9 +132,6 @@ class GameBoard():
   
   def getJackHourglasses(self):
     return self.jackHourglasses
-  
-  def getGameStage(self):
-    return self.gameStage
 
   def getJackWins(self):
     return self.jackWins
@@ -154,20 +141,6 @@ class GameBoard():
 
   def getDetectiveWins(self):
     return self.detectiveWins
-  
-  def tryUpdateGameStatus(self, gameState):
-    canUpdate = self.canUpdateGameStatus(gameState)
-    if canUpdate:
-      self.state = gameState
-
-    return canUpdate
-
-  def canUpdateGameStatus(self, gameState):
-    if (((gameState.value < len(GameStates)) and ((gameState == self.state) or (gameState.value == self.state.value + 1)))
-    or ((gameState == GameStates.GSWaitingActionPawnsThrow) and self.state == (GameStates.GSAppealOfWitness))):
-      return True
-    else:
-      return False
 
   def getJackPos(self):
     if self.jack in self.cards:
