@@ -152,19 +152,17 @@ class CardsRecognitionHelper:
 
     return pathValues
 
-  def BinarizeCard(self, img, heightCard, widthCard):
+  def BinarizeCard(self, img, heightCard, widthCard): #Binarisation des cartes en fonction de leur chemin
     meanValues = list()
     portionImg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     pathValues = self.getMeanPathValuesCards(img, heightCard, widthCard)
 
-    #Binarize avec les 3 premières values
     for pathValue in pathValues:
       meanValues.append(pathValue.mean())
 
     binValue = sum(meanValues)/len(meanValues)
 
-    #portionImg = cv2.GaussianBlur(portionImg, (3,3), cv2.BORDER_DEFAULT) # TODO Remove
     kernel = np.ones((5,5), np.uint8)
     portionImg = cv2.dilate(portionImg, kernel, iterations=1)
 
@@ -172,7 +170,7 @@ class CardsRecognitionHelper:
 
     return cardThresholded
 
-  def getFrontSideCards(self, img):
+  def getFrontSideCards(self, img): #Récupération de l'orientation des cartes de face
     index = 0
     if(len(self.rectangles) == 9):
       for boundingBox in self.cardRectangle:
@@ -201,7 +199,7 @@ class CardsRecognitionHelper:
         index += 1
     self.boardReference.setCardsState(self.gameBoard)
 
-  def GetEmptySideCards(self, img):
+  def GetEmptySideCards(self, img): #Récupération des cartes retournées et de leur sens
 
     index = 0
     if(len(self.rectangles) > 0):
@@ -255,8 +253,8 @@ class CardsRecognitionHelper:
 
         index += 1
 
-  def InSight(self, detectivePos, orientation, cards : list, heightCard, widthCard, inSightList):
-
+  def InSight(self, detectivePos, orientation, cards : list, heightCard, widthCard, inSightList): #Vérifie qu'une
+    #carte est en vue.
     if len(cards) == 0:
       return
 
@@ -297,8 +295,8 @@ class CardsRecognitionHelper:
     else:
       return
 
-  def IsInLineOfSight(self, img):
-
+  def IsInLineOfSight(self, img): #Récupère les cartes en ligne de vue de chaque détective et si Jack est vue ou pas
+    #Aurait pu être fait simplement avec l'orientation possédé dans les cartes
     possibleDetectivePos = (1,2,3)
     copy = img.copy()
 
@@ -352,7 +350,7 @@ class CardsRecognitionHelper:
       for pos in inSightPos:
         if self.boardReference.cardsState[pos[1]][1] == "front":
           if cards[pos[1]] in inSightList:
-            inSightList.remove(cards[pos[1]]) #Index des cartes en lignes de vues par les détectiives
+            inSightList.remove(cards[pos[1]]) 
 
       self.boardReference.addInnocentCards(inSightList)
       return True

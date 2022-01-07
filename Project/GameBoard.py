@@ -31,7 +31,7 @@ class DetectivePawns(Enum):
   DPToby = 1
   DPWatson = 2
 
-class GameBoard():
+class GameBoard(): #Classe permettant la coordination des détections et des actions effectuées
   def __init__(self) -> None:
       self.previousCards = list()
       self.cards = list()
@@ -142,13 +142,12 @@ class GameBoard():
   def getDetectiveWins(self):
     return self.detectiveWins
 
-  def getJackPos(self):
+  def getJackPos(self): #Retourne la position de jack
     if self.jack in self.cards:
        index = self.cards.index(self.jack)
-       #x, y = index//3 + 1, index%3 + 1
     return index
 
-  def getDetectivesPos(self):
+  def getDetectivesPos(self): #Retourne la position relative en coordonnées 4x4 des détectives
     detectivesPawns = ['DPSherlock', 'DPWatson', 'DPToby']
     correspondingIndexes = ((0,1), (0,2), (0,3), (1,4), (2,4), (3,4), (4,3), (4,2), (4,1), (3,0), (2,0), (1,0))
     detectivesPawnsIndexs = list()
@@ -159,20 +158,20 @@ class GameBoard():
 
     return detectivesPawnsIndexs
   
-  def updatePreviousCards(self):
+  def updatePreviousCards(self): #Actualise les listes previous concernant après une bonne détection
     self.previousCards = self.cards
     self.previousCardsState = self.cardsState
   
-  def updatePreviousPawnsState(self):
+  def updatePreviousPawnsState(self): #Actualise les listes previous concerant les pions détectives après une bonne détection
     self.previousDetectivePawns = self.detective_pawns
 
-  def selectRandomJack(self):
+  def selectRandomJack(self): #Retourne une carte aléatoire dans les cartes alibi
     random.shuffle(self.alibiCardsDict)
     jack = self.alibiCardsDict.pop()
     print("Jack is : ", jack[2])
     return jack[2]
 
-  def get_detective_pawn_index(self, list_dp, detective_pawn):
+  def get_detective_pawn_index(self, list_dp, detective_pawn): #Retourne l'index du détective passé en paramètres
     index_detective = None
     try:
       index_detective = list_dp.index(detective_pawn)
@@ -183,7 +182,7 @@ class GameBoard():
           break
     return index_detective
 
-  def getIndexCardsChanged(self):
+  def getIndexCardsChanged(self): #Retourne l'index de la carte changée
     indexs = []
     if self.cards:
       for index in range(len(self.cards)):
@@ -192,7 +191,7 @@ class GameBoard():
     
     return indexs
 
-  def IsActionPawnRespected(self, action: str):
+  def IsActionPawnRespected(self, action: str): #Verifie qu'une action a été correctement effectuée
  
     if action in ["APJoker", "APSherlock", "APToby", "APWatson"]:
       lengthDetectivePawnsList = len(self.detective_pawns)
@@ -316,8 +315,6 @@ class GameBoard():
         if len(indexs) == 0:
           return True
 
-    #print("current cards :\n ", self.cards , "previous cards:\n ", self.previousCards)
-    #print("current state :\n ", self.cardsState , "previous state:\n ", self.previousCardsState)
     return False
    
   def get_alibi_card(self):
@@ -329,7 +326,7 @@ class GameBoard():
       else:
         self.addInnocentCards([randomAlibiCard[2]])
 
-  def checkVictory(self):
+  def checkVictory(self): #Check les conditions de victoire pour savoir si une partie est terminée
     
     numberOfSuspects = 9 - len(self.innocentCards)
     if self.turnCount == 8 and numberOfSuspects == 1 and self.jackHourglasses > 5:
@@ -343,13 +340,13 @@ class GameBoard():
     elif self.jackHourglasses >= 6:
       self.jackWins = True
   
-  def switchPlayer(self):
+  def switchPlayer(self):  #Change le current player 
     if self.currentPlayer == "Jack":
       self.currentPlayer = "Detective"
     else:
       self.currentPlayer = "Jack"
   
-  def getNextPlayerToUseActionsPawns(self):
+  def getNextPlayerToUseActionsPawns(self): #Change pour le current Player en fonction du nombre d'actions jouées
 
     self.actionPawnsPlayed += 1
 
@@ -392,7 +389,7 @@ class GameBoard():
       else:
         return True
 
-  def checkActionPawnsInverted(self):
+  def checkActionPawnsInverted(self): #Vérifie que les pions actions ont bien été tournés au début d'un tour impair
     for actionPawn in self.action_pawns:
       if actionPawn not in ["APReturn","APReturn2"]:
         if actionPawn not in self.actionPawnsNextTurn:
@@ -451,7 +448,7 @@ class GameBoard():
     if self.turnCount % 2 == 1 and self.actionPawnsPlayed == 0:
       self.actionPawnsNextTurn = self.getInvertActionPawns(self.action_pawns)
   
-  def getInvertActionPawns(self, actionPawnsList):
+  def getInvertActionPawns(self, actionPawnsList): #Récupère la liste des faces cachées des pions actions pour les tours immpairs
     actionPawnsNextTurn = list()
     
     for i in range(len(actionPawnsList)):
@@ -491,19 +488,18 @@ class GameBoard():
 
     return numberOfReturn
 
-  def nextTurn(self):
+  def nextTurn(self): #Appel getNextPlayer pour switch le current player et permet si c'est jack de récupèrer son action
     self.getNextPlayerToUseActionsPawns()
     if self.currentPlayer == "Jack" and self.actionPawnsPlayed < 4:
       self.jackPlays()
     else:
       self.iaAction = None
 
-
   def tryComputeIaAction(self):
     if self.isJackFirst:
       self.jackPlays()
 
-  def jackPlays(self):
+  def jackPlays(self): #Récupère l'action à faire pour l'IA
 
     game_board = {
       "cardsPosition" : self.cards,
@@ -522,7 +518,7 @@ class GameBoard():
   def getIaAction(self):
     return self.iaAction
 
-  def validateCardsInitialPosition(self):
+  def validateCardsInitialPosition(self): #Vérifie que les cartes sont au bon endroit au début du jeu
     validated = True
 
     for cards in self.cardsState:
@@ -540,7 +536,7 @@ class GameBoard():
 
     return validated
 
-  def validatePawnsInitialPosition(self):
+  def validatePawnsInitialPosition(self): #Vérifie que les pions sont au bon endroit au début du jeu
     validated = True
 
     if self.detective_pawns[3] != "DPWatson":

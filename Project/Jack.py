@@ -2,7 +2,7 @@ import copy
 import random
 import numpy as np
 
-class JackAi():
+class JackAi(): #Classe permettant de calculer le meilleur coup de l'ia au moyen d'un minMax
   def jack(self, game_board, turn, is_jack_first, valid_actions): #isJackFirst = True, turn 1 else , turn = 2
     if "APReturn" in valid_actions and "APChangeCard" in valid_actions:
       steps = 3 - turn
@@ -17,7 +17,7 @@ class JackAi():
 
     return best_action
 
-  def score_move(self, game_board, action, steps, valid_actions, turn, is_jack_first): #Calcul score lorsque Jack fait une action
+  def score_move(self, game_board, action, steps, valid_actions, turn, is_jack_first): #Récupère le meilleur pour l'ensemble des gameBoards d'une actions
     scoreMax = - np.Inf
     best_move = None
 
@@ -31,7 +31,7 @@ class JackAi():
 
     return best_move, scoreMax
 
-  def get_possible_actions(self, game_board, action, valid_actions): #Effectue une action qui va cahnger le board
+  def get_possible_actions(self, game_board, action, valid_actions): #Récupère l'ensemble des gameBoards pour une action
     next_game_boards = []
 
     if action in ["APJoker", "APSherlock", "APToby", "APWatson"]:
@@ -64,8 +64,7 @@ class JackAi():
       randomIndex = random.randint(0, len(game_board["remaining_card_suspect"]) - 1)
       game_board["remaining_card_suspect"].pop(randomIndex)
       next_game_boards.append(((copy.deepcopy(game_board)), ("APAlibi")))
-
-    
+   
     valid_actions.remove(action)
     return next_game_boards, valid_actions
 
@@ -89,7 +88,7 @@ class JackAi():
           break
     
     destination_index = (index_detective + move_of)%len(next_game_board["dectectivePawns"])
-    
+    #Code affreux à changer
     if next_game_board["dectectivePawns"][destination_index] == 0 and type(next_game_board["dectectivePawns"][index_detective]) != type(list()):
       next_game_board["dectectivePawns"][index_detective] = 0
       next_game_board["dectectivePawns"][destination_index] = detective_pawn
@@ -108,7 +107,7 @@ class JackAi():
     
     return next_game_board
   
-  def do_change_card_action(self, game_board, index1 , index2):
+  def do_change_card_action(self, game_board, index1 , index2): #Effectue une action échange en deux cartes
     next_game_board = game_board
     card_position1 = next_game_board["cardsPosition"][index1]
     card_position2 = next_game_board["cardsPosition"][index2]
@@ -119,11 +118,8 @@ class JackAi():
     next_game_board["cardsOrientation"][index1], next_game_board["cardsOrientation"][index2] = card_orientation2, card_orientation1
 
     return next_game_board
-
-  def do_alibi_action(self, obs):
-    pass
   
-  def in_sight(self, cards, jack, orientations):
+  def in_sight(self, cards, jack, orientations): #Vérifie si Jack est en vue et le nombre de personne en vue
     jack_in_sight = False
     number_of_people_in_sight = 0
 
@@ -138,7 +134,7 @@ class JackAi():
     
     return jack_in_sight, number_of_people_in_sight
 
-  def get_heuristic(self, game_board):
+  def get_heuristic(self, game_board): #Calcul l'heuristic pour un game_board donné
     maxScore = 100
     board_score = 0
     detectives_position = []
@@ -184,9 +180,6 @@ class JackAi():
       remainSus -= number_of_people_in_sight  #Not in sight
       bonusHourglass = 1
     return maxScore * (sum(range(remainSus-1))/sum(range(8)))* (6 + game_board["hourglasses"]+bonusHourglass)/12
-
-  def is_terminal_node(self, game_board):# check si la partie est terminé
-    pass
 
   def minimax(self, node, depth, isJackFirst, valid_actions, turn):
     is_terminal = self.is_terminal_node(node)
