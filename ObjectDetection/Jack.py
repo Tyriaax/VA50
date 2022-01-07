@@ -25,6 +25,7 @@ class JackAi():
     next_game_boards, valid_actions_remaining = self.get_possible_actions(game_board, action, copy.deepcopy(valid_actions))
     for next_game_board in next_game_boards:
       score = self.minimax(next_game_board[0], steps - 1, is_jack_first, valid_actions_remaining, turn)
+      #print(score, next_game_board)
       if score > scoreMax:
         scoreMax = score
         best_move = next_game_board[1]
@@ -102,17 +103,21 @@ class JackAi():
         next_game_board["dectectivePawns"][index_detective] = next_game_board["dectectivePawns"][index_detective][0]
       next_game_board["dectectivePawns"][destination_index] = detective_pawn
     elif type(next_game_board["dectectivePawns"][destination_index]) == type(str()) and type(next_game_board["dectectivePawns"][index_detective]) == type(str()):
-      next_game_board["dectectivePawns"][index_detective] = 0
-      next_game_board["dectectivePawns"][destination_index] = [ next_game_board["dectectivePawns"][destination_index], detective_pawn]
+      if destination_index != index_detective:
+        next_game_board["dectectivePawns"][index_detective] = 0
+        next_game_board["dectectivePawns"][destination_index] = [ next_game_board["dectectivePawns"][destination_index], detective_pawn]
     
     return next_game_board
   
   def do_change_card_action(self, game_board, index1 , index2):
     next_game_board = game_board
+    card_position1 = next_game_board["cardsPosition"][index1]
+    card_position2 = next_game_board["cardsPosition"][index2]
+    card_orientation2, card_orientation1 = next_game_board["cardsOrientation"][index2], next_game_board["cardsOrientation"][index1]
 
-    next_game_board["cardsPosition"][index1], next_game_board["cardsPosition"][index2] = next_game_board["cardsPosition"][index2], next_game_board["cardsPosition"][index1]
+    next_game_board["cardsPosition"][index1], next_game_board["cardsPosition"][index2] = card_position2, card_position1
 
-    next_game_board["cardsOrientation"][index1], next_game_board["cardsOrientation"][index2] = next_game_board["cardsOrientation"][index2], next_game_board["cardsOrientation"][index1]
+    next_game_board["cardsOrientation"][index1], next_game_board["cardsOrientation"][index2] = card_orientation2, card_orientation1
 
     return next_game_board
 

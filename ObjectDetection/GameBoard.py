@@ -488,8 +488,10 @@ class GameBoard():
   
   def getInvertActionPawns(self, actionPawnsList):
     actionPawnsNextTurn = list()
+    
     for i in range(len(actionPawnsList)):
       actionPawn = ActionPawns[actionPawnsList[i]]
+      actionPawnInvert = None
       if actionPawn.value <= 3:
         if actionPawn.value % 2 == 1:
           actionPawnInvert = ActionPawns(actionPawn.value-1).name
@@ -501,7 +503,7 @@ class GameBoard():
         elif actionPawn == ActionPawns.APChangeCard:
           actionPawnInvert = ActionPawns.APReturn.name
 
-      if actionPawnInvert not in actionPawnsNextTurn:
+      if actionPawnInvert not in actionPawnsNextTurn and actionPawnInvert is not None:
         actionPawnsNextTurn.append(actionPawnInvert)
 
     numberOfReturn = self.getNumberOfReturnActionPawns(self.action_pawns)

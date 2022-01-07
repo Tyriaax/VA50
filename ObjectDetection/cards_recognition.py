@@ -39,9 +39,10 @@ class CardsRecognitionHelper:
 
     self.cardsCNN = cnnHelper("CARDS")
 
-  def GetScreenPortions(self, img,coordinates):
-    cardToCircleProportion = 0.26
+  def GetScreenPortions(self, img, coordinates):
     img = img[coordinates[1]:coordinates[3], coordinates[0]:coordinates[2]]
+
+    cardToCircleProportion = 0.26
     height, width = img.shape[0],img.shape[1] 
     width_portion = int(width / 3)
     height_portion = int(height / 3)
@@ -204,6 +205,7 @@ class CardsRecognitionHelper:
 
     pathValues = self.getMeanPathValuesCards(img, heightCard, widthCard)
 
+    #Binarize avec les 3 premières values
     for pathValue in pathValues:
       meanValues.append(pathValue.mean())
 
@@ -225,10 +227,10 @@ class CardsRecognitionHelper:
           currentimg = img[boundingBox[1]:boundingBox[3], boundingBox[0]:boundingBox[2]]
           heightCard,widthCard, _ = currentimg.shape
           currentimgbinar = self.BinarizeCard(currentimg, heightCard, widthCard)
-          a = self.getMeanPathValuesCards(currentimgbinar, heightCard, widthCard)
+          meanPathValues = self.getMeanPathValuesCards(currentimgbinar, heightCard, widthCard)
           
           meanValues = list()
-          for pathValue in a:
+          for pathValue in meanPathValues:
             meanValues.append(pathValue.mean())
 
           up, down, left, right = meanValues[0], meanValues[1], meanValues[2], meanValues[3]
