@@ -32,10 +32,10 @@ def zncc(img1, img2, u1, v1, u2, v2, n):
     return float(s)/((2*n+1)**2 * std_deviation1 * std_deviation2)
 
 def zncc_score(circleimg, samples = [], orientation = 'up'):
-
     cardCCscore = []
 
     for sample in samples:
+        # Here we rotate the sample to align with the card orientation
         resizedSample = sample
         if(orientation == 'left'):
             resizedSample =cv2.rotate(resizedSample,cv2.ROTATE_90_COUNTERCLOCKWISE)

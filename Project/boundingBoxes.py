@@ -37,11 +37,10 @@ def getBoundingBoxes(img,maxarea,minarea,inspectInsideCountours = False):
   else:
     retrievalMode = cv2.RETR_LIST
 
-  #cnts = cv2.findContours(img2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
   cnts = cv2.findContours(img2, retrievalMode, cv2.CHAIN_APPROX_SIMPLE)
   cnts = cnts[0] if len(cnts) == 2 else cnts[1]
 
-  # We then loop through all the detected contours to only retrieve the ones with a desired area
+  # We then loop through all the detected contours to only retrieve the ones with a desired area and ratio
   for c in cnts:
     area = cv2.contourArea(c)
     if minarea <= area <= maxarea:
@@ -63,7 +62,7 @@ def getBoundingBox(img):
 
   maxfoundarea = 0
   rectangle = []
-  # We then loop through all the detected contours to onl²y retrieve the ones with a desired area
+  # We then loop through all the detected contours to onl²y retrieve the ones with a desired area and ratio
   for c in cnts:
     area = cv2.contourArea(c)
     if (area > maxfoundarea) and (area < maxarea):
@@ -73,6 +72,7 @@ def getBoundingBox(img):
 
   return rectangle
 
+# This fonction adds offset to bounding box values, for example when the coordinates of the Bb were found in a cropped image
 def addOffsetToBb(boundingBoxes, overlayX,overlayY):
     for boundingBox in boundingBoxes:
       boundingBox[0] = boundingBox[0] + overlayX

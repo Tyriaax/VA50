@@ -33,6 +33,7 @@ class CardsRecognitionHelper:
     proportionh = int(cardToCircleProportion * height_portion)
     proportionw = int(cardToCircleProportion * width_portion)
 
+    # In this loop we build the bounding boxes list for the full cards (cardRectangle) and for the center part of the cards (rectangles)
     for i in range(3):
       for j in range(3):
         x = j * width_portion + proportionw
@@ -51,14 +52,15 @@ class CardsRecognitionHelper:
     self.ComputeCardsOrientation(img)
     self.ComputeCards(img)
 
-
-  def ComputeCards(self, img, dontCheckReturnedAndInnocentedCards = False):
+  def ComputeCards(self, img):
     if(len(self.rectangles) > 0):
       znccProbabilities = []
       cnnProbabilities = []
 
-      # Remove the samples of innocentCards
+      # Here we retrieve the list of the innocent cards indexes
       innocentCards = self.boardReference.getInnocentCardsIndex()
+
+      # To remove the zncc samples of the innocented cards
       samplesZncc = self.samplesZncc.copy()
       j = 0
       for i in range(len(self.rectangles)):
@@ -68,7 +70,7 @@ class CardsRecognitionHelper:
           j = j+1
 
       for i in range(len(self.rectangles)):
-        # Only add the probabilities if the card is on the front side
+        # We only compute the probabilities if the card is on the front side
         if(self.gameBoard[i][1] == "front"):
           cardimg = img[self.cardRectangle[i][1]:self.cardRectangle[i][3], self.cardRectangle[i][0]:self.cardRectangle[i][2]]
           circleimg = img[self.rectangles[i][1]:self.rectangles[i][3], self.rectangles[i][0]:self.rectangles[i][2]]
@@ -76,7 +78,7 @@ class CardsRecognitionHelper:
           znccProbabilities.append(zncc_score(circleimg,samplesZncc, orientation=self.gameBoard[i][0]))
           cnnProbability = self.cardsCNN.ComputeImage(cardimg)
 
-          # Remove the unwanted HistogramProbabilities and CNNProbabilities
+          # Since the cnn always gives 9 probabilites, we remove here the ones of the innocented cards
           j = 0
           for i in range(len(self.rectangles)):
             if i in innocentCards:
@@ -88,7 +90,7 @@ class CardsRecognitionHelper:
 
       finalProbabilities = combineProbabilities([znccProbabilities, cnnProbabilities], [0.4, 0.6])
 
-      # We also need to change the list of cards we give to the assignment algorithm
+      # We also need to change the list of cards we give to the assignment algorithm, removing the innocented also here
       CurrentCardsStrings = []
       for card in Cards:
         if card.value not in innocentCards:

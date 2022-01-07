@@ -1,6 +1,7 @@
 from scipy.optimize import linear_sum_assignment
 from drawing import *
 
+# This function is made to combine multiple array of probabilities using the weight array
 def combineProbabilities(probabilitiesList,weights):
   numberOfProbabilitiesToCombine = len(probabilitiesList)
   numberOfObjects = len(probabilitiesList[0])
@@ -15,32 +16,9 @@ def combineProbabilities(probabilitiesList,weights):
 
   return combinedProbability
 
-def drawRectangleWithProbabilities(img,probabilities,boundingBoxes,enum, cardBoard):
-  minProbability = 0
-
-  maxproba = []
-  for i in range(len(probabilities)):
-    maxproba.append(max(probabilities[i]))
-
-  maxValueBb = max(maxproba)
-
-  if(maxValueBb > minProbability):
-    indexMaxValueBb = maxproba.index(maxValueBb)
-    
-    maxValue = max(probabilities[indexMaxValueBb])
-
-    indexMaxValue = probabilities[indexMaxValueBb ].index(maxValue)
-
-    img = drawRectangle(img, boundingBoxes[indexMaxValueBb], enum(indexMaxValue).name)
-    cardBoard[indexMaxValueBb] = enum(indexMaxValue).name
-    probabilities[indexMaxValueBb] = [0 for i in range(len(probabilities[indexMaxValueBb]))]
-    for i in range(len(probabilities)):
-      probabilities[i][indexMaxValue] = 0
-
-    img = drawRectangleWithProbabilities(img, probabilities, boundingBoxes,enum, cardBoard)
-
-  return img
-
+# This function is made to use the linear assignment algorithm
+# It formats the probabilities array in a cost matrix, while inverting the probability
+# so that the cost is inversely proportional
 def linearAssignment(finalProbabilities, selectedEnum):
   costmatrix = np.zeros((len(finalProbabilities),len(finalProbabilities[0])))
   for i in range(len(finalProbabilities)):
@@ -64,6 +42,7 @@ def linearAssignment(finalProbabilities, selectedEnum):
 
   return result
 
+# There is a same version using strings array instead of enum directly
 def linearAssignmentWithStrings(finalProbabilities, selectedStrings):
   costmatrix = np.zeros((len(finalProbabilities),len(finalProbabilities[0])))
   for i in range(len(finalProbabilities)):
@@ -87,6 +66,7 @@ def linearAssignmentWithStrings(finalProbabilities, selectedStrings):
 
   return result
 
+# This fonction duplicates the probabilities of recognition for the return action pawn since there is only 7 classes in the cnn but 8 classes (2 return pawns)
 def FormatActionPawnProbabilitiesMissingSample(probabilities):
   for probability in probabilities:
     probability.append(probability[5])

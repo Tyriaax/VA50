@@ -1,6 +1,8 @@
 import os
 from zncc import *
+import numpy as np
 
+# This function loads the samples, in this case the zncc which is the image converted in gray levels
 def loadSamples(path, resolution = None, circleMask = False, applySharpen = False):
   dir = os.listdir(path)
 

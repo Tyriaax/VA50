@@ -14,6 +14,7 @@ def drawRectangle(img,boundingBox,name):
   cv2.putText(img, translatedname, (boundingBox[0], boundingBox[1] - 10), font, 0.9,(0, 255, 0), 2)
   return img
 
+# This function loops loops through all assigned objets to draw their rectangle and name
 def drawRectanglesWithAssignment(img, foundObjects, boundingBoxes):
   for i in range(len(boundingBoxes)):
     if (foundObjects[i] != 0):
@@ -22,6 +23,7 @@ def drawRectanglesWithAssignment(img, foundObjects, boundingBoxes):
   return img
 
 marginTop = 4
+# This function draws text in the specified position and height offset value
 def drawText(img, text, position, offset = 0):
   textsize = cv2.getTextSize(text, font, 1, 2)[0]
 
@@ -38,6 +40,7 @@ def drawText(img, text, position, offset = 0):
   cv2.putText(img, text, (int(textX), int(textY)), font, 1, (0, 255, 0), 2)
   return img
 
+# This function taxes an array of strings and writes them on multiple lines
 def drawMultipleLinesOfText(img, texts, position):
   for i in range(len(texts)):
     img = drawText(img,texts[i],position,i)

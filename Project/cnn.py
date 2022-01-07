@@ -16,6 +16,7 @@ class cnnHelper:
 
     def ComputeImage(self, img, resizeDimInCircle = 0):
         if resizeDimInCircle != 0:
+            # If we put a value here we will resize the image in square to crop with a circle mask
             dim = (resizeDimInCircle, resizeDimInCircle)
             img = cv2.resize(img, dim, interpolation=cv2.INTER_LINEAR)
             height, width = img.shape[:2]
@@ -29,6 +30,7 @@ class cnnHelper:
         input.unsqueeze_(0)
         input = input.to(self.device)
 
+        # Here we format the output data to retrieve probabilities
         output = self.CNN(input)
         sm = torch.nn.Softmax(dim=1)
         probability = sm(output)

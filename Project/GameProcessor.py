@@ -55,6 +55,7 @@ class GameProcessor:
                 # Then directly compute the cards and their orientation
                 self.cardsRecognitionHelper.ComputeFrame(img)
 
+                # And check their initial position if needed
                 if(self.checkInitialPosition):
                     if (self.gameBoard.checkCardsPosition()):
                         self.gameBoard.updatePreviousCards()
@@ -80,10 +81,12 @@ class GameProcessor:
     def DrawFrame(self, img):
         modifiedimg = img.copy()
 
+        # If the homography matrix is still not found, draw corresponding message and
         if not self.homographymatrixfound:
             modifiedimg = drawText(modifiedimg, "Selectionnez les quatre coins des 9 cartes",TextPositions.TPCenter)
             for coord in self.list_board_coords:
                 cv2.circle(modifiedimg, coord, 10, (0, 255, 0), -1)
+        # Either show error or normal info
         elif self.showError == False:
             modifiedimg = self.DrawStates(modifiedimg)
         else:
@@ -97,10 +100,12 @@ class GameProcessor:
             modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Appuyez sur C pour detecter les cartes"], TextPositions.TPTopL)
         elif self.state == GameStates.GSWaitingActionPawnsThrow:
             if self.gameBoard.getTurnCount() == 1:
+                # This message is only for first turn
                 modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg, drawOffset=True)
                 modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
                 modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Appuyez sur P pour detecter les pions", "Ou sur C pour redetecter les cartes"], TextPositions.TPTopL)
             elif self.gameBoard.getTurnCount() % 2 == 0:
+                # Here we need to tell to turn the pawns
                 modifiedimg = self.pawnsRecognitionHelper.DrawZonesRectangles(modifiedimg, drawOffset=True)
                 modifiedimg = self.cardsRecognitionHelper.DrawFrame(modifiedimg)
                 modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Retournez les pions puis appuyez sur P", "Ou sur C pour redetecter les cartes"], TextPositions.TPTopL)
@@ -121,9 +126,9 @@ class GameProcessor:
                     innocentedCard = self.gameBoard.getInnocentedCard()
                     modifiedimg = drawMultipleLinesOfText(modifiedimg, ["La carte alibi tiree est : " + translate(innocentedCard), "Retournez la carte innocente si elle est presente", "Puis appuyez sur espace"], TextPositions.TPTopL)
                     modifiedimg = self.cardsRecognitionHelper.DrawBoxesByName(modifiedimg, [innocentedCard])
-                    #modifiedimg = drawPlayerAndTurn(modifiedimg, self.gameBoard.getCurrentPlayer(), self.gameBoard.getTurnCount())
 
             else:
+                # Here we draw the actions of the AI
                 modifiedimg = drawPlayerAndTurn(modifiedimg, self.gameBoard.getCurrentPlayer(), self.gameBoard.getTurnCount())
                 IAAction = self.gameBoard.getIaAction()
                 if IAAction is not None:
@@ -151,6 +156,7 @@ class GameProcessor:
         if self.state == GameStates.GSWaitingCards:
             modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Le placement initial des cartes n'est pas respecte","Appuyez sur E pour fermer ce message d'erreur"], TextPositions.TPCenter)
         elif self.state == GameStates.GSWaitingActionPawnsThrow:
+            # Different messages if first turn or not
             if self.gameBoard.getTurnCount() == 1:
                 modifiedimg = drawMultipleLinesOfText(modifiedimg, ["Le placement initial des pions n'est pas respecte","Appuyez sur E pour fermer ce message d'erreur"], TextPositions.TPCenter)
             else:
@@ -184,7 +190,7 @@ class GameProcessor:
 
         key = cv2.waitKey(1) & 0xFF
 
-        # Exit if Q or ESC pressed
+        # Exit if Q or ESC pressed by setting continuebool
         if key == ord('q') or key == 27:
             continuebool = False
         # If we press C for detect Cards
@@ -196,7 +202,7 @@ class GameProcessor:
             elif (self.canUpdateGameStatus(GameStates.GSWaitingActionPawnsThrow) and self.gameBoard.actionPawnsPlayed == 0):
                 self.cardsRecognitionHelper.ComputeFrame(img)
 
-                # If we are doing the card recognition for the first turn we need to check if all the cards are placed correctly
+                # If we are doing the card recognition for the first turn we need to check if all the cards are placed correctly, else we need to check the appealofwitness is respected
                 if (self.gameBoard.getTurnCount() != 1 or self.checkInitialPosition):
                     if (self.gameBoard.checkCardsPosition()):
                         self.gameBoard.updatePreviousCards()
@@ -214,17 +220,19 @@ class GameProcessor:
             if (self.canUpdateGameStatus(GameStates.GSUsingActionPawns) and self.gameBoard.actionPawnsPlayed == 0 and self.gameBoard.getIaAction() is None):
                 self.pawnsRecognitionHelper.ComputeFrame(img)
 
-                # If we are doing the pawns recognition for the first turn we need to check if all the pawns are placed correctly
+                # If we are doing the pawns recognition for the first turn we need to check if all the pawns are placed correctly, else we need to check they have not moved
                 if (self.gameBoard.getTurnCount() != 1 or self.checkInitialPosition):
                     if (self.gameBoard.checkPawnsPosition()):
                         self.gameBoard.updatePreviousPawnsState()
                         self.tryUpdateGameStatus(GameStates.GSUsingActionPawns)
+                        # We try to get an IA action here if it is its turn since we need to have detected the pawns beforehand
                         self.gameBoard.tryComputeIaAction()
                     else:
                         self.showError = True
                 else:
                     self.gameBoard.updatePreviousPawnsState()
                     self.tryUpdateGameStatus(GameStates.GSUsingActionPawns)
+                    # We try to get an IA action here if it is its turn since we need to have detected the pawns beforehand
                     self.gameBoard.tryComputeIaAction()
 
         # If we press E to acknowledge error message
@@ -289,6 +297,7 @@ class GameProcessor:
                     self.gameBoard.appealOfWitnesses(self.isJackSeen)
                     self.gameBoard.manhunt()
         else:
+            # Else we trigger an error message
             self.showError = True
 
     def ComputeMouseInput(self,event,x,y,flags,params):
