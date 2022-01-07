@@ -14,15 +14,8 @@ class PawnsRecognitionHelper:
   maxThrownActionPawnsNumber = 4
 
   def __init__(self, gameBoard):
-
-    DPpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Pawns", "DetectivePawns"))
-    APpath = os.path.abspath(os.path.join(os.path.dirname(__file__), "Samples", self.selectedSamplesQuality, "Pawns", "ActionPawns"))
     self.applyCircleMask = True
     self.applySharpenFilter = True
-
-    [self.DPsamplesSiftInfos, self.DPsamplesHistograms, self.DPsamplesZncc] = loadSamples(DPpath, self.selectedSamplesResolution,  self.applyCircleMask, self.applySharpenFilter)
-
-    [self.APsamplesSiftInfos, self.APsamplesHistograms, self.APsamplesZncc] = loadSamples(APpath, self.selectedSamplesResolution, self.applyCircleMask, self.applySharpenFilter)
 
     self.boardReference = gameBoard
     self.detectivePawnsLocations = list()

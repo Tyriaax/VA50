@@ -1,24 +1,17 @@
 import os
-from sift import *
 from zncc import *
-
 
 def loadSamples(path, resolution = None, circleMask = False, applySharpen = False):
   dir = os.listdir(path)
 
-  samplesSiftInfoList = []
   samplesZncc = []
 
   for image in dir:
     img = cv2.imread(os.path.join(path, image))
-    if resolution:
-      samplesSiftInfoList.append(SiftInfo(img,resolution, circleMask, applySharpen))
-    else:
-      samplesSiftInfoList.append(SiftInfo(img))
 
     samplesZncc.append(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
 
-  return [samplesSiftInfoList, samplesZncc]
+  return samplesZncc
 
 def increaseImgColorContrast(img):
   hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)

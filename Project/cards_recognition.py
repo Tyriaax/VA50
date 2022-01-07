@@ -19,7 +19,7 @@ class CardsRecognitionHelper:
     self.rectangles = list()
     self.gameBoard = np.zeros((9,2), dtype= np.chararray)
 
-    [self.samplesSiftInfos, self.samplesHistograms, self.samplesZncc] = loadSamples(path, self.selectedSamplesResolution)
+    self.samplesZncc = loadSamples(path, self.selectedSamplesResolution)
 
     self.cardsCNN = cnnHelper("CARDS")
 
