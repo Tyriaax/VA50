@@ -3,6 +3,7 @@ import random
 import numpy as np
 
 class JackAi(): #Classe permettant de calculer le meilleur coup de l'ia au moyen d'un minMax
+  
   def jack(self, game_board, turn, is_jack_first, valid_actions): #isJackFirst = True, turn 1 else , turn = 2
     if "APReturn" in valid_actions and "APChangeCard" in valid_actions:
       steps = 3 - turn
@@ -182,7 +183,7 @@ class JackAi(): #Classe permettant de calculer le meilleur coup de l'ia au moyen
     return maxScore * (sum(range(remainSus-1))/sum(range(8)))* (6 + game_board["hourglasses"]+bonusHourglass)/12
 
   def minimax(self, node, depth, isJackFirst, valid_actions, turn):
-    is_terminal = self.is_terminal_node(node)
+
     if depth == 0 or len(valid_actions) == 0:
         return self.get_heuristic(node)
     if (isJackFirst and (turn == 0 or turn == 3)) or (not isJackFirst and (turn == 1 or turn == 2)):
